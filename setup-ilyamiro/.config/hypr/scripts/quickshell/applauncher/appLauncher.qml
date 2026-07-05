@@ -96,11 +96,22 @@ Item {
 
         let q = query.toLowerCase();
         let filtered = [];
+        let typed = query.trim();
         
         for (let i = 0; i < allApps.length; i++) {
             if (allApps[i].name.toLowerCase().includes(q)) {
                 filtered.push(allApps[i]);
             }
+        }
+
+        // Always add a "run command" item when user has typed something
+        if (typed.length > 0) {
+            filtered.push({
+                name: "Run: " + typed,
+                exec: typed,
+                icon: "terminal",
+                isCommand: true
+            });
         }
 
         for (let i = appModel.count - 1; i >= 0; i--) {
@@ -282,7 +293,7 @@ Item {
                         font.family: "JetBrains Mono"
                         font.pixelSize: window.s(16)
                         
-                        placeholderText: "Search..."
+                                        placeholderText: "Search apps or type a command..."
                         placeholderTextColor: window.subtext0 
                         
                         verticalAlignment: TextInput.AlignVCenter
@@ -307,8 +318,18 @@ Item {
                             event.accepted = true;
                         }
                         Keys.onReturnPressed: {
+                            // If an app is selected from the list, launch it
                             if (appList.currentIndex >= 0 && appList.currentIndex < appModel.count) {
-                                launchApp(appModel.get(appList.currentIndex).exec);
+                                var item = appModel.get(appList.currentIndex);
+                                if (item.isCommand) {
+                                    // Run the typed text as a shell command
+                                    window.launchApp(searchInput.text.trim());
+                                } else {
+                                    window.launchApp(item.exec);
+                                }
+                            } else if (searchInput.text.trim().length > 0) {
+                                // No app selected — run typed text as a shell command
+                                window.launchApp(searchInput.text.trim());
                             }
                             event.accepted = true;
                         }
