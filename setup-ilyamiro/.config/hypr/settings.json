@@ -1,0 +1,46 @@
+{
+  "uiScale": 1.2,
+  "openGuideAtStartup": true,
+  "topbarHelpIcon": true,
+  "wallpaperDir": "/home/juandiego/Pictures/Wallpapers",
+  "language": "latam",
+  "kbOptions": "grp:alt_shift_toggle",
+  "workspaceCount": 8,
+  "monitors": [
+    {
+      "name": "DP-2",
+      "resW": 1280,
+      "resH": 1024,
+      "rate": 60,
+      "x": 1366,
+      "y": 0,
+      "scale": 1,
+      "transform": 0
+    },
+    {
+      "name": "HDMI-A-1",
+      "resW": 1366,
+      "resH": 768,
+      "rate": 60,
+      "x": 0,
+      "y": 128,
+      "scale": 1,
+      "transform": 0
+    }
+  ],
+  "startup": [
+    {"command": "systemctl --user start hyprpolkitagent"},
+    {"command": "awww-daemon"},
+    {"command": "hypridle"},
+    {"command": "quickshell -p ~/.config/hypr/scripts/quickshell/Shell.qml"},
+    {"command": "~/.config/hypr/scripts/quickshell/focustime/launch_daemon.sh"},
+    {"command": "~/.config/hypr/scripts/init.sh"},
+    {"command": "~/.config/hypr/scripts/settings_watcher.sh &"},
+    {"command": "playerctld"},
+    {"command": "swayosd-server --top-margin 0.9 --style \"$HOME/.config/swayosd/style.css\""},
+    {"command": "wl-paste --type text --watch cliphist store"},
+    {"command": "wl-paste --type image --watch cliphist store"},
+    {"command": "~/.config/hypr/scripts/volume_listener.sh"},
+    {"command": "~/.config/hypr/scripts/update_notifier.sh"}
+  ]
+}
