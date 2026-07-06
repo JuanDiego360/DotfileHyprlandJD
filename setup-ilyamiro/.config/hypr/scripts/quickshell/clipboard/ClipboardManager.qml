@@ -427,6 +427,41 @@ Item {
                         }
                         event.accepted = true;
                     }
+
+                    Keys.onDeletePressed: {
+                        if (event.modifiers & Qt.ShiftModifier) {
+                            if (clipList.currentIndex >= 0 && clipList.currentIndex < clipModel.count) {
+                                let item = clipModel.get(clipList.currentIndex);
+                                let iid = item.id;
+                                
+                                // Run delete command in background
+                                Quickshell.execDetached(["bash", "-c", "cliphist list | grep -E '^" + iid + "'$'\\t' | cliphist delete"]);
+                                
+                                // Remove from local lists
+                                for (let i = 0; i < allClips.length; i++) {
+                                    if (allClips[i].id === iid) {
+                                        allClips.splice(i, 1);
+                                        break;
+                                    }
+                                }
+                                
+                                clipModel.remove(clipList.currentIndex);
+                                
+                                // Adjust current index
+                                if (clipModel.count > 0) {
+                                    if (clipList.currentIndex >= clipModel.count) {
+                                        clipList.currentIndex = clipModel.count - 1;
+                                    }
+                                } else {
+                                    clipList.currentIndex = -1;
+                                    window.previewMode = false;
+                                }
+                                
+                                Quickshell.execDetached(["notify-send", "Portapapeles", "Elemento eliminado de la historia", "-a", "Shell"]);
+                            }
+                            event.accepted = true;
+                        }
+                    }
                     
                     Keys.onEscapePressed: {
                         if (window.previewMode) {

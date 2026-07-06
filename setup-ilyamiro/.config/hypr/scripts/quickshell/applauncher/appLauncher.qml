@@ -11,6 +11,8 @@ Item {
     id: window
     focus: true
 
+    Caching { id: paths }
+
     // --- Responsive Scaling Logic ---
     Scaler {
         id: scaler
@@ -85,6 +87,161 @@ Item {
         onTriggered: window.isKeyboardNav = false
     }
 
+    property var currentFiles: []
+    property var currentClips: []
+    property string mathResult: ""
+
+    function isMathExpression(str) {
+        if (str.startsWith("=")) return true;
+        if (/^\d/.test(str) && /[\+\-\*\/%\^]/.test(str)) return true;
+        if (/^(sqrt|sin|cos|tan|log|ln|abs)\(/.test(str)) return true;
+        return false;
+    }
+
+    function evaluateMath(str) {
+        let expr = str;
+        if (expr.startsWith("=")) {
+            expr = expr.slice(1);
+        }
+        mathProc.expression = expr;
+        mathProc.running = false;
+        mathProc.running = true;
+    }
+
+    Timer {
+        id: fileSearchDebounce
+        interval: 150
+        repeat: false
+        onTriggered: {
+            let typed = searchInput.text.trim();
+            if (typed.length >= 1) {
+                if (typed.startsWith(";")) {
+                    let clipQuery = typed.slice(1);
+                    clipSearcher.searchQuery = clipQuery;
+                    clipSearcher.running = false;
+                    clipSearcher.running = true;
+                    window.mathResult = "";
+                    window.currentFiles = [];
+                } else if (typed.length >= 2) {
+                    if (isMathExpression(typed)) {
+                        evaluateMath(typed);
+                    } else {
+                        window.mathResult = "";
+                    }
+                    fileSearcher.searchQuery = typed;
+                    fileSearcher.running = false;
+                    fileSearcher.running = true;
+                    window.currentClips = [];
+                }
+            } else {
+                window.mathResult = "";
+                if (window.currentFiles.length > 0) {
+                    window.currentFiles = [];
+                }
+                if (window.currentClips.length > 0) {
+                    window.currentClips = [];
+                }
+                filterApps(searchInput.text);
+            }
+        }
+    }
+
+    Process {
+        id: fileSearcher
+        property string searchQuery: ""
+        command: ["fd", "--max-results", "10", "--type", "f", searchQuery, Quickshell.env("HOME")]
+        
+        stdout: StdioCollector {
+            onStreamFinished: {
+                if (fileSearcher.searchQuery === "") return;
+                let lines = this.text.split("\n");
+                let files = [];
+                for (let i = 0; i < lines.length; i++) {
+                    let line = lines[i].trim();
+                    if (line === "") continue;
+                    let filename = line.split("/").pop();
+                    
+                    // Determine file icon based on extension
+                    let iconName = "document";
+                    let ext = filename.split(".").pop().toLowerCase();
+                    if (["png", "jpg", "jpeg", "svg", "webp", "gif"].indexOf(ext) !== -1) {
+                        iconName = line; // Absolute path for image preview
+                    } else if (["mp4", "mkv", "avi", "mov", "webm"].indexOf(ext) !== -1) {
+                        iconName = "video-x-generic";
+                    } else if (["mp3", "flac", "wav", "ogg", "m4a"].indexOf(ext) !== -1) {
+                        iconName = "audio-x-generic";
+                    } else if (["pdf"].indexOf(ext) !== -1) {
+                        iconName = "document-pdf";
+                    } else if (["zip", "tar", "gz", "xz", "rar", "7z"].indexOf(ext) !== -1) {
+                        iconName = "package-x-generic";
+                    } else if (["html", "css", "js", "ts", "py", "sh", "json", "md", "txt", "c", "cpp", "h", "java", "rs", "go", "php"].indexOf(ext) !== -1) {
+                        iconName = "text-x-generic";
+                    }
+
+                    files.push({
+                        name: filename,
+                        exec: line,
+                        icon: iconName,
+                        isFile: true
+                    });
+                }
+                window.currentFiles = files;
+                filterApps(searchInput.text);
+            }
+        }
+    }
+
+    Process {
+        id: mathProc
+        property string expression: ""
+        command: ["qalc", "-t", expression]
+        
+        stdout: StdioCollector {
+            onStreamFinished: {
+                if (mathProc.expression === "") return;
+                let res = this.text.trim();
+                if (res !== "" && res !== mathProc.expression) {
+                    window.mathResult = res;
+                } else {
+                    window.mathResult = "";
+                }
+                filterApps(searchInput.text);
+            }
+        }
+    }
+
+    Process {
+        id: clipSearcher
+        property string searchQuery: ""
+        command: ["python3", Quickshell.env("HOME") + "/.config/hypr/scripts/quickshell/clipboard/clip_fetcher.py", "0", "10", paths.getCacheDir("clipboard"), searchQuery]
+        
+        stdout: StdioCollector {
+            onStreamFinished: {
+                if (clipSearcher.searchQuery === "" && !searchInput.text.startsWith(";")) return;
+                try {
+                    if (this.text && this.text.trim().length > 0) {
+                        let rawClips = JSON.parse(this.text);
+                        let clips = [];
+                        for (let i = 0; i < rawClips.length; i++) {
+                            let item = rawClips[i];
+                            clips.push({
+                                name: item.content,
+                                exec: item.id,
+                                icon: item.type === "image" ? item.content : "content-paste",
+                                isClipboard: true,
+                                isImage: item.type === "image"
+                            });
+                        }
+                        window.currentClips = clips;
+                        filterApps(searchInput.text);
+                    }
+                } catch(e) {
+                    console.log("Error parsing clipboard search: ", e);
+                }
+            }
+        }
+    }
+
     // --- SMART DIFFING FILTER ---
     function filterApps(query) {
         // Disable morphing behavior so the highlight box sticks to the flying item
@@ -98,20 +255,45 @@ Item {
         let filtered = [];
         let typed = query.trim();
         
-        for (let i = 0; i < allApps.length; i++) {
-            if (allApps[i].name.toLowerCase().includes(q)) {
-                filtered.push(allApps[i]);
+        if (typed.startsWith(";")) {
+            // Only add clipboard items
+            for (let i = 0; i < currentClips.length; i++) {
+                filtered.push(currentClips[i]);
             }
-        }
+        } else {
+            // 1. Prepend math result if available
+            if (window.mathResult !== "") {
+                let expr = typed.startsWith("=") ? typed.slice(1) : typed;
+                filtered.push({
+                    name: window.mathResult,
+                    exec: window.mathResult,
+                    icon: "calculate",
+                    isMath: true,
+                    expression: expr
+                });
+            }
 
-        // Always add a "run command" item when user has typed something
-        if (typed.length > 0) {
-            filtered.push({
-                name: "Run: " + typed,
-                exec: typed,
-                icon: "terminal",
-                isCommand: true
-            });
+            // 2. Add filtered applications
+            for (let i = 0; i < allApps.length; i++) {
+                if (allApps[i].name.toLowerCase().includes(q)) {
+                    filtered.push(allApps[i]);
+                }
+            }
+
+            // 3. Add file search results
+            for (let i = 0; i < currentFiles.length; i++) {
+                filtered.push(currentFiles[i]);
+            }
+
+            // 4. Always add a "run command" item when user has typed something
+            if (typed.length > 0) {
+                filtered.push({
+                    name: "Run: " + typed,
+                    exec: typed,
+                    icon: "terminal",
+                    isCommand: true
+                });
+            }
         }
 
         for (let i = appModel.count - 1; i >= 0; i--) {
@@ -156,8 +338,18 @@ Item {
         }
     }
 
-    function launchApp(execStr) {
-        Quickshell.execDetached(["hyprctl", "dispatch", "exec", "--", execStr]);
+    function launchApp(execStr, isFile, isMath, isClipboard) {
+        if (isClipboard) {
+            Quickshell.execDetached(["bash", "-c", "cliphist decode " + execStr + " | wl-copy"]);
+            Quickshell.execDetached(["notify-send", "Portapapeles", "Elemento copiado al portapapeles", "-a", "Shell"]);
+        } else if (isMath) {
+            Quickshell.clipboardText = execStr;
+            Quickshell.execDetached(["notify-send", "Calculadora", "Resultado copiado al portapapeles: " + execStr, "-a", "Shell"]);
+        } else if (isFile) {
+            Quickshell.execDetached(["xdg-open", execStr]);
+        } else {
+            Quickshell.execDetached(["hyprctl", "dispatch", "exec", "--", execStr]);
+        }
         Quickshell.execDetached(["bash", Quickshell.env("HOME") + "/.config/hypr/scripts/qs_manager.sh", "close"]);
     }
 
@@ -293,13 +485,26 @@ Item {
                         font.family: "JetBrains Mono"
                         font.pixelSize: window.s(16)
                         
-                                        placeholderText: "Search apps or type a command..."
+                                        placeholderText: "Search apps, files, clipboard, or commands..."
                         placeholderTextColor: window.subtext0 
                         
                         verticalAlignment: TextInput.AlignVCenter
                         focus: true
 
-                        onTextChanged: filterApps(text)
+                        onTextChanged: {
+                            filterApps(text);
+                            if (text.trim().length >= 2 || text.trim().startsWith(";")) {
+                                fileSearchDebounce.restart();
+                            } else {
+                                fileSearchDebounce.stop();
+                                window.mathResult = "";
+                                if (window.currentFiles.length > 0 || window.currentClips.length > 0) {
+                                    window.currentFiles = [];
+                                    window.currentClips = [];
+                                    filterApps(text);
+                                }
+                            }
+                        }
 
                         Keys.onDownPressed: {
                             window.isKeyboardNav = true;
@@ -318,18 +523,18 @@ Item {
                             event.accepted = true;
                         }
                         Keys.onReturnPressed: {
-                            // If an app is selected from the list, launch it
+                            // If an app, file, math result, or clipboard item is selected from the list, launch it
                             if (appList.currentIndex >= 0 && appList.currentIndex < appModel.count) {
                                 var item = appModel.get(appList.currentIndex);
                                 if (item.isCommand) {
                                     // Run the typed text as a shell command
-                                    window.launchApp(searchInput.text.trim());
+                                    window.launchApp(searchInput.text.trim(), false, false, false);
                                 } else {
-                                    window.launchApp(item.exec);
+                                    window.launchApp(item.exec, item.isFile || false, item.isMath || false, item.isClipboard || false);
                                 }
                             } else if (searchInput.text.trim().length > 0) {
                                 // No app selected — run typed text as a shell command
-                                window.launchApp(searchInput.text.trim());
+                                window.launchApp(searchInput.text.trim(), false, false, false);
                             }
                             event.accepted = true;
                         }
@@ -543,15 +748,10 @@ Item {
                                 }
                             }
 
-                            Text {
+                            ColumnLayout {
                                 Layout.fillWidth: true
-                                text: model.name
-                                font.family: "JetBrains Mono"
-                                font.pixelSize: window.s(14)
-                                font.weight: index === appList.currentIndex ? Font.Bold : Font.Medium
-                                color: index === appList.currentIndex ? window.crust : window.text
-                                elide: Text.ElideRight
-                                verticalAlignment: Text.AlignVCenter
+                                spacing: window.s(1)
+                                Layout.alignment: Qt.AlignVCenter
                                 
                                 property real textShift: index === appList.currentIndex ? window.s(6) : 0
                                 transform: Translate { x: textShift }
@@ -559,7 +759,28 @@ Item {
                                 Behavior on textShift { 
                                     NumberAnimation { duration: 500; easing.type: Easing.OutExpo } 
                                 }
-                                Behavior on color { ColorAnimation { duration: 300; easing.type: Easing.OutExpo } }
+
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: model.name
+                                    font.family: "JetBrains Mono"
+                                    font.pixelSize: window.s(14)
+                                    font.weight: index === appList.currentIndex ? Font.Bold : Font.Medium
+                                    color: index === appList.currentIndex ? window.crust : window.text
+                                    elide: Text.ElideRight
+                                    Behavior on color { ColorAnimation { duration: 300; easing.type: Easing.OutExpo } }
+                                }
+
+                                Text {
+                                    Layout.fillWidth: true
+                                    visible: model.isFile || model.isMath || model.isClipboard || false
+                                    text: model.isMath ? ("Result of " + model.expression) : (model.isClipboard ? (model.isImage ? "Clipboard image" : "Clipboard text") : (model.isFile ? model.exec : ""))
+                                    font.family: "JetBrains Mono"
+                                    font.pixelSize: window.s(10)
+                                    color: index === appList.currentIndex ? Qt.rgba(window.crust.r, window.crust.g, window.crust.b, 0.7) : window.subtext0
+                                    elide: Text.ElideMiddle
+                                    Behavior on color { ColorAnimation { duration: 300; easing.type: Easing.OutExpo } }
+                                }
                             }
                         }
 
@@ -569,7 +790,7 @@ Item {
                             hoverEnabled: true
                             onClicked: {
                                 appList.currentIndex = index;
-                                launchApp(model.exec);
+                                launchApp(model.exec, model.isFile || false, model.isMath || false, model.isClipboard || false);
                             }
                         }
                     }

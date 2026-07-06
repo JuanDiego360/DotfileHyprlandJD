@@ -557,6 +557,47 @@ Variants {
             }
             Timer { interval: 150000; running: true; repeat: true; triggeredOnStart: true; onTriggered: { weatherPoller.running = false; weatherPoller.running = true; } }
 
+            property string moonIcon: "🌑"
+            property string moonNfIcon: "󰽢"
+            property string moonPercentStr: "0%"
+            property string moonPhaseEs: "Luna Nueva"
+            property string moonriseTime: "--:--"
+            property string moonsetTime: "--:--"
+            property string moonTransitTime: "--:--"
+            property string sunriseTime: "--:--"
+            property string sunsetTime: "--:--"
+            property string sunTransitTime: "--:--"
+            property string moonDistanceStr: "-- km"
+
+            Process {
+                id: moonPoller
+                command: ["python3", Quickshell.env("HOME") + "/.config/hypr/scripts/quickshell/watchers/moon_data.py"]
+                stdout: StdioCollector {
+                    onStreamFinished: {
+                        let txt = this.text.trim();
+                        if (txt !== "") {
+                            try {
+                                let data = JSON.parse(txt);
+                                barWindow.moonIcon = data.moon_icon || "🌑";
+                                barWindow.moonNfIcon = data.moon_nf_icon || "󰽢";
+                                barWindow.moonPercentStr = data.illumination || "0%";
+                                barWindow.moonPhaseEs = data.phase_name_es || "Luna Nueva";
+                                barWindow.moonriseTime = data.moonrise || "--:--";
+                                barWindow.moonsetTime = data.moonset || "--:--";
+                                barWindow.moonTransitTime = data.moon_transit || "--:--";
+                                barWindow.sunriseTime = data.sunrise || "--:--";
+                                barWindow.sunsetTime = data.sunset || "--:--";
+                                barWindow.sunTransitTime = data.sun_transit || "--:--";
+                                barWindow.moonDistanceStr = data.distance || "-- km";
+                            } catch(e) {
+                                console.log("Error parsing moon data: ", e);
+                            }
+                        }
+                    }
+                }
+            }
+            Timer { interval: 300000; running: true; repeat: true; triggeredOnStart: true; onTriggered: { moonPoller.running = false; moonPoller.running = true; } }
+
 
             Timer {
                 interval: 1000; running: true; repeat: true; triggeredOnStart: true
@@ -1288,6 +1329,58 @@ Variants {
                                     Text { anchors.verticalCenter: parent.verticalCenter; text: barWindow.kbLayout; font.family: "JetBrains Mono"; font.pixelSize: barWindow.s(13); font.weight: Font.Black; color: mocha.text }
                                 }
                                 MouseArea { id: kbMouse; anchors.fill: parent; hoverEnabled: true; onClicked: Quickshell.execDetached(["hyprctl", "switchxkblayout", "main", "next"]) }
+                            }
+
+                            Rectangle {
+                                id: moonPill
+                                property bool isHovered: moonMouse.containsMouse
+                                color: isHovered ? Qt.rgba(mocha.surface1.r, mocha.surface1.g, mocha.surface1.b, 0.6) : Qt.rgba(mocha.surface0.r, mocha.surface0.g, mocha.surface0.b, 0.4)
+                                radius: barWindow.s(10); height: sysLayout.pillHeight;
+                                clip: true
+                                
+                                property real targetWidth: moonLayoutRow.implicitWidth + barWindow.s(24)
+                                width: targetWidth
+                                Behavior on width { NumberAnimation { duration: 500; easing.type: Easing.OutQuint } }
+                                
+                                scale: isHovered ? 1.05 : 1.0
+                                Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutExpo } }
+                                Behavior on color { ColorAnimation { duration: 200 } }
+
+                                property bool initAnimTrigger: false
+                                Timer { running: rightContent.showLayout && !parent.initAnimTrigger; interval: 20; onTriggered: parent.initAnimTrigger = true }
+                                opacity: initAnimTrigger ? 1 : 0
+                                transform: Translate { y: parent.initAnimTrigger ? 0 : barWindow.s(15); Behavior on y { NumberAnimation { duration: 500; easing.type: Easing.OutBack } } }
+                                Behavior on opacity { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
+
+                                Row { 
+                                    id: moonLayoutRow
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    anchors.left: parent.left
+                                    anchors.leftMargin: barWindow.s(12)
+                                    spacing: barWindow.s(8)
+                                    Text { 
+                                        anchors.verticalCenter: parent.verticalCenter; 
+                                        text: barWindow.moonNfIcon; 
+                                        font.family: "Iosevka Nerd Font"; 
+                                        font.pixelSize: barWindow.s(16); 
+                                        color: parent.parent.isHovered ? mocha.mauve : mocha.blue 
+                                        Behavior on color { ColorAnimation { duration: 200 } }
+                                    }
+                                    Text { 
+                                        anchors.verticalCenter: parent.verticalCenter; 
+                                        text: barWindow.moonPercentStr; 
+                                        font.family: "JetBrains Mono"; 
+                                        font.pixelSize: barWindow.s(13); 
+                                        font.weight: Font.Black; 
+                                        color: mocha.text 
+                                    }
+                                }
+                                MouseArea { 
+                                    id: moonMouse; 
+                                    anchors.fill: parent; 
+                                    hoverEnabled: true; 
+                                    onClicked: Quickshell.execDetached(["bash", "-c", "~/.config/hypr/scripts/qs_manager.sh toggle moon"])
+                                }
                             }
 
                             Rectangle {

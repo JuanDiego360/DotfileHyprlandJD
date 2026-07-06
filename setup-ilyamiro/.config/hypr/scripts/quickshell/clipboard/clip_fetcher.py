@@ -34,11 +34,18 @@ def get_cliphist():
     cache_dir = sys.argv[3] if len(sys.argv) > 3 else os.environ.get("QS_CACHE_CLIPBOARD", os.path.expanduser("~/.cache/quickshell/clipboard"))
     os.makedirs(cache_dir, exist_ok=True)
     
+    # Optional search query
+    query = sys.argv[4] if len(sys.argv) > 4 else ""
+    
     try:
         # Fetch the entire list quickly
         result = subprocess.run(["cliphist", "list"], capture_output=True, text=True)
         all_lines = result.stdout.strip().split('\n')
         
+        # Filter by query if provided
+        if query:
+            all_lines = [line for line in all_lines if query.lower() in line.lower()]
+            
         # Slice only the requested chunk
         lines = all_lines[offset:offset+limit]
         
