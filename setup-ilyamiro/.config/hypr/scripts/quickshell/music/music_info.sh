@@ -45,6 +45,8 @@ if [ "$STATUS" = "Playing" ] || [ "$STATUS" = "Paused" ]; then
             rawUrl="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
         elif [[ "$url" == *"paramountplus.com"* ]] || [[ "$url" == *"paramount.com"* ]] || [[ "$title" == *"Paramount"* ]]; then
             rawUrl="file:///home/juandiego/.config/quickshell/ii/assets/images/paramount.jpg"
+        elif [[ "$url" == *"facebook.com"* ]] || [[ "$title" == *"Facebook"* ]]; then
+            rawUrl="file:///home/juandiego/.config/quickshell/ii/assets/images/facebook.jpg"
         fi
     fi
     
