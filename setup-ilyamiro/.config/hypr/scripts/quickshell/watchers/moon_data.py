@@ -8,6 +8,7 @@ import sys
 LAT = 7.37565
 LON = -72.6479
 AU_KM = 149597870.7
+phi = math.radians(LAT)
 
 MOON_PHASES = {
     "New Moon": {"icon": "🌑", "nf": "󰽢", "es": "Luna Nueva"},
@@ -20,18 +21,34 @@ MOON_PHASES = {
     "Waning Crescent": {"icon": "🌘", "nf": "󰽩", "es": "Luna Menguante"}
 }
 
+PLANET_ELEMENTS = {
+    "Mercurio": {
+        "a": 0.387098, "e": 0.205630, "I": 7.0049, "Omega": 48.33167, "omega": 29.124, 
+        "M0": 174.796, "n": 4.0923344, "color": "#a6adc8"
+    },
+    "Venus": {
+        "a": 0.723332, "e": 0.006773, "I": 3.3947, "Omega": 76.68069, "omega": 54.891, 
+        "M0": 50.115, "n": 1.6021302, "color": "#f9e2af"
+    },
+    "Marte": {
+        "a": 1.523662, "e": 0.093412, "I": 1.8506, "Omega": 49.57854, "omega": 286.537, 
+        "M0": 19.388, "n": 0.5240207, "color": "#f38ba8"
+    },
+    "Júpiter": {
+        "a": 5.203363, "e": 0.048393, "I": 1.3053, "Omega": 100.55615, "omega": 275.066, 
+        "M0": 19.895, "n": 0.0830853, "color": "#cba6f7"
+    },
+    "Saturno": {
+        "a": 9.537070, "e": 0.054150, "I": 2.4845, "Omega": 113.71504, "omega": 18.269, 
+        "M0": 316.967, "n": 0.0334442, "color": "#fab387"
+    }
+}
+
 def format_hour(h):
     h = h % 24
     hour = int(h)
     minute = int((h - hour) * 60)
-    am_pm = "AM"
-    if hour >= 12:
-        am_pm = "PM"
-    if hour > 12:
-        hour -= 12
-    if hour == 0:
-        hour = 12
-    return f"{hour:02d}:{minute:02d} {am_pm}"
+    return f"{hour:02d}:{minute:02d}"
 
 def format_dec(deg):
     sign = "+" if deg >= 0 else "-"
@@ -85,6 +102,93 @@ def get_moon_distance_meeus(d):
         - 31.025 * math.cos(2 * F_rad)
     )
     return dist
+
+def get_planetary_data(d, T, obliq, x_earth, y_earth, lst_hours, local_hour):
+    planets = []
+    dirs = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW", "N"]
+    
+    for name, el in PLANET_ELEMENTS.items():
+        a = el["a"]
+        e = el["e"]
+        I = math.radians(el["I"])
+        Omega = math.radians(el["Omega"])
+        omega = math.radians(el["omega"])
+        M0 = math.radians(el["M0"])
+        n = math.radians(el["n"])
+        
+        M = (M0 + n * d) % (2 * math.pi)
+        
+        # Kepler Solve
+        E = M
+        for _ in range(5):
+            E = E - (E - e * math.sin(E) - M) / (1 - e * math.cos(E))
+            
+        x_orb = a * (math.cos(E) - e)
+        y_orb = a * math.sqrt(1 - e**2) * math.sin(E)
+        
+        x_hel = x_orb * (math.cos(omega)*math.cos(Omega) - math.sin(omega)*math.sin(Omega)*math.cos(I)) - y_orb * (math.sin(omega)*math.cos(Omega) + math.cos(omega)*math.sin(Omega)*math.cos(I))
+        y_hel = x_orb * (math.cos(omega)*math.sin(Omega) + math.sin(omega)*math.cos(Omega)*math.cos(I)) - y_orb * (math.sin(omega)*math.sin(Omega) - math.cos(omega)*math.cos(Omega)*math.cos(I))
+        z_hel = x_orb * math.sin(omega)*math.sin(I) + y_orb * math.cos(omega)*math.sin(I)
+        
+        x_geo = x_hel - x_earth
+        y_geo = y_hel - y_earth
+        z_geo = z_hel
+        
+        x_eq = x_geo
+        y_eq = y_geo * math.cos(obliq) - z_geo * math.sin(obliq)
+        z_eq = y_geo * math.sin(obliq) + z_geo * math.cos(obliq)
+        
+        ra = math.atan2(y_eq, x_eq)
+        dec = math.atan2(z_eq, math.sqrt(x_eq**2 + y_eq**2))
+        
+        ra_hours = (math.degrees(ra) % 360) / 15.0
+        dec_deg = math.degrees(dec)
+        
+        H = (lst_hours - ra_hours) % 24
+        H_rad = math.radians(H * 15.0)
+        
+        sin_alt = math.sin(phi)*math.sin(dec) + math.cos(phi)*math.cos(dec)*math.cos(H_rad)
+        alt = math.asin(sin_alt)
+        alt_deg = math.degrees(alt)
+        
+        cos_az_num = math.sin(dec)*math.cos(phi) - math.cos(dec)*math.sin(phi)*math.cos(H_rad)
+        sin_az_num = -math.sin(H_rad)*math.cos(dec)
+        az = math.atan2(sin_az_num, cos_az_num)
+        az_deg = math.degrees(az) % 360
+        
+        # 16-wind compass
+        dir_idx = int((az_deg + 11.25) / 22.5) % 16
+        direction = dirs[dir_idx]
+        
+        # Rise/Set
+        cos_H0 = (math.sin(math.radians(-0.567)) - math.sin(phi)*math.sin(dec)) / (math.cos(phi)*math.cos(dec))
+        if -1.0 <= cos_H0 <= 1.0:
+            H0 = math.degrees(math.acos(cos_H0)) / 15.0
+            transit_local = (local_hour - H) % 24
+            rise_local = (transit_local - H0) % 24
+            set_local = (transit_local + H0) % 24
+            rise_str = format_hour(rise_local)
+            set_str = format_hour(set_local)
+        else:
+            if cos_H0 < -1.0:
+                rise_str = "Circumpolar"
+                set_str = "No se pone"
+            else:
+                rise_str = "No sale"
+                set_str = "No sale"
+                
+        visible = alt_deg > 0
+        
+        planets.append({
+            "name": name,
+            "alt": f"{alt_deg:.1f}°",
+            "az": f"{az_deg:.0f}° ({direction})",
+            "rise": rise_str,
+            "set": set_str,
+            "visible": "Sí" if visible else "No",
+            "color": el["color"]
+        })
+    return planets
 
 def get_astronomy_calculation():
     local_now = datetime.datetime.now()
@@ -143,6 +247,14 @@ def get_astronomy_calculation():
     moon_sun_km = math.sqrt(Rs_km**2 + rm_km**2 - 2 * Rs_km * rm_km * math.cos(D_rad))
     moon_sun_au = moon_sun_km / AU_KM
     
+    # Sidereal Time and local hour
+    local_hour = local_now.hour + local_now.minute / 60.0
+    gst = (280.46061837 + 360.98564736629 * d) % 360
+    lst = (gst + LON) % 360
+    lst_hours = lst / 15.0
+    
+    planets_data = get_planetary_data(d, T, obliq, -Rs_au * math.cos(lambda_s), -Rs_au * math.sin(lambda_s), lst_hours, local_hour)
+    
     return {
         "sun_constellation": sun_const,
         "moon_constellation": moon_const,
@@ -153,7 +265,8 @@ def get_astronomy_calculation():
         "moon_distance_sun_ua": f"{moon_sun_au:.4f} UA",
         "moon_distance_sun_km": f"{int(moon_sun_km):,} km".replace(",", "."),
         "sun_declination": format_dec(sun_dec),
-        "moon_declination": format_dec(moon_dec)
+        "moon_declination": format_dec(moon_dec),
+        "planets": planets_data
     }
 
 def get_astronomy_data():
@@ -203,19 +316,24 @@ def get_astronomy_data():
             else:
                 moon_transit = (mr + ms) / 2.0
                 
+            day_len_hours = (ss - sr) % 24
+            h_len = int(day_len_hours)
+            m_len = int((day_len_hours - h_len) * 60)
+            
             calc.update({
                 "phase_name_en": phase_en,
                 "phase_name_es": phase_meta["es"],
                 "illumination": f"{illum}%",
                 "moon_icon": phase_meta["icon"],
                 "moon_nf_icon": phase_meta["nf"],
-                "moonrise": sunrise_str if "No moonrise" in moonrise_str else moonrise_str,
-                "moonset": sunset_str if "No moonset" in moonset_str else moonset_str,
+                "moonrise": "No sale" if "No moonrise" in moonrise_str else format_hour(parse_time(moonrise_str)),
+                "moonset": "No se pone" if "No moonset" in moonset_str else format_hour(parse_time(moonset_str)),
                 "moon_transit": format_hour(moon_transit),
-                "sunrise": sunrise_str,
-                "sunset": sunset_str,
+                "sunrise": format_hour(parse_time(sunrise_str)),
+                "sunset": format_hour(parse_time(sunset_str)),
                 "sun_transit": format_hour(sun_transit),
-                "distance": f"{int(get_moon_distance_meeus(d)):,} km".replace(",", ".")
+                "distance": f"{int(get_moon_distance_meeus(d)):,} km".replace(",", "."),
+                "day_duration": f"{h_len}h {m_len:02d}m"
             })
             return calc
     except Exception as e:
@@ -227,10 +345,10 @@ def get_astronomy_data():
         
         # Sun times from calculated angles
         phi = math.radians(LAT)
-        g = math.radians(357.528 + 0.9856003 * d)
         
         # Sun transit
         # Obliquity
+        T = d / 36525.0
         obliq = math.radians(23.4392911 - 0.01300416 * T)
         lambda_s = math.radians(280.46646 + 36000.76983 * T)
         sun_dec_val = math.asin(math.sin(obliq) * math.sin(lambda_s))
@@ -271,6 +389,10 @@ def get_astronomy_data():
         moonset_local = (moonrise_local + 12.0) % 24
         moon_transit_local = (moonrise_local + 6.0) % 24
         
+        day_len_hours = (sunset_local - sunrise_local) % 24
+        h_len = int(day_len_hours)
+        m_len = int((day_len_hours - h_len) * 60)
+        
         calc.update({
             "phase_name_en": phase_en,
             "phase_name_es": phase_meta["es"],
@@ -283,7 +405,8 @@ def get_astronomy_data():
             "sunrise": format_hour(sunrise_local),
             "sunset": format_hour(sunset_local),
             "sun_transit": format_hour(transit_local),
-            "distance": f"{int(get_moon_distance_meeus(d)):,} km".replace(",", ".")
+            "distance": f"{int(get_moon_distance_meeus(d)):,} km".replace(",", "."),
+            "day_duration": f"{h_len}h {m_len:02d}m"
         })
         return calc
 

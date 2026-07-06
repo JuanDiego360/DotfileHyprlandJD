@@ -35,7 +35,7 @@ function getLayout(name, mx, my, mw, mh, userScale) {
         "battery":   { w: s(801, scale), h: s(760, scale), rx: mw - s(805, scale), ry: s(60, scale), comp: "battery/BatteryPopupAlt.qml" },
         "network":   { w: s(900, scale), h: s(700, scale), rx: mw - s(904, scale), ry: s(60, scale), comp: "network/NetworkPopup.qml" },
         "volume":    { w: s(450, scale), h: s(700, scale), rx: mw - s(455, scale), ry: s(60, scale), comp: "volume/VolumePopup.qml" },
-        "moon":      { w: s(580, scale), h: s(520, scale), rx: mw - s(585, scale), ry: s(60, scale), comp: "calendar/MoonPopup.qml" },
+        "moon":      { w: s(980, scale), h: s(580, scale), rx: mw - s(985, scale), ry: s(60, scale), comp: "calendar/MoonPopup.qml" },
         
         // --- Central Standard Tools ---
         "applauncher": { w: s(800, scale), h: s(700, scale), rx: Math.floor((mw/2)-(s(800, scale)/2)), ry: Math.floor((mh/2)-(s(700, scale)/2)), comp: "applauncher/appLauncher.qml" },

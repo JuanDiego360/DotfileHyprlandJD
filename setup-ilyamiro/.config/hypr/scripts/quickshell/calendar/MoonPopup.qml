@@ -28,8 +28,8 @@ Item {
         return Math.round(val * window.sf); 
     }
 
-    property real targetMasterHeight: Math.round(520 * window.sf)
-    property real targetMasterWidth: Math.round(580 * window.sf)
+    property real targetMasterHeight: Math.round(580 * window.sf)
+    property real targetMasterWidth: Math.round(980 * window.sf)
 
     onTargetMasterHeightChanged: {
         if (typeof masterWindow !== "undefined") {
@@ -98,6 +98,9 @@ Item {
     property string sunDistanceEarthKm: "--"
     property string moonDistanceSunUa: "--"
     property string moonDistanceSunKm: "--"
+    
+    property string sunDayDuration: "--:--"
+    property var planetsData: []
 
     Process {
         id: moonPoller
@@ -132,6 +135,9 @@ Item {
                         window.sunDistanceEarthKm = data.sun_distance_earth_km || "--";
                         window.moonDistanceSunUa = data.moon_distance_sun_ua || "--";
                         window.moonDistanceSunKm = data.moon_distance_sun_km || "--";
+                        
+                        window.sunDayDuration = data.day_duration || "--:--";
+                        window.planetsData = data.planets || [];
                     } catch(e) {
                         console.log("Error parsing moon data in popup: ", e);
                     }
@@ -179,7 +185,7 @@ Item {
                 Text {
                     text: window.moonNfIcon
                     font.family: "Iosevka Nerd Font"
-                    font.pixelSize: window.s(28)
+                    font.pixelSize: window.s(32)
                     color: window.mauve
                 }
 
@@ -188,14 +194,14 @@ Item {
                     Text {
                         text: "Detalles Astronómicos"
                         font.family: "JetBrains Mono"
-                        font.pixelSize: window.s(16)
+                        font.pixelSize: window.s(19)
                         font.weight: Font.Black
                         color: window.text
                     }
                     Text {
                         text: "Pamplona, Colombia (Lat: 7.37, Lon: -72.65)"
                         font.family: "JetBrains Mono"
-                        font.pixelSize: window.s(10)
+                        font.pixelSize: window.s(12)
                         font.weight: Font.Bold
                         color: window.subtext0
                     }
@@ -211,7 +217,7 @@ Item {
 
             // Detailed Data Grid
             GridLayout {
-                columns: 2
+                columns: 3
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 columnSpacing: window.s(20)
@@ -235,7 +241,7 @@ Item {
                             spacing: window.s(10)
                             Text {
                                 text: window.moonIcon
-                                font.pixelSize: window.s(32)
+                                font.pixelSize: window.s(38)
                                 color: window.mauve
                             }
                             ColumnLayout {
@@ -244,7 +250,7 @@ Item {
                                 Text {
                                     text: window.moonPhaseEs
                                     font.family: "JetBrains Mono"
-                                    font.pixelSize: window.s(13)
+                                    font.pixelSize: window.s(16)
                                     font.weight: Font.Black
                                     color: window.text
                                     elide: Text.ElideRight
@@ -253,7 +259,7 @@ Item {
                                 Text {
                                     text: "Ilum: " + window.moonPercentStr
                                     font.family: "JetBrains Mono"
-                                    font.pixelSize: window.s(11)
+                                    font.pixelSize: window.s(13)
                                     font.weight: Font.Bold
                                     color: window.mauve
                                 }
@@ -271,44 +277,44 @@ Item {
                             Layout.fillWidth: true
                             
                             RowLayout {
-                                Text { text: "Sale:"; font.family: "JetBrains Mono"; font.pixelSize: window.s(11); color: window.subtext0; font.weight: Font.Bold }
+                                Text { text: "Sale:"; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.subtext0; font.weight: Font.Bold }
                                 Item { Layout.fillWidth: true }
-                                Text { text: window.moonriseTime; font.family: "JetBrains Mono"; font.pixelSize: window.s(11); color: window.text; font.weight: Font.Black }
+                                Text { text: window.moonriseTime; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.text; font.weight: Font.Black }
                             }
                             RowLayout {
-                                Text { text: "Tránsito:"; font.family: "JetBrains Mono"; font.pixelSize: window.s(11); color: window.subtext0; font.weight: Font.Bold }
+                                Text { text: "Tránsito:"; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.subtext0; font.weight: Font.Bold }
                                 Item { Layout.fillWidth: true }
-                                Text { text: window.moonTransitTime; font.family: "JetBrains Mono"; font.pixelSize: window.s(11); color: window.text; font.weight: Font.Black }
+                                Text { text: window.moonTransitTime; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.text; font.weight: Font.Black }
                             }
                             RowLayout {
-                                Text { text: "Se pone:"; font.family: "JetBrains Mono"; font.pixelSize: window.s(11); color: window.subtext0; font.weight: Font.Bold }
+                                Text { text: "Se pone:"; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.subtext0; font.weight: Font.Bold }
                                 Item { Layout.fillWidth: true }
-                                Text { text: window.moonsetTime; font.family: "JetBrains Mono"; font.pixelSize: window.s(11); color: window.text; font.weight: Font.Black }
+                                Text { text: window.moonsetTime; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.text; font.weight: Font.Black }
                             }
                             RowLayout {
-                                Text { text: "Dist. Tierra:"; font.family: "JetBrains Mono"; font.pixelSize: window.s(11); color: window.subtext0; font.weight: Font.Bold }
+                                Text { text: "Dist. Tierra:"; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.subtext0; font.weight: Font.Bold }
                                 Item { Layout.fillWidth: true }
-                                Text { text: window.moonDistanceStr; font.family: "JetBrains Mono"; font.pixelSize: window.s(11); color: window.mauve; font.weight: Font.Black }
+                                Text { text: window.moonDistanceStr; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.mauve; font.weight: Font.Black }
                             }
                             RowLayout {
-                                Text { text: "Dist. Sol (UA):"; font.family: "JetBrains Mono"; font.pixelSize: window.s(11); color: window.subtext0; font.weight: Font.Bold }
+                                Text { text: "Dist. Sol (UA):"; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.subtext0; font.weight: Font.Bold }
                                 Item { Layout.fillWidth: true }
-                                Text { text: window.moonDistanceSunUa; font.family: "JetBrains Mono"; font.pixelSize: window.s(11); color: window.mauve; font.weight: Font.Black }
+                                Text { text: window.moonDistanceSunUa; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.mauve; font.weight: Font.Black }
                             }
                             RowLayout {
-                                Text { text: "Dist. Sol (km):"; font.family: "JetBrains Mono"; font.pixelSize: window.s(11); color: window.subtext0; font.weight: Font.Bold }
+                                Text { text: "Dist. Sol (km):"; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.subtext0; font.weight: Font.Bold }
                                 Item { Layout.fillWidth: true }
-                                Text { text: window.moonDistanceSunKm; font.family: "JetBrains Mono"; font.pixelSize: window.s(11); color: window.mauve; font.weight: Font.Black }
+                                Text { text: window.moonDistanceSunKm; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.mauve; font.weight: Font.Black }
                             }
                             RowLayout {
-                                Text { text: "Constelación:"; font.family: "JetBrains Mono"; font.pixelSize: window.s(11); color: window.subtext0; font.weight: Font.Bold }
+                                Text { text: "Constelación:"; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.subtext0; font.weight: Font.Bold }
                                 Item { Layout.fillWidth: true }
-                                Text { text: window.moonConstellation; font.family: "JetBrains Mono"; font.pixelSize: window.s(11); color: window.text; font.weight: Font.Black }
+                                Text { text: window.moonConstellation; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.text; font.weight: Font.Black }
                             }
                             RowLayout {
-                                Text { text: "Declinación:"; font.family: "JetBrains Mono"; font.pixelSize: window.s(11); color: window.subtext0; font.weight: Font.Bold }
+                                Text { text: "Declinación:"; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.subtext0; font.weight: Font.Bold }
                                 Item { Layout.fillWidth: true }
-                                Text { text: window.moonDeclination; font.family: "JetBrains Mono"; font.pixelSize: window.s(11); color: window.text; font.weight: Font.Black }
+                                Text { text: window.moonDeclination; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.text; font.weight: Font.Black }
                             }
                         }
                     }
@@ -332,7 +338,7 @@ Item {
                             spacing: window.s(10)
                             Text {
                                 text: "☀️"
-                                font.pixelSize: window.s(28)
+                                font.pixelSize: window.s(38)
                                 color: window.yellow
                             }
                             ColumnLayout {
@@ -340,14 +346,14 @@ Item {
                                 Text {
                                     text: "Sol"
                                     font.family: "JetBrains Mono"
-                                    font.pixelSize: window.s(14)
+                                    font.pixelSize: window.s(16)
                                     font.weight: Font.Black
                                     color: window.text
                                 }
                                 Text {
                                     text: "Localidad"
                                     font.family: "JetBrains Mono"
-                                    font.pixelSize: window.s(11)
+                                    font.pixelSize: window.s(13)
                                     font.weight: Font.Bold
                                     color: window.yellow
                                 }
@@ -365,43 +371,167 @@ Item {
                             Layout.fillWidth: true
                             
                             RowLayout {
-                                Text { text: "Amanecer:"; font.family: "JetBrains Mono"; font.pixelSize: window.s(11); color: window.subtext0; font.weight: Font.Bold }
+                                Text { text: "Amanecer:"; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.subtext0; font.weight: Font.Bold }
                                 Item { Layout.fillWidth: true }
-                                Text { text: window.sunriseTime; font.family: "JetBrains Mono"; font.pixelSize: window.s(11); color: window.text; font.weight: Font.Black }
+                                Text { text: window.sunriseTime; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.text; font.weight: Font.Black }
                             }
                             RowLayout {
-                                Text { text: "Tránsito:"; font.family: "JetBrains Mono"; font.pixelSize: window.s(11); color: window.subtext0; font.weight: Font.Bold }
+                                Text { text: "Tránsito:"; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.subtext0; font.weight: Font.Bold }
                                 Item { Layout.fillWidth: true }
-                                Text { text: window.sunTransitTime; font.family: "JetBrains Mono"; font.pixelSize: window.s(11); color: window.text; font.weight: Font.Black }
+                                Text { text: window.sunTransitTime; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.text; font.weight: Font.Black }
                             }
                             RowLayout {
-                                Text { text: "Atardecer:"; font.family: "JetBrains Mono"; font.pixelSize: window.s(11); color: window.subtext0; font.weight: Font.Bold }
+                                Text { text: "Atardecer:"; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.subtext0; font.weight: Font.Bold }
                                 Item { Layout.fillWidth: true }
-                                Text { text: window.sunsetTime; font.family: "JetBrains Mono"; font.pixelSize: window.s(11); color: window.text; font.weight: Font.Black }
+                                Text { text: window.sunsetTime; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.text; font.weight: Font.Black }
                             }
                             RowLayout {
-                                Text { text: "Dist. Tierra (UA):"; font.family: "JetBrains Mono"; font.pixelSize: window.s(11); color: window.subtext0; font.weight: Font.Bold }
+                                Text { text: "Dist. Tierra (UA):"; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.subtext0; font.weight: Font.Bold }
                                 Item { Layout.fillWidth: true }
-                                Text { text: window.sunDistanceEarthUa; font.family: "JetBrains Mono"; font.pixelSize: window.s(11); color: window.yellow; font.weight: Font.Black }
+                                Text { text: window.sunDistanceEarthUa; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.yellow; font.weight: Font.Black }
                             }
                             RowLayout {
-                                Text { text: "Dist. Tierra (km):"; font.family: "JetBrains Mono"; font.pixelSize: window.s(11); color: window.subtext0; font.weight: Font.Bold }
+                                Text { text: "Dist. Tierra (km):"; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.subtext0; font.weight: Font.Bold }
                                 Item { Layout.fillWidth: true }
-                                Text { text: window.sunDistanceEarthKm; font.family: "JetBrains Mono"; font.pixelSize: window.s(11); color: window.yellow; font.weight: Font.Black }
+                                Text { text: window.sunDistanceEarthKm; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.yellow; font.weight: Font.Black }
                             }
                             RowLayout {
-                                Text { text: "Constelación:"; font.family: "JetBrains Mono"; font.pixelSize: window.s(11); color: window.subtext0; font.weight: Font.Bold }
+                                Text { text: "Duración Día:"; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.subtext0; font.weight: Font.Bold }
                                 Item { Layout.fillWidth: true }
-                                Text { text: window.sunConstellation; font.family: "JetBrains Mono"; font.pixelSize: window.s(11); color: window.text; font.weight: Font.Black }
+                                Text { text: window.sunDayDuration; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.yellow; font.weight: Font.Black }
                             }
                             RowLayout {
-                                Text { text: "Declinación:"; font.family: "JetBrains Mono"; font.pixelSize: window.s(11); color: window.subtext0; font.weight: Font.Bold }
+                                Text { text: "Constelación:"; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.subtext0; font.weight: Font.Bold }
                                 Item { Layout.fillWidth: true }
-                                Text { text: window.sunDeclination; font.family: "JetBrains Mono"; font.pixelSize: window.s(11); color: window.text; font.weight: Font.Black }
+                                Text { text: window.sunConstellation; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.text; font.weight: Font.Black }
+                            }
+                            RowLayout {
+                                Text { text: "Declinación:"; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.subtext0; font.weight: Font.Bold }
+                                Item { Layout.fillWidth: true }
+                                Text { text: window.sunDeclination; font.family: "JetBrains Mono"; font.pixelSize: window.s(13); color: window.text; font.weight: Font.Black }
                             }
                         }
                         
                         Item { Layout.fillHeight: true }
+                    }
+                }
+
+                // RIGHT PANEL: Planets Info Card
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    color: Qt.rgba(window.surface0.r, window.surface0.g, window.surface0.b, 0.4)
+                    radius: window.s(12)
+                    border.color: Qt.rgba(window.surface2.r, window.surface2.g, window.surface2.b, 0.5)
+                    border.width: 1
+                    
+                    ColumnLayout {
+                        anchors.fill: parent
+                        anchors.margins: window.s(15)
+                        spacing: window.s(6)
+                        
+                        RowLayout {
+                            spacing: window.s(10)
+                            Text {
+                                text: "🪐"
+                                font.pixelSize: window.s(38)
+                                color: window.mauve
+                            }
+                            ColumnLayout {
+                                spacing: 0
+                                Text {
+                                    text: "Planetas"
+                                    font.family: "JetBrains Mono"
+                                    font.pixelSize: window.s(16)
+                                    font.weight: Font.Black
+                                    color: window.text
+                                }
+                                Text {
+                                    text: "Visibilidad Local"
+                                    font.family: "JetBrains Mono"
+                                    font.pixelSize: window.s(13)
+                                    font.weight: Font.Bold
+                                    color: window.mauve
+                                }
+                            }
+                        }
+                        
+                        Rectangle {
+                            Layout.fillWidth: true; height: 1
+                            color: Qt.rgba(window.surface1.r, window.surface1.g, window.surface1.b, 0.3)
+                        }
+
+                        // Planet List
+                        ColumnLayout {
+                            spacing: window.s(6)
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            
+                            Repeater {
+                                model: window.planetsData
+                                delegate: Rectangle {
+                                    Layout.fillWidth: true
+                                    height: window.s(48)
+                                    color: Qt.rgba(window.surface0.r, window.surface0.g, window.surface0.b, 0.2)
+                                    radius: window.s(8)
+                                    border.color: Qt.rgba(window.surface1.r, window.surface1.g, window.surface1.b, 0.2)
+                                    border.width: 1
+                                    
+                                    RowLayout {
+                                        anchors.fill: parent
+                                        anchors.margins: window.s(8)
+                                        spacing: window.s(8)
+                                        
+                                        ColumnLayout {
+                                            spacing: 0
+                                            Layout.fillWidth: true
+                                            RowLayout {
+                                                spacing: window.s(6)
+                                                Rectangle {
+                                                    width: window.s(6); height: width; radius: width/2
+                                                    color: modelData.color
+                                                }
+                                                Text {
+                                                    text: modelData.name
+                                                    font.family: "JetBrains Mono"
+                                                    font.pixelSize: window.s(13)
+                                                    font.weight: Font.Black
+                                                    color: window.text
+                                                }
+                                            }
+                                            Text {
+                                                text: modelData.visible === "Sí" ? "Visible: " + modelData.alt : "Bajo horiz."
+                                                font.family: "JetBrains Mono"
+                                                font.pixelSize: window.s(11)
+                                                font.weight: Font.Bold
+                                                color: modelData.visible === "Sí" ? window.green : window.subtext0
+                                            }
+                                        }
+                                        
+                                        ColumnLayout {
+                                            spacing: 0
+                                            Layout.alignment: Qt.AlignRight
+                                            Text {
+                                                text: "Dir: " + modelData.az
+                                                font.family: "JetBrains Mono"
+                                                font.pixelSize: window.s(11)
+                                                font.weight: Font.Bold
+                                                color: window.text
+                                                horizontalAlignment: Text.AlignRight
+                                            }
+                                            Text {
+                                                text: "󰖕 " + modelData.rise + " | 󰖖 " + modelData.set
+                                                font.family: "JetBrains Mono"
+                                                font.pixelSize: window.s(10)
+                                                font.weight: Font.Bold
+                                                color: window.subtext0
+                                                horizontalAlignment: Text.AlignRight
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
