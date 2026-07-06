@@ -43,6 +43,8 @@ if [ "$STATUS" = "Playing" ] || [ "$STATUS" = "Paused" ]; then
             rawUrl="https://upload.wikimedia.org/wikipedia/commons/f/ff/Netflix-new-icon.png"
         elif [[ "$url" == *"whatsapp.com"* ]] || [[ "$title" == *"WhatsApp"* ]]; then
             rawUrl="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+        elif [[ "$url" == *"paramountplus.com"* ]] || [[ "$url" == *"paramount.com"* ]] || [[ "$title" == *"Paramount"* ]]; then
+            rawUrl="file:///home/juandiego/.config/quickshell/ii/assets/images/paramount.jpg"
         fi
     fi
     
