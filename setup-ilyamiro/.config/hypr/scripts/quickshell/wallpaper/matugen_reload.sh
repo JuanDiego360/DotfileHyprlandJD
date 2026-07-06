@@ -59,6 +59,9 @@ for file in "${TEXT_FILES[@]}"; do
     if [ -f "$file" ] && [ -w "$file" ]; then
         # Looks for {"color": "#abcdef"} and replaces it with #abcdef
         sed -i -E 's/\{[[:space:]]*"color":[[:space:]]*"([^"]+)"[[:space:]]*\}/\1/g' "$file"
+        if [[ "$file" == *"matugen.conf" ]]; then
+            sed -i 's/#/#ff/g' "$file"
+        fi
     elif [ -f "$file" ]; then
         echo "Warning: No write permission for $file (Skipping text clean-up)"
     fi
