@@ -41,6 +41,7 @@ Item {
     property real targetMasterHeight: Math.round(600 * window.sf)
     property real targetMasterWidth: Math.round(1380 * window.sf)
     
+    property bool gcalAuthRequired: false
     property int selectedDay: new Date().getDate()
     property int selectedMonth: new Date().getMonth()
     property int selectedYear: new Date().getFullYear()
@@ -486,6 +487,11 @@ Item {
                     let parsed = JSON.parse(this.text);
                     if (parsed.status === "success" && parsed.events) {
                         window.googleEvents = parsed.events;
+                        window.gcalAuthRequired = false;
+                    } else if (parsed.status === "error" && parsed.error_type === "unauthorized") {
+                        window.gcalAuthRequired = true;
+                    } else {
+                        window.gcalAuthRequired = false;
                     }
                 } catch(e) {
                     console.log("Error parsing google events: " + e + " | Raw text was: '" + this.text + "'");
@@ -501,6 +507,20 @@ Item {
         }
         onExited: (code, status) => {
             console.log("googleEventsFetcher exited with code: " + code + " status: " + status);
+        }
+    }
+
+    Process {
+        id: gcalAuthenticator
+        command: [
+            "/home/juandiego/.local/state/quickshell/.venv/bin/python",
+            "/home/juandiego/.config/quickshell/ii/services/gCloud/gcal_sync.py",
+            "auth"
+        ]
+        running: false
+        onExited: (code, status) => {
+            console.log("gcalAuthenticator exited with code: " + code + " status: " + status);
+            window.fetchGoogleEvents();
         }
     }
 
@@ -1156,6 +1176,7 @@ Item {
                     }
 
                     ScrollView {
+                        visible: !window.gcalAuthRequired
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         clip: true
@@ -1262,6 +1283,58 @@ Item {
                                         }
                                     }
                                     return count === 0;
+                                }
+                            }
+                        }
+
+                        // Warning Block
+                        ColumnLayout {
+                            visible: window.gcalAuthRequired
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            spacing: Math.round(15 * window.sf)
+                            
+                            Text {
+                                text: "Falta autenticar Google Calendar"
+                                font.family: "JetBrains Mono"
+                                font.weight: Font.Bold
+                                font.pixelSize: Math.round(12 * window.sf)
+                                color: window.red
+                                horizontalAlignment: Text.AlignHCenter
+                                Layout.fillWidth: true
+                                wrapMode: Text.Wrap
+                            }
+                            
+                            // Button
+                            Rectangle {
+                                id: authBtn
+                                Layout.alignment: Qt.AlignHCenter
+                                width: Math.round(130 * window.sf)
+                                height: Math.round(30 * window.sf)
+                                radius: Math.round(6 * window.sf)
+                                color: authBtnMa.containsMouse ? window.mauve : window.surface1
+                                border.color: authBtnMa.containsMouse ? window.mauve : window.surface2
+                                border.width: 1
+                                Behavior on color { ColorAnimation { duration: 150 } }
+                                
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "Autenticar"
+                                    font.family: "JetBrains Mono"
+                                    font.weight: Font.Bold
+                                    font.pixelSize: Math.round(12 * window.sf)
+                                    color: authBtnMa.containsMouse ? window.base : window.text
+                                }
+                                
+                                MouseArea {
+                                    id: authBtnMa
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        gcalAuthenticator.running = false;
+                                        gcalAuthenticator.running = true;
+                                    }
                                 }
                             }
                         }
