@@ -4,6 +4,7 @@ import QtQuick.Controls
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
+import Quickshell.Hyprland
 import Quickshell.Services.Notifications
 import "WindowRegistry.js" as Registry
 
@@ -69,6 +70,9 @@ PanelWindow {
 
     exclusionMode: ExclusionMode.Ignore
     focusable: true
+
+    property var activeScreen: Quickshell.screens.find(s => s.name === Hyprland.focusedMonitor?.name) ?? Quickshell.screens[0] ?? null
+    screen: activeScreen
 
     implicitWidth: masterWindow.screen.width
     implicitHeight: masterWindow.screen.height
@@ -316,7 +320,7 @@ PanelWindow {
         let finalH = (currentItem && currentItem.targetMasterHeight !== undefined) ? currentItem.targetMasterHeight : t.h;
         let finalX = t.rx;
         if (currentItem && currentItem.targetMasterWidth !== undefined && finalW !== t.w) {
-            finalX = Math.floor((masterWindow.width / 2) - (finalW / 2));
+            finalX = Math.floor(((masterWindow.screen ? masterWindow.screen.width : 1920) / 2) - (finalW / 2));
         }
 
         masterWindow.animX = finalX;
@@ -328,7 +332,9 @@ PanelWindow {
     }
 
     onIsVisibleChanged: {
-        if (isVisible) widgetStack.forceActiveFocus();
+        if (isVisible) {
+            widgetStack.forceActiveFocus();
+        }
     }
 
     // =========================================================
@@ -440,6 +446,8 @@ PanelWindow {
                 delayedClear.start();
             }
         } else {
+            const focusedName = Hyprland.focusedMonitor?.name;
+            activeScreen = Quickshell.screens.find(s => s.name === focusedName) ?? Quickshell.screens[0];
             if (currentActive === "hidden" || !masterWindow.isVisible) {
                 masterWindow.morphDuration = 230;
                 masterWindow.disableMorph = false;
@@ -511,7 +519,7 @@ PanelWindow {
                 if (masterWindow.currentActive === "calendar") {
                     masterWindow.animX = t.rx;
                 } else {
-                    masterWindow.animX = Math.floor((masterWindow.width / 2) - (dynW / 2));
+                    masterWindow.animX = Math.floor(((masterWindow.screen ? masterWindow.screen.width : 1920) / 2) - (dynW / 2));
                 }
             }
             if (currentItem.targetMasterHeight !== undefined) {

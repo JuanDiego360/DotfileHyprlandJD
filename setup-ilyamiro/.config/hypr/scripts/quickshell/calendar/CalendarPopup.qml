@@ -17,8 +17,8 @@ Item {
         id: scaler
         // Pass both width and height so the internal popup scale perfectly synchronizes
         // with the master window's WindowRegistry.js calculations
-        currentWidth: Screen.width
-        currentHeight: Screen.height
+        currentWidth: (typeof masterWindow !== "undefined" && masterWindow.screen) ? masterWindow.screen.width : Screen.width
+        currentHeight: (typeof masterWindow !== "undefined" && masterWindow.screen) ? masterWindow.screen.height : Screen.height
     }
     
     // Expose reactive scale factor for all bindings, capped to fit the screen size (preventing overflow)
@@ -63,7 +63,7 @@ Item {
             let s20 = Math.round(20 * scale);
             let s80 = Math.round(80 * scale);
             let newX = Math.max(s20, Math.floor((mw / 2) - (scale1380 / 2) - s80));
-            masterWindow.targetX = newX;
+            console.log("CalendarPopup debug: mw=" + mw + " scale=" + scale + " scale1380=" + scale1380 + " newX=" + newX);
             masterWindow.animX = newX;
         }
     }

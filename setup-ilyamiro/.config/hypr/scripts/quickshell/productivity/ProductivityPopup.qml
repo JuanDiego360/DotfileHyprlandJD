@@ -14,8 +14,8 @@ Item {
     // --- Responsive Scaling Logic ---
     Scaler {
         id: scaler
-        currentWidth: Screen.width
-        currentHeight: Screen.height
+        currentWidth: (typeof masterWindow !== "undefined" && masterWindow.screen) ? masterWindow.screen.width : Screen.width
+        currentHeight: (typeof masterWindow !== "undefined" && masterWindow.screen) ? masterWindow.screen.height : Screen.height
     }
 
     readonly property real sf: scaler.baseScale
