@@ -488,9 +488,19 @@ Item {
                         window.googleEvents = parsed.events;
                     }
                 } catch(e) {
-                    console.log("Error parsing google events:", e);
+                    console.log("Error parsing google events: " + e + " | Raw text was: '" + this.text + "'");
                 }
             }
+        }
+        stderr: StdioCollector {
+            onStreamFinished: {
+                if (this.text) {
+                    console.log("googleEventsFetcher stderr: '" + this.text + "'");
+                }
+            }
+        }
+        onExited: (code, status) => {
+            console.log("googleEventsFetcher exited with code: " + code + " status: " + status);
         }
     }
 
@@ -504,13 +514,20 @@ Item {
         let startStr = startD.getFullYear() + "-" + (startD.getMonth() + 1).toString().padStart(2, '0') + "-" + startD.getDate().toString().padStart(2, '0');
         let endStr = endD.getFullYear() + "-" + (endD.getMonth() + 1).toString().padStart(2, '0') + "-" + endD.getDate().toString().padStart(2, '0');
         
-        googleEventsFetcher.command = [
+        let newCommand = [
             "/home/juandiego/.local/state/quickshell/.venv/bin/python",
             "/home/juandiego/.config/quickshell/ii/services/gCloud/gcal_sync.py",
             "list",
             "--start", startStr,
             "--end", endStr
         ];
+        
+        if (googleEventsFetcher.running && JSON.stringify(googleEventsFetcher.command) === JSON.stringify(newCommand)) {
+            return;
+        }
+        
+        googleEventsFetcher.command = newCommand;
+        console.log("googleEventsFetcher starting command: " + JSON.stringify(googleEventsFetcher.command));
         googleEventsFetcher.running = false;
         googleEventsFetcher.running = true;
     }
@@ -634,6 +651,7 @@ Item {
 
             // Big Parallax Weather Icon (Tied to Weather Transition)
             Text {
+                id: parallaxWeatherIcon
                 anchors.centerIn: parent
                 anchors.verticalCenterOffset: window.centerOffset
                 text: {
@@ -657,7 +675,7 @@ Item {
                 }
                 
                 transform: [
-                    Translate { y: parent.drift },
+                    Translate { y: parallaxWeatherIcon.drift },
                     Translate { x: window.weatherContentOffset * 2 } // Exaggerated shift for background depth
                 ]
             }
@@ -1288,8 +1306,8 @@ Item {
                             
                             Text { 
                                 anchors.centerIn: parent; text: ""; font.family: "Iosevka Nerd Font"; font.pixelSize: Math.round(18 * window.sf)
-                                color: parent.containsMouse ? window.textAccent : window.overlay1
-                                transform: Translate { x: parent.containsMouse ? Math.round(-5 * window.sf) : wPrevMa.pulseOffset }
+                                color: wPrevMa.containsMouse ? window.textAccent : window.overlay1
+                                transform: Translate { x: wPrevMa.containsMouse ? Math.round(-5 * window.sf) : wPrevMa.pulseOffset }
                                 Behavior on transform { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
                             }
                         }
@@ -1319,8 +1337,8 @@ Item {
                             
                             Text { 
                                 anchors.centerIn: parent; text: ""; font.family: "Iosevka Nerd Font"; font.pixelSize: Math.round(18 * window.sf)
-                                color: parent.containsMouse ? window.textAccent : window.overlay1
-                                transform: Translate { x: parent.containsMouse ? Math.round(5 * window.sf) : wNextMa.pulseOffset }
+                                color: wNextMa.containsMouse ? window.textAccent : window.overlay1
+                                transform: Translate { x: wNextMa.containsMouse ? Math.round(5 * window.sf) : wNextMa.pulseOffset }
                                 Behavior on transform { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
                             }
                         }
