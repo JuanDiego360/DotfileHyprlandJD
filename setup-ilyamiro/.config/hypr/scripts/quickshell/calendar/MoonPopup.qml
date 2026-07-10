@@ -183,10 +183,8 @@ Item {
                 spacing: window.s(12)
 
                 Text {
-                    text: window.moonNfIcon
-                    font.family: "Iosevka Nerd Font"
+                    text: window.moonIcon
                     font.pixelSize: window.s(32)
-                    color: window.mauve
                 }
 
                 ColumnLayout {

@@ -1448,11 +1448,8 @@ Variants {
                                     spacing: barWindow.s(8)
                                     Text { 
                                         anchors.verticalCenter: parent.verticalCenter; 
-                                        text: barWindow.moonNfIcon; 
-                                        font.family: "Iosevka Nerd Font"; 
+                                        text: barWindow.moonIcon; 
                                         font.pixelSize: barWindow.s(16); 
-                                        color: parent.parent.isHovered ? mocha.mauve : mocha.blue 
-                                        Behavior on color { ColorAnimation { duration: 200 } }
                                     }
                                     Text { 
                                         anchors.verticalCenter: parent.verticalCenter; 
