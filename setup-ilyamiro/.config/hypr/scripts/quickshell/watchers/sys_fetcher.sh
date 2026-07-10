@@ -94,9 +94,12 @@ for hwmon in /sys/class/hwmon/hwmon*; do
 done
 
 # Read GPU usage percent
-if [ -f /sys/class/drm/card0/device/gpu_busy_percent ]; then
-    GPU_USAGE=$(cat /sys/class/drm/card0/device/gpu_busy_percent 2>/dev/null || echo 0)
-fi
+for card in /sys/class/drm/card*; do
+    if [ -f "$card/device/gpu_busy_percent" ]; then
+        GPU_USAGE=$(cat "$card/device/gpu_busy_percent" 2>/dev/null || echo 0)
+        break
+    fi
+done
 
 # --- Output formatted string ---
 # Format: CPU|RAM_PCT|RAM_GB|TEMP|RX_RATE|TX_RATE|GPU_USAGE|GPU_TEMP
