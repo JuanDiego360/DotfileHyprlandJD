@@ -24,9 +24,18 @@ if [ ! -d ".git" ]; then
     git remote add origin git@github.com:JuanDiego360/DotfileHyprlandJD.git
 fi
 
-# Asegurar que el remote esté bien configurado
+# Asegurar que el remote origin esté bien configurado
 if ! git remote | grep -q "origin"; then
     git remote add origin git@github.com:JuanDiego360/DotfileHyprlandJD.git
+else
+    git remote set-url origin git@github.com:JuanDiego360/DotfileHyprlandJD.git
+fi
+
+# Asegurar que el remote upstream esté bien configurado
+if ! git remote | grep -q "upstream"; then
+    git remote add upstream https://github.com/ilyamiro/nixos-configuration.git
+else
+    git remote set-url upstream https://github.com/ilyamiro/nixos-configuration.git
 fi
 
 # 2. Añadir y hacer commit de los cambios locales
@@ -47,12 +56,13 @@ else
     echo "   No hay cambios locales nuevos que respaldar."
 fi
 
-# 3. Bajar los cambios del repositorio remoto
+# 3. Bajar los cambios del repositorio remoto (ilyamiro/nixos-configuration)
 echo
-echo "--> Descargando e integrando cambios remotos de GitHub..."
-# Hacemos pull para combinar los cambios remotos.
+echo "--> Descargando e integrando cambios remotos de GitHub (nixos-configuration)..."
+# Hacemos pull para combinar los cambios remotos de upstream/master.
 # Usamos '--no-rebase' para permitir fusiones estándar.
-if git pull origin main --no-rebase; then
+# Añadimos '--allow-unrelated-histories' por diferencias de historial.
+if git pull upstream master --no-rebase --allow-unrelated-histories; then
     echo "   ✅ Actualización remota completada con éxito."
 else
     echo "❌ Error al hacer pull. Si hay conflictos de fusión, resuélvelos en esta terminal."
