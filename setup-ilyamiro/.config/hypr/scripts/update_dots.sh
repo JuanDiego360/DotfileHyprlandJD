@@ -62,7 +62,8 @@ echo "--> Descargando e integrando cambios remotos de GitHub (nixos-configuratio
 # Hacemos pull para combinar los cambios remotos de upstream/master.
 # Usamos '--no-rebase' para permitir fusiones estándar.
 # Añadimos '--allow-unrelated-histories' por diferencias de historial.
-if git pull upstream master --no-rebase --allow-unrelated-histories; then
+# Usamos '-X ours' y '--no-edit' para resolver conflictos a favor de tus archivos locales automáticamente y evitar diálogos interactivos.
+if git pull upstream master --no-rebase -X ours --allow-unrelated-histories --no-edit; then
     echo "   ✅ Actualización remota completada con éxito."
 else
     echo "❌ Error al hacer pull. Si hay conflictos de fusión, resuélvelos en esta terminal."
