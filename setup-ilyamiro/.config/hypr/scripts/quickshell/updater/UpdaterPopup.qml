@@ -677,7 +677,7 @@ except Exception as e:
                         easing.type: Easing.InSine
                         onFinished: {
                             systemUpdateBtn.triggered = true;
-                            let cmd = "if command -v kitty >/dev/null 2>&1; then kitty bash -c 'bash ~/.config/hypr/scripts/update_system.sh'; else ${TERM:-xterm} -e bash -c 'bash ~/.config/hypr/scripts/update_system.sh'; fi";
+                            let cmd = "if command -v wezterm >/dev/null 2>&1; then wezterm start -- bash -c 'bash ~/.config/hypr/scripts/update_system.sh'; elif command -v kitty >/dev/null 2>&1; then kitty bash -c 'bash ~/.config/hypr/scripts/update_system.sh'; else ${TERM:-xterm} -e bash -c 'bash ~/.config/hypr/scripts/update_system.sh'; fi";
                             Quickshell.execDetached(["bash", "-c", cmd]);
                             Quickshell.execDetached(["bash", Quickshell.env("HOME") + "/.config/hypr/scripts/qs_manager.sh", "close"]);
                         }
@@ -818,7 +818,7 @@ except Exception as e:
                         easing.type: Easing.InSine
                         onFinished: {
                             updateBtn.triggered = true;
-                            let cmd = "if command -v kitty >/dev/null 2>&1; then kitty bash -c 'bash ~/.config/hypr/scripts/update_dots.sh'; else ${TERM:-xterm} -e bash -c 'bash ~/.config/hypr/scripts/update_dots.sh'; fi";
+                            let cmd = "if command -v wezterm >/dev/null 2>&1; then wezterm start -- bash -c 'bash ~/.config/hypr/scripts/update_dots.sh'; elif command -v kitty >/dev/null 2>&1; then kitty bash -c 'bash ~/.config/hypr/scripts/update_dots.sh'; else ${TERM:-xterm} -e bash -c 'bash ~/.config/hypr/scripts/update_dots.sh'; fi";
                             Quickshell.execDetached(["bash", "-c", cmd]);
                             Quickshell.execDetached(["bash", Quickshell.env("HOME") + "/.config/hypr/scripts/qs_manager.sh", "close"]);
                         }
