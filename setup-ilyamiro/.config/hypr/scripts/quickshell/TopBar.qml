@@ -122,6 +122,7 @@ Variants {
             
             Process {
                 id: recPoller
+                running: true
                 command: ["bash", "-c", "if [ -s " + paths.getCacheDir("recording") + "/rec_pid ] && kill -0 $(cat " + paths.getCacheDir("recording") + "/rec_pid) 2>/dev/null; then echo '1'; else echo '0'; fi"]
                 stdout: StdioCollector {
                     onStreamFinished: {

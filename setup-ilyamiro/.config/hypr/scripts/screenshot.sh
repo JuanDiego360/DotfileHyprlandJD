@@ -46,19 +46,34 @@ mkdir -p "$SAVE_DIR" "$RECORD_DIR"
 EDIT_MODE=false
 FULL_MODE=false
 RECORD_MODE=false
+REGION_MODE=false
 SCAN_QR_MODE=false
 GEOMETRY=""
-DESK_VOL="1.0"
-DESK_MUTE="false"
-MIC_VOL="1.0"
-MIC_MUTE="false"
-MIC_DEVICE=""
+
+# Load saved audio preferences as defaults
+PREFS="$QS_STATE_SCREENSHOT/audio_prefs"
+if [ -f "$PREFS" ]; then
+    IFS=',' read -r QS_DESK_VOL QS_DESK_MUTE QS_MIC_VOL QS_MIC_MUTE QS_MIC_DEV < "$PREFS"
+    DESK_VOL="${QS_DESK_VOL:-1.0}"
+    DESK_MUTE="${QS_DESK_MUTE:-false}"
+    MIC_VOL="${QS_MIC_VOL:-1.0}"
+    MIC_MUTE="${QS_MIC_MUTE:-false}"
+    MIC_DEVICE="${QS_MIC_DEV:-}"
+    export QS_DESK_VOL QS_DESK_MUTE QS_MIC_VOL QS_MIC_MUTE QS_MIC_DEV
+else
+    DESK_VOL="1.0"
+    DESK_MUTE="false"
+    MIC_VOL="1.0"
+    MIC_MUTE="false"
+    MIC_DEVICE=""
+fi
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --edit) EDIT_MODE=true; shift ;;
         --full) FULL_MODE=true; shift ;;
         --record) RECORD_MODE=true; shift ;;
+        --region) REGION_MODE=true; shift ;;
         --scan-qr) SCAN_QR_MODE=true; shift ;;
         --geometry) GEOMETRY="$2"; shift 2 ;;
         --desk-vol) DESK_VOL="$2"; shift 2 ;;
@@ -213,6 +228,14 @@ MODE_CACHE_FILE="$QS_CACHE_SCREENSHOT/video_mode"
 
 rm -f "$CACHE_DIR/processing.lock"
 
+if [ "$REGION_MODE" = true ]; then
+    GEOMETRY=$(slurp)
+    if [ -z "$GEOMETRY" ]; then
+        notify-send -a "Screen Recorder" "Recording cancelled" "No region selected."
+        exit 0
+    fi
+fi
+
 # ---------------------------------------------------------
 # PHASE 1: Capture Execution (GPU-Screen-Recorder + Virtual Audio)
 # ---------------------------------------------------------
@@ -229,8 +252,13 @@ if [ "$FULL_MODE" = true ] || [ -n "$GEOMETRY" ]; then
         [ -n "$MIC_DEVICE" ] && [ "$MIC_DEVICE" != "null" ] && MIC_DEV="$MIC_DEVICE" || MIC_DEV=$(pactl get-default-source 2>/dev/null)
         MIC_DEV="${MIC_DEV:-default}"
 
-        # Reverted back to the portal method for reliable security clearance
-        GSR_ARGS=(-w "portal" -c "mp4" -f "60" -ac "aac")
+        # If geometry is set, record the region. Otherwise, use portal.
+        if [ -n "$GEOMETRY" ]; then
+            GSR_GEOM=$(echo "$GEOMETRY" | awk -F '[ ,x]' '{print $3"x"$4"+"$1"+"$2}')
+            GSR_ARGS=(-w "region" -region "$GSR_GEOM" -c "mp4" -f "60" -ac "aac")
+        else
+            GSR_ARGS=(-w "portal" -c "mp4" -f "60" -ac "aac")
+        fi
 
         AUDIO_MIX=""
 
@@ -285,7 +313,7 @@ if [ "$FULL_MODE" = true ] || [ -n "$GEOMETRY" ]; then
         echo "$REC_PID" > "$CACHE_DIR/rec_pid"
         echo "$VID_FILENAME" > "$CACHE_DIR/final_file"
 
-        notify-send -a "Screen Recorder" "⏺ Recording Started" "Press your screenshot shortcut again to stop."
+        notify-send -a "Screen Recorder" "⏺ Recording Started" "Press your shortcut again to stop."
         exit 0
     fi
 
@@ -333,11 +361,7 @@ else
     export QS_MIC_LIST=""
 fi
 
-PREFS="$QS_STATE_SCREENSHOT/audio_prefs"
-if [ -f "$PREFS" ]; then
-    IFS=',' read -r QS_DESK_VOL QS_DESK_MUTE QS_MIC_VOL QS_MIC_MUTE QS_MIC_DEV < "$PREFS"
-    export QS_DESK_VOL QS_DESK_MUTE QS_MIC_VOL QS_MIC_MUTE QS_MIC_DEV
-fi
+# Audio preferences are loaded and exported at the top of the script
 
 [ "$EDIT_MODE" = true ] && export QS_SCREENSHOT_EDIT="true" || export QS_SCREENSHOT_EDIT="false"
 [ -f "$CACHE_FILE" ] && export QS_CACHED_GEOM=$(cat "$CACHE_FILE") || export QS_CACHED_GEOM=""

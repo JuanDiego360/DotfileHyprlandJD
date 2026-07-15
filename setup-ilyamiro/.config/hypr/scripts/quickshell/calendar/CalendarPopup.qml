@@ -42,6 +42,7 @@ Item {
     property real targetMasterWidth: Math.round(1380 * window.sf)
     
     property bool gcalAuthRequired: false
+    readonly property var calendarRoot: window
     property int selectedDay: new Date().getDate()
     property int selectedMonth: new Date().getMonth()
     property int selectedYear: new Date().getFullYear()
@@ -486,12 +487,12 @@ Item {
                 try {
                     let parsed = JSON.parse(this.text);
                     if (parsed.status === "success" && parsed.events) {
-                        window.googleEvents = parsed.events;
-                        window.gcalAuthRequired = false;
+                        calendarRoot.googleEvents = parsed.events;
+                        calendarRoot.gcalAuthRequired = false;
                     } else if (parsed.status === "error" && parsed.error_type === "unauthorized") {
-                        window.gcalAuthRequired = true;
+                        calendarRoot.gcalAuthRequired = true;
                     } else {
-                        window.gcalAuthRequired = false;
+                        calendarRoot.gcalAuthRequired = false;
                     }
                 } catch(e) {
                     console.log("Error parsing google events: " + e + " | Raw text was: '" + this.text + "'");
@@ -520,7 +521,7 @@ Item {
         running: false
         onExited: (code, status) => {
             console.log("gcalAuthenticator exited with code: " + code + " status: " + status);
-            window.fetchGoogleEvents();
+            calendarRoot.fetchGoogleEvents();
         }
     }
 
@@ -1176,7 +1177,7 @@ Item {
                     }
 
                     ScrollView {
-                        visible: !window.gcalAuthRequired
+                        visible: !calendarRoot.gcalAuthRequired
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         clip: true
@@ -1286,10 +1287,11 @@ Item {
                                 }
                             }
                         }
+                    }
 
                         // Warning Block
                         ColumnLayout {
-                            visible: window.gcalAuthRequired
+                            visible: calendarRoot.gcalAuthRequired
                             Layout.fillWidth: true
                             Layout.fillHeight: true
                             spacing: Math.round(15 * window.sf)
@@ -1340,7 +1342,6 @@ Item {
                         }
                     }
                 }
-            }
 
             // =======================================================
             // RIGHT WING: ORGANIC FLOATING WEATHER STATS
@@ -1809,7 +1810,7 @@ Item {
                             if (parsed.status === "success") {
                                 statusText.color = window.green;
                                 statusText.text = "¡Evento guardado con éxito!";
-                                window.fetchGoogleEvents();
+                                calendarRoot.fetchGoogleEvents();
                             } else {
                                 statusText.color = window.red;
                                 statusText.text = "Error: " + parsed.message;
