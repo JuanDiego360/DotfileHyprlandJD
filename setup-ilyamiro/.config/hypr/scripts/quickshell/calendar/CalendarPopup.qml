@@ -562,6 +562,14 @@ Item {
         onTriggered: fetchGoogleEvents()
     }
 
+    Timer {
+        id: gcalAuthCheckTimer
+        interval: 2000
+        running: calendarRoot.gcalAuthRequired
+        repeat: true
+        onTriggered: calendarRoot.fetchGoogleEvents()
+    }
+
     function updateCalendarGrid() {
         let d = new Date(window.currentTime.getTime());
         d.setDate(1); 
@@ -1334,8 +1342,11 @@ Item {
                                     hoverEnabled: true
                                     cursorShape: Qt.PointingHandCursor
                                     onClicked: {
-                                        gcalAuthenticator.running = false;
-                                        gcalAuthenticator.running = true;
+                                        Quickshell.execDetached([
+                                            "/home/juandiego/.local/state/quickshell/.venv/bin/python",
+                                            "/home/juandiego/.config/quickshell/ii/services/gCloud/gcal_sync.py",
+                                            "auth"
+                                        ]);
                                     }
                                 }
                             }

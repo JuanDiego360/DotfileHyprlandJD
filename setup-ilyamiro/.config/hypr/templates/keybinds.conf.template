@@ -30,7 +30,7 @@ bind = SUPER, RETURN, exec, wezterm
 bind = SUPER, T, exec, wezterm
 bind = CTRL ALT, T, exec, wezterm
 bind = SUPER, W, exec, zen-browser
-bind = SUPER, E, exec, nautilus
+bind = SUPER, E, exec, dolphin
 bind = SUPER, C, exec, windsurf
 
 # ───────── Quickshell Controls (Non-conflicting) ─────────

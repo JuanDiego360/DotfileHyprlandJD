@@ -24,7 +24,7 @@
     {"type":"bind","mods":"$mainMod","key":"down","dispatcher":"movefocus","command":"d"},
     {"type":"bind","mods":"$mainMod","key":"RETURN","dispatcher":"exec","command":"kitty"},
     {"type":"bind","mods":"$mainMod","key":"F","dispatcher":"exec","command":"firefox"},
-    {"type":"bind","mods":"$mainMod","key":"E","dispatcher":"exec","command":"nautilus"},
+    {"type":"bind","mods":"$mainMod","key":"E","dispatcher":"exec","command":"dolphin"},
     {"type":"bind","mods":"$mainMod","key":"R","dispatcher":"exec","command":"bash ~/.config/hypr/scripts/reload.sh"},
     {"type":"bind","mods":"$mainMod","key":"C","dispatcher":"exec","command":"~/.config/hypr/scripts/qs_manager.sh toggle clipboard"},
     {"type":"bind","mods":"$mainMod","key":"P","dispatcher":"exec","command":"~/.config/hypr/scripts/qs_manager.sh toggle movies"},
