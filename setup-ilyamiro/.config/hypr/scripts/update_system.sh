@@ -8,6 +8,9 @@ echo "   ACTUALIZACIÓN COMPLETA DEL SISTEMA Y LIMPIEZA"
 echo "========================================================"
 echo
 
+# Variables de entorno para compilación de paquetes Rust/Cargo desde AUR
+export CARGO_NET_GIT_FETCH_WITH_CLI=true
+
 # 1. Actualización de Repositorios oficiales y AUR
 echo "--> 1. Buscando y aplicando actualizaciones de Pacman y AUR con 'yay'..."
 yay -Syu
@@ -16,7 +19,10 @@ yay -Syu
 if command -v flatpak &> /dev/null; then
     echo
     echo "--> 2. Buscando y aplicando actualizaciones de Flatpak..."
-    flatpak update -y
+    if ! flatpak update -y; then
+        echo "Reintentando actualización de Flatpak sin diferencias estáticas (--no-static-deltas)..."
+        flatpak update -y --no-static-deltas
+    fi
 fi
 
 # 3. Limpieza del sistema
