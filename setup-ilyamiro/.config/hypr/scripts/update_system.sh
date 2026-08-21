@@ -92,8 +92,10 @@ else
     echo "========================================================"
 fi
 
-# Notificar a Quickshell borrando el flag de actualizaciones pendientes
+# Notificar a Quickshell borrando los flags de actualizaciones pendientes
 rm -f "$HOME/.cache/quickshell/updater/update_pending"
+rm -f "$HOME/.cache/quickshell/updater/notified_count"
+rm -f "$HOME/.cache/quickshell/updater/updates_summary.txt"
 
 echo "Presione cualquier tecla para cerrar esta ventana..."
 read -n 1 -s -r
