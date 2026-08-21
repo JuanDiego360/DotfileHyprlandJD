@@ -19,7 +19,7 @@ echo "=== Starting search for: $QUERY ===" > "$LOG_FILE"
 mkdir -p "$SEARCH_DIR"
 
 # 2. The Pipe: Python provides links, OS provides backpressure
-python3 -u "$SCRIPT_DIR/quickshell/wallpaper/get_ddg_links.py" "$QUERY" | while IFS='|' read -r thumb_url full_url; do
+python3 -u "$SCRIPT_DIR/get_ddg_links.py" "$QUERY" | while IFS='|' read -r thumb_url full_url; do
     
     # 3. Safely read control file
     state=$(cat "$CONTROL_FILE" 2>/dev/null | tr -d '[:space:]')

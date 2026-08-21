@@ -16,8 +16,8 @@ window#osd {
 /* (Including both #container and your original #osd-container just to be safe) */
 window#osd #container,
 window#osd-container {
-    background-color: #0f1511; 
-    border: 2px solid #93d5aa; 
+    background-color: #10140f; 
+    border: 2px solid #a2d399; 
     border-radius: 32px; 
     padding: 16px;
     margin: 16px; /* This margin gives the shadow room to render inside the transparent window */
@@ -27,7 +27,7 @@ window#osd-container {
 
 /* The background "track" of the progress bar */
 trough {
-    background-color: #171d19; 
+    background-color: #191d17; 
     border-radius: 99px;
     border: none;
     min-height: 12px;
@@ -36,7 +36,7 @@ trough {
 
 /* The filled part of the progress bar */
 progress {
-    background-image: linear-gradient(to right, #93d5aa, #b5ccba); 
+    background-image: linear-gradient(to right, #a2d399, #baccb3); 
     border-radius: 99px;
     border: none;
     min-height: 12px;
@@ -49,7 +49,7 @@ progress {
 
 /* Text Label styling */
 label {
-    color: #dfe4dd; 
+    color: #e0e4da; 
     font-weight: 800;
     font-size: 18px;
     margin-bottom: 8px;
@@ -57,6 +57,6 @@ label {
 
 /* Icon styling */
 image {
-    color: #93d5aa; 
+    color: #a2d399; 
     -gtk-icon-style: symbolic;
 }
