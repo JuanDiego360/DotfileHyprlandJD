@@ -2,8 +2,8 @@
 
 source "$(dirname "${BASH_SOURCE[0]}")/caching.sh"
 
-# Intervalo de comprobación en segundos (900s = 15 minutos)
-INTERVAL=900
+# Intervalo de comprobación en segundos (86400s = 24 horas / 1 día completo)
+INTERVAL=86400
 
 # Archivo de caché para no enviar notificaciones repetidas
 CACHE_FILE="$QS_CACHE_UPDATER/notified_count"
