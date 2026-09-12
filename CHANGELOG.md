@@ -1,3 +1,53 @@
+### 2.1.5
+
+- feat: 2 new widgets, a battery widget and a system usage widget
+- style: reduce transparency
+- refactor: make the systemusage liquid fill box a reusable
+- feat: add a vertical slider for dropdown reusable
+- style: make tab icons in settings be iconbuttons instead of plain icons
+- feat: add a test notification button in the notification tab
+- fix: osd not showing up in vertical mode
+- i18n: add Azerbaijani language support to avoid merge conflict with #268
+- fix: make brightness watcher a singleton to stop leaking inotifywait processes (#274)
+- i18n: full portugese translation
+- i18n: add Portuguese (pt) translation, part 1 (core UI + selector registration) (#270)
+- fix: wifi widgets being off at startup after suspend
+- style: add container boxes to notification and display tab, make the progress sliders in the wellbeing tab thicker and increase the size of the time box on the right
+- fix: Config file tmp race conditions and add a file-write debounce
+- fix: make bluetooth widgets in the bar not fall back to enabled state when device is connected at shell startup
+- fix: make the systemusage dick tracker display a whole disk and not only one partition. Solves #269
+- feat: add exclusion mode toggle to the dock
+- feat: add scale effect to the dock
+- fix: make Lock have an on-demand network scanning button
+- style: two minor changes
+- feat: add autohide toggle keybindings (#254)
+- fix: a translation bug and add a box outline of the subsettings
+
+### 2.1.4
+
+- style: add icons to each setting in the guidepopup, change margins, rework the wellbeing tab
+- increase the padding for grouped elements in the bar
+- feat: add new notification sounds
+- fix: dock having an element cut off on position change and disconnect the dock when the bar is in modular mode
+- fix: launcher having a bad corner at the bottom
+- fix: dock evaluation warning
+- fix: Dock taking up mouse area clicking when in hidden mode
+- fix a local function call bug in serpantinumd
+- fix: make all dock settings hide when dock is disabled
+
+### 2.1.3
+
+- feat: add a dock functionality: dock.qml, dock settings
+- feat: make clicking on a random area in the screenposition selector not relocate the item for usability
+- flake.lock update
+- fix: detach OSD from the bar in autohide mode
+- fix: make sure the bar doesn't disappear on startup
+- fix: a bug with duplicated bar modules
+- fix: make the launcher remove the bar offset when in full-screen or autohide mode
+- fix repositioning bug with the notifications
+- fix: make the screenselector not offset its coordinates due to the bar
+- style: make the temp in calendarpopup have 1 number after the dot instead of integer rounded
+
 ### 2.1.2
 
 - style: tune down the scale effect for clickbutton

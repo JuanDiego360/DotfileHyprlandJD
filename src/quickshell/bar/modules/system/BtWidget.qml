@@ -24,7 +24,7 @@ Rectangle {
     property string btDevice: "Off"
     property bool isBtOn: btStatus.toLowerCase() === "enabled" || btStatus.toLowerCase() === "on"
     property real targetX: 0
-    property bool showLayout: false
+    property bool showLayout: moduleActive && (barWindow ? (barWindow.isStartupReady && barWindow.isDataReady) : true)
     property alias btPill: btPill
 
     Component.onCompleted: {
@@ -51,34 +51,17 @@ Rectangle {
         }
     }
 
-    Item {
-        visible: false
-        Connections {
-            target: Bluetooth
-            ignoreUnknownSignals: true
-            function onDefaultAdapterChanged() { btWidgetRoot.updateBtData(); }
+    function getBtDevicesList() {
+        let adapter = Bluetooth.defaultAdapter;
+        if (!adapter || !adapter.devices) return [];
+        let devs = adapter.devices.values || adapter.devices;
+        let list = [];
+        let count = devs.length !== undefined ? devs.length : (devs.count !== undefined ? devs.count : 0);
+        for (let i = 0; i < count; i++) {
+            let d = devs[i] !== undefined ? devs[i] : (devs.get ? devs.get(i) : null);
+            if (d) list.push(d);
         }
-        Connections {
-            target: Bluetooth.defaultAdapter || null
-            ignoreUnknownSignals: true
-            function onEnabledChanged() { btWidgetRoot.updateBtData(); }
-            function onDiscoveringChanged() { btWidgetRoot.updateBtData(); }
-            function onDevicesChanged() { btWidgetRoot.updateBtData(); }
-        }
-        Repeater {
-            id: btDeviceRepeater
-            model: Bluetooth.defaultAdapter ? Bluetooth.defaultAdapter.devices : null
-            Item {
-                property var device: modelData
-                Connections {
-                    target: device || null
-                    ignoreUnknownSignals: true
-                    function onConnectedChanged() { btWidgetRoot.updateBtData(); }
-                    function onNameChanged() { btWidgetRoot.updateBtData(); }
-                    function onDeviceNameChanged() { btWidgetRoot.updateBtData(); }
-                }
-            }
-        }
+        return list;
     }
 
     function updateBtData() {
@@ -95,27 +78,13 @@ Rectangle {
         btStatus = "On";
 
         let connectedDev = null;
+        let devList = getBtDevicesList();
 
-        if (adapter && adapter.devices) {
-            for (let i = 0; i < btDeviceRepeater.count; i++) {
-                let item = btDeviceRepeater.itemAt(i);
-                if (item && item.device && item.device.connected) {
-                    connectedDev = item.device;
-                    break;
-                }
-            }
-
-            if (!connectedDev) {
-                let devList = adapter.devices.values || adapter.devices;
-                if (devList && typeof devList.length === "number") {
-                    for (let i = 0; i < devList.length; i++) {
-                        let d = devList[i];
-                        if (d && d.connected) {
-                            connectedDev = d;
-                            break;
-                        }
-                    }
-                }
+        for (let i = 0; i < devList.length; i++) {
+            let d = devList[i];
+            if (d && d.connected) {
+                connectedDev = d;
+                break;
             }
         }
 
@@ -141,6 +110,47 @@ Rectangle {
         }
     }
 
+    Item {
+        visible: false
+        Connections {
+            target: Bluetooth
+            ignoreUnknownSignals: true
+            function onDefaultAdapterChanged() { btWidgetRoot.updateBtData(); }
+        }
+        Connections {
+            target: Bluetooth.defaultAdapter || null
+            ignoreUnknownSignals: true
+            function onEnabledChanged() { btWidgetRoot.updateBtData(); }
+            function onDiscoveringChanged() { btWidgetRoot.updateBtData(); }
+            function onDevicesChanged() { btWidgetRoot.updateBtData(); }
+        }
+        Connections {
+            target: (Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.devices) ? Bluetooth.defaultAdapter.devices : null
+            ignoreUnknownSignals: true
+            function onObjectInsertedPost(object, index) { btWidgetRoot.updateBtData(); }
+            function onObjectRemovedPost(object, index) { btWidgetRoot.updateBtData(); }
+            function onCountChanged() { btWidgetRoot.updateBtData(); }
+        }
+        Repeater {
+            id: btDeviceRepeater
+            model: Bluetooth.defaultAdapter ? Bluetooth.defaultAdapter.devices : null
+            Item {
+                property var device: modelData
+                Component.onCompleted: btWidgetRoot.updateBtData()
+                Connections {
+                    target: device || null
+                    ignoreUnknownSignals: true
+                    function onConnectedChanged() { btWidgetRoot.updateBtData(); }
+                    function onStateChanged() { btWidgetRoot.updateBtData(); }
+                    function onPairedChanged() { btWidgetRoot.updateBtData(); }
+                    function onNameChanged() { btWidgetRoot.updateBtData(); }
+                    function onDeviceNameChanged() { btWidgetRoot.updateBtData(); }
+                    function onIconChanged() { btWidgetRoot.updateBtData(); }
+                }
+            }
+        }
+    }
+
     x: targetX
     Behavior on x {
         enabled: barWindow && barWindow.startupCascadeFinished
@@ -160,14 +170,8 @@ Rectangle {
     visible: opacity > 0
     Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
 
-    Timer {
-        running: btWidgetRoot.moduleActive && barWindow && barWindow.isStartupReady && barWindow.isDataReady
-        interval: 100
-        onTriggered: btWidgetRoot.showLayout = true
-    }
-
     transform: Translate {
-        x: btWidgetRoot.showLayout ? 0 : barWindow.s(60)
+        x: btWidgetRoot.showLayout ? 0 : (barWindow ? barWindow.s(60) : 60)
         Behavior on x { NumberAnimation { duration: 800; easing.type: Easing.OutQuint } }
     }
 
@@ -178,7 +182,7 @@ Rectangle {
 
         ClickButton {
             id: btPill
-            property bool initAnimTrigger: false
+            property bool initAnimTrigger: btWidgetRoot.showLayout
             property bool isActive: isBtOn
 
             height: sysLayout.pillHeight
@@ -197,9 +201,8 @@ Rectangle {
             width: targetWidth
             Behavior on width { NumberAnimation { duration: 480; easing.type: Easing.OutQuint } }
 
-            Timer { running: btWidgetRoot.moduleActive && btWidgetRoot.showLayout && !btPill.initAnimTrigger; interval: 190; onTriggered: btPill.initAnimTrigger = true }
             opacity: initAnimTrigger ? 1.0 : 0.0
-            transform: Translate { y: btPill.initAnimTrigger ? 0 : barWindow.s(15); Behavior on y { NumberAnimation { duration: 620; easing.type: Easing.OutQuint } } }
+            transform: Translate { y: btPill.initAnimTrigger ? 0 : (barWindow ? barWindow.s(15) : 15); Behavior on y { NumberAnimation { duration: 620; easing.type: Easing.OutQuint } } }
             Behavior on opacity { NumberAnimation { duration: 450; easing.type: Easing.OutCubic } }
 
             onClicked: Quickshell.execDetached(["bash", "-c", Caching.serpantinumDir + "/scripts/qs_manager.sh toggle network bt"])

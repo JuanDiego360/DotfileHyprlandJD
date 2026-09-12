@@ -26,71 +26,76 @@ Rectangle {
     property bool isWifiOn: Networking.wifiEnabled
     property bool showEthernet: ethStatus === "Connected" || (isDesktop && !isWifiOn)
     property real targetX: 0
-    property bool showLayout: false
+    property bool showLayout: moduleActive && (!barWindow || (barWindow.isStartupReady && barWindow.isDataReady))
     property alias wifiPill: wifiPill
 
     property var ethDevice: null
     property var wifiDevice: null
+
+    Component.onCompleted: {
+        findDevices();
+        updateNetworkData();
+    }
 
     onModuleActiveChanged: {
         if (!moduleActive) {
             chassisDetector.running = false;
         } else {
             chassisDetector.running = true;
+            findDevices();
             updateNetworkData();
         }
     }
 
-    Item {
-        visible: false
-        Connections {
-            target: Networking
-            ignoreUnknownSignals: true
-            function onWifiEnabledChanged() { updateNetworkData(); }
-        }
-        Repeater {
-            id: netDeviceRepeater
-            model: Networking.devices
-            Item {
-                property var device: modelData
-                Component.onCompleted: {
-                    if (device.type === DeviceType.Wired) {
-                        wifiWidgetRoot.ethDevice = device;
-                    } else if (device.type === DeviceType.Wifi) {
-                        wifiWidgetRoot.wifiDevice = device;
-                    }
-                    wifiWidgetRoot.updateNetworkData();
-                }
-                Connections {
-                    target: device || null
-                    ignoreUnknownSignals: true
-                    function onStateChanged() { wifiWidgetRoot.updateNetworkData(); }
-                    function onConnectedChanged() { wifiWidgetRoot.updateNetworkData(); }
-                }
-                Connections {
-                    target: (device && device.type === DeviceType.Wired) ? device : null
-                    ignoreUnknownSignals: true
-                    function onHasLinkChanged() { wifiWidgetRoot.updateNetworkData(); }
-                }
-            }
-        }
-        Repeater {
-            id: wifiNetworkRepeater
-            model: wifiWidgetRoot.wifiDevice ? wifiWidgetRoot.wifiDevice.networks : null
-            Item {
-                property var network: modelData
-                Connections {
-                    target: network || null
-                    ignoreUnknownSignals: true
-                    function onSignalStrengthChanged() { wifiWidgetRoot.updateNetworkData(); }
-                    function onStateChanged() { wifiWidgetRoot.updateNetworkData(); }
-                    function onConnectedChanged() { wifiWidgetRoot.updateNetworkData(); }
-                }
+    Process {
+        id: chassisDetector
+        running: wifiWidgetRoot.moduleActive
+        command: ["bash", "-c", "if ls /sys/class/power_supply/BAT* 1> /dev/null 2>&1; then echo 'laptop'; else echo 'desktop'; fi"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                isDesktop = (this.text.trim() === "desktop");
             }
         }
     }
 
+    function isEthDevice(dev) {
+        return !!dev && dev.type === DeviceType.Wired;
+    }
+
+    function isWifiDevice(dev) {
+        return !!dev && dev.type === DeviceType.Wifi;
+    }
+
+    function findDevices() {
+        if (!Networking || !Networking.devices) return;
+        let devs = Networking.devices.values || Networking.devices;
+        let count = devs.length !== undefined ? devs.length : (devs.count !== undefined ? devs.count : 0);
+        for (let i = 0; i < count; i++) {
+            let d = devs[i] !== undefined ? devs[i] : (devs.get ? devs.get(i) : null);
+            if (!d) continue;
+            if (!wifiWidgetRoot.ethDevice && isEthDevice(d)) {
+                wifiWidgetRoot.ethDevice = d;
+            } else if (!wifiWidgetRoot.wifiDevice && isWifiDevice(d)) {
+                wifiWidgetRoot.wifiDevice = d;
+            }
+        }
+    }
+
+    function getWifiNetworksList() {
+        if (!wifiDevice || !wifiDevice.networks) return [];
+        let nets = wifiDevice.networks.values || wifiDevice.networks;
+        let list = [];
+        let count = nets.length !== undefined ? nets.length : (nets.count !== undefined ? nets.count : 0);
+        for (let i = 0; i < count; i++) {
+            let n = nets[i] !== undefined ? nets[i] : (nets.get ? nets.get(i) : null);
+            if (n) list.push(n);
+        }
+        return list;
+    }
+
     function updateNetworkData() {
+        findDevices();
+
         let isWifiEnabled = Networking.wifiEnabled;
         wifiStatus = isWifiEnabled ? "Enabled" : "Off";
 
@@ -113,13 +118,12 @@ Rectangle {
         }
 
         let connectedNet = null;
-        if (wifiDevice && wifiDevice.networks) {
-            for (let i = 0; i < wifiNetworkRepeater.count; i++) {
-                let item = wifiNetworkRepeater.itemAt(i);
-                if (item && item.network && item.network.connected) {
-                    connectedNet = item.network;
-                    break;
-                }
+        let netList = getWifiNetworksList();
+        for (let i = 0; i < netList.length; i++) {
+            let n = netList[i];
+            if (n && n.connected) {
+                connectedNet = n;
+                break;
             }
         }
 
@@ -134,6 +138,102 @@ Rectangle {
         } else {
             wifiSsid = "";
             wifiIcon = "󰤯";
+        }
+    }
+
+    Item {
+        visible: false
+
+        Connections {
+            target: Networking
+            ignoreUnknownSignals: true
+            function onWifiEnabledChanged() { wifiWidgetRoot.updateNetworkData(); }
+            function onDevicesChanged() {
+                wifiWidgetRoot.findDevices();
+                wifiWidgetRoot.updateNetworkData();
+            }
+        }
+
+        Connections {
+            target: Networking.devices || null
+            ignoreUnknownSignals: true
+            function onObjectInsertedPost(object, index) {
+                wifiWidgetRoot.findDevices();
+                wifiWidgetRoot.updateNetworkData();
+            }
+            function onObjectRemovedPost(object, index) {
+                wifiWidgetRoot.findDevices();
+                wifiWidgetRoot.updateNetworkData();
+            }
+            function onCountChanged() {
+                wifiWidgetRoot.findDevices();
+                wifiWidgetRoot.updateNetworkData();
+            }
+        }
+
+        Connections {
+            target: wifiWidgetRoot.ethDevice || null
+            ignoreUnknownSignals: true
+            function onConnectedChanged() { wifiWidgetRoot.updateNetworkData(); }
+            function onStateChanged() { wifiWidgetRoot.updateNetworkData(); }
+            function onHasLinkChanged() { wifiWidgetRoot.updateNetworkData(); }
+        }
+
+        Connections {
+            target: wifiWidgetRoot.wifiDevice || null
+            ignoreUnknownSignals: true
+            function onConnectedChanged() { wifiWidgetRoot.updateNetworkData(); }
+            function onStateChanged() { wifiWidgetRoot.updateNetworkData(); }
+            function onNetworksChanged() { wifiWidgetRoot.updateNetworkData(); }
+        }
+
+        Connections {
+            target: (wifiWidgetRoot.wifiDevice && wifiWidgetRoot.wifiDevice.networks) ? wifiWidgetRoot.wifiDevice.networks : null
+            ignoreUnknownSignals: true
+            function onObjectInsertedPost(object, index) { wifiWidgetRoot.updateNetworkData(); }
+            function onObjectRemovedPost(object, index) { wifiWidgetRoot.updateNetworkData(); }
+            function onCountChanged() { wifiWidgetRoot.updateNetworkData(); }
+        }
+
+        Repeater {
+            id: netDeviceRepeater
+            model: Networking.devices
+            Item {
+                property var device: modelData
+                Component.onCompleted: {
+                    if (device && device.type === DeviceType.Wired) {
+                        wifiWidgetRoot.ethDevice = device;
+                    } else if (device && device.type === DeviceType.Wifi) {
+                        wifiWidgetRoot.wifiDevice = device;
+                    }
+                    wifiWidgetRoot.updateNetworkData();
+                }
+                Connections {
+                    target: device || null
+                    ignoreUnknownSignals: true
+                    function onStateChanged() { wifiWidgetRoot.updateNetworkData(); }
+                    function onConnectedChanged() { wifiWidgetRoot.updateNetworkData(); }
+                    function onHasLinkChanged() { wifiWidgetRoot.updateNetworkData(); }
+                }
+            }
+        }
+
+        Repeater {
+            id: wifiNetworkRepeater
+            model: wifiWidgetRoot.wifiDevice ? wifiWidgetRoot.wifiDevice.networks : null
+            Item {
+                property var network: modelData
+                Component.onCompleted: wifiWidgetRoot.updateNetworkData()
+                Connections {
+                    target: network || null
+                    ignoreUnknownSignals: true
+                    function onSignalStrengthChanged() { wifiWidgetRoot.updateNetworkData(); }
+                    function onStateChanged() { wifiWidgetRoot.updateNetworkData(); }
+                    function onConnectedChanged() { wifiWidgetRoot.updateNetworkData(); }
+                    function onNameChanged() { wifiWidgetRoot.updateNetworkData(); }
+                    function onSsidChanged() { wifiWidgetRoot.updateNetworkData(); }
+                }
+            }
         }
     }
 
@@ -156,12 +256,6 @@ Rectangle {
     visible: opacity > 0
     Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
 
-    Timer {
-        running: wifiWidgetRoot.moduleActive && barWindow && barWindow.isStartupReady && barWindow.isDataReady
-        interval: 100
-        onTriggered: wifiWidgetRoot.showLayout = true
-    }
-
     transform: Translate {
         x: wifiWidgetRoot.showLayout ? 0 : barWindow.s(60)
         Behavior on x { NumberAnimation { duration: 800; easing.type: Easing.OutQuint } }
@@ -174,7 +268,7 @@ Rectangle {
 
         ClickButton {
             id: wifiPill
-            property bool initAnimTrigger: false
+            property bool initAnimTrigger: wifiWidgetRoot.showLayout
             property bool isActive: showEthernet ? (ethStatus === "Connected") : isWifiOn
 
             height: sysLayout.pillHeight
@@ -192,7 +286,6 @@ Rectangle {
             width: targetWidth
             Behavior on width { NumberAnimation { duration: 480; easing.type: Easing.OutQuint } }
 
-            Timer { running: wifiWidgetRoot.moduleActive && wifiWidgetRoot.showLayout && !wifiPill.initAnimTrigger; interval: 130; onTriggered: wifiPill.initAnimTrigger = true }
             opacity: initAnimTrigger ? 1.0 : 0.0
             transform: Translate { y: wifiPill.initAnimTrigger ? 0 : barWindow.s(15); Behavior on y { NumberAnimation { duration: 620; easing.type: Easing.OutQuint } } }
             Behavior on opacity { NumberAnimation { duration: 450; easing.type: Easing.OutCubic } }
