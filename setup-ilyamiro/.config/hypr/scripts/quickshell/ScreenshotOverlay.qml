@@ -137,6 +137,12 @@ PanelWindow {
     property bool isQrSuccess: false
     ListModel { id: qrModel }
 
+    // --- OCR Scanner State ---
+    property bool isScanningOcr: false
+    property bool showOcrPopup: false
+    property bool isOcrSuccess: false
+    property string ocrResultText: ""
+
     function saveCache() {
         if (root.hasSelection && !root.isVideoMode) {
             let data = Math.round(root.selX) + "," + Math.round(root.selY) + "," + Math.round(root.selW) + "," + Math.round(root.selH);
@@ -274,8 +280,8 @@ PanelWindow {
     Rectangle {
         visible: root.isSelecting || root.hasSelection
         x: root.selX; y: root.selY; width: root.selW; height: root.selH
-        color: (root.showQrPopup && root.isQrSuccess) ? Qt.alpha(_theme.green, 0.15) : (root.isVideoMode ? Qt.alpha(_theme.red, 0.05) : root.selectionTint)
-        border.color: (root.showQrPopup && root.isQrSuccess) ? _theme.green : (root.isVideoMode ? _theme.red : root.accentColor)
+        color: ((root.showQrPopup && root.isQrSuccess) || (root.showOcrPopup && root.isOcrSuccess)) ? Qt.alpha(_theme.green, 0.15) : (root.isVideoMode ? Qt.alpha(_theme.red, 0.05) : root.selectionTint)
+        border.color: ((root.showQrPopup && root.isQrSuccess) || (root.showOcrPopup && root.isOcrSuccess)) ? _theme.green : (root.isVideoMode ? _theme.red : root.accentColor)
         border.width: s(4)
         z: 5
     }
@@ -303,7 +309,7 @@ PanelWindow {
     component Handle: Rectangle {
         width: s(20); height: s(20); radius: s(10)
         color: root.handleColor; border.color: root.accentColor; border.width: s(4)
-        visible: (root.hasSelection || root.isSelecting) && !root.isScanningQr && !root.showQrPopup && !root.isVideoMode; z: 10
+        visible: (root.hasSelection || root.isSelecting) && !root.isScanningQr && !root.showQrPopup && !root.isScanningOcr && !root.showOcrPopup && !root.isVideoMode; z: 10
     }
     Handle { x: root.selX - width / 2; y: root.selY - height / 2 } 
     Handle { x: root.selX + root.selW - width / 2; y: root.selY - height / 2 } 
@@ -376,6 +382,9 @@ PanelWindow {
             root.isScanningQr = false;
             root.showQrPopup = false;
             qrWaitTimer.stop();
+            root.isScanningOcr = false;
+            root.showOcrPopup = false;
+            ocrWaitTimer.stop();
 
             maximizeAnim.stop() 
             root.interactionMode = getInteractionMode(mouse.x, mouse.y, mouse.modifiers)
@@ -411,7 +420,7 @@ PanelWindow {
         property real totalHeight: s(120)
         property bool fitsOutsideBottom: (root.selY + root.selH + totalHeight + s(15)) <= root.height
 
-        visible: root.hasSelection && !root.isSelecting && !root.isScanningQr && !root.showQrPopup
+        visible: root.hasSelection && !root.isSelecting && !root.isScanningQr && !root.showQrPopup && !root.isScanningOcr && !root.showOcrPopup
         
         width: Math.max(toolbarRow.width + s(64), s(340))
         height: totalHeight 
@@ -648,6 +657,11 @@ PanelWindow {
             AnimWrap {
                 isShown: !root.isVideoMode; contentWidth: s(36)
                 ToolbarBtn { iconTxt: "⿻"; onClicked: root.performQrScan() }
+            }
+
+            AnimWrap {
+                isShown: !root.isVideoMode; contentWidth: s(36)
+                ToolbarBtn { iconTxt: "󰚞"; onClicked: root.performOcrScan() }
             }
 
             AnimWrap {
@@ -969,7 +983,143 @@ PanelWindow {
         Quickshell.execDetached(["bash", "-c", cmd])
         qrWaitTimer.start()
     }   
-    
+
+    // --- OCR Popup and Backend Hooks ---
+    Rectangle {
+        id: ocrPopupItem
+        visible: opacity > 0
+        opacity: (root.showOcrPopup && !root.isSelecting) ? 1.0 : 0.0
+        z: 100
+
+        property real maxPopupWidth: Math.min(s(560), root.width - s(40))
+        property real targetX: Math.max(s(10), Math.min(root.width - width - s(10), root.selX + (root.selW / 2) - (width / 2)))
+        property bool fitsTop: (root.selY - height - s(15)) >= 0
+        property real targetY: fitsTop ? (root.selY - height - s(15)) : 
+                               ((root.selY + root.selH + height + s(15) <= root.height) ? 
+                                (root.selY + root.selH + s(15)) : (root.height - height - s(15)))
+
+        x: targetX
+        y: targetY
+        width: Math.min(Math.max(ocrRowLayout.implicitWidth + s(32), s(300)), maxPopupWidth)
+        height: Math.min(s(220), Math.max(s(52), ocrRowLayout.implicitHeight + s(16)))
+        radius: s(26)
+        color: _theme.base
+        border.color: root.isOcrSuccess ? _theme.green : _theme.red
+        border.width: s(2)
+
+        Behavior on opacity { NumberAnimation { duration: 300; easing.type: Easing.OutQuart } }
+
+        RowLayout {
+            id: ocrRowLayout
+            anchors.fill: parent
+            anchors.margins: s(12)
+            spacing: s(10)
+
+            Text {
+                text: "󰚞"
+                font.family: "Iosevka Nerd Font"
+                font.pixelSize: s(22)
+                color: root.isOcrSuccess ? _theme.green : _theme.red
+                Layout.alignment: Qt.AlignVCenter
+            }
+
+            Flickable {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                contentWidth: ocrTextLabel.implicitWidth
+                contentHeight: ocrTextLabel.implicitHeight
+                clip: true
+
+                TextEdit {
+                    id: ocrTextLabel
+                    width: ocrPopupItem.width - s(150)
+                    text: root.ocrResultText
+                    color: root.isOcrSuccess ? _theme.text : _theme.red
+                    font.family: "JetBrains Mono"
+                    font.pixelSize: s(13)
+                    font.weight: Font.Medium
+                    wrapMode: TextEdit.Wrap
+                    readOnly: true
+                    selectByMouse: true
+                    selectedTextColor: _theme.base
+                    selectionColor: _theme.mauve
+                }
+            }
+
+            Rectangle {
+                visible: root.isOcrSuccess
+                width: s(2)
+                Layout.fillHeight: true
+                color: _theme.surface0
+                radius: s(1)
+            }
+
+            ToolbarBtn {
+                visible: root.isOcrSuccess
+                iconTxt: "󰆏"
+                onClicked: {
+                    Quickshell.execDetached(["bash", "-c", `echo -n '${root.ocrResultText.replace(/'/g, "'\\''")}' | wl-copy`]);
+                    root.showOcrPopup = false;
+                }
+            }
+
+            Rectangle {
+                width: s(2)
+                Layout.fillHeight: true
+                color: _theme.surface0
+                radius: s(1)
+            }
+
+            ToolbarBtn {
+                iconTxt: "󰅖"
+                isDanger: true
+                onClicked: {
+                    root.showOcrPopup = false;
+                }
+            }
+        }
+    }
+
+    Process {
+        id: ocrReaderProcess
+        property string accumulated: ""
+        command: ["cat", paths.getRunDir("screenshot") + "/ocr_result"]
+        stdout: SplitParser { splitMarker: ""; onRead: data => ocrReaderProcess.accumulated += data }
+        
+        onExited: (exitCode) => {
+            let res = ocrReaderProcess.accumulated.trim()
+            ocrReaderProcess.accumulated = ""
+            root.isScanningOcr = false
+
+            if (exitCode !== 0 || res === "" || res === "NOT_FOUND") {
+                root.ocrResultText = (res === "NOT_FOUND") ? "No se reconoció texto." : "Error o tiempo agotado en OCR."
+                root.isOcrSuccess = false
+            } else {
+                root.ocrResultText = res
+                root.isOcrSuccess = true
+            }
+            root.showOcrPopup = true
+            Quickshell.execDetached(["bash", "-c", "rm -f " + paths.getRunDir("screenshot") + "/ocr_result"])
+        }
+    }
+
+    Timer {
+        id: ocrWaitTimer
+        interval: 1000
+        repeat: false
+        onTriggered: ocrReaderProcess.running = true
+    }
+
+    function performOcrScan() {
+        Quickshell.execDetached(["bash", "-c", "rm -f " + paths.getRunDir("screenshot") + "/ocr_result"])
+        root.isScanningOcr = true
+        root.showOcrPopup = false
+        root.ocrResultText = ""
+        let cmd = `bash ~/.config/hypr/scripts/screenshot.sh --geometry "${root.geometryString}" --ocr`
+        Quickshell.execDetached(["bash", "-c", cmd])
+        ocrWaitTimer.start()
+    }
+
     Timer {
         id: captureTimer
         property string pendingCmd: ""

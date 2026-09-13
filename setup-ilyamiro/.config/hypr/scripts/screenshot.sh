@@ -21,7 +21,7 @@ if ! command -v notify-send &> /dev/null; then
     exit 1
 fi
 
-REQUIRED_CMDS=("gpu-screen-recorder" "grim" "satty" "wl-copy" "pactl" "quickshell" "zbarimg" "python3")
+REQUIRED_CMDS=("gpu-screen-recorder" "grim" "satty" "wl-copy" "pactl" "quickshell" "zbarimg" "python3" "tesseract")
 MISSING_CMDS=()
 
 for cmd in "${REQUIRED_CMDS[@]}"; do
@@ -48,6 +48,7 @@ FULL_MODE=false
 RECORD_MODE=false
 REGION_MODE=false
 SCAN_QR_MODE=false
+OCR_MODE=false
 GEOMETRY=""
 
 # Load saved audio preferences as defaults
@@ -75,6 +76,7 @@ while [[ "$#" -gt 0 ]]; do
         --record) RECORD_MODE=true; shift ;;
         --region) REGION_MODE=true; shift ;;
         --scan-qr) SCAN_QR_MODE=true; shift ;;
+        --ocr) OCR_MODE=true; shift ;;
         --geometry) GEOMETRY="$2"; shift 2 ;;
         --desk-vol) DESK_VOL="$2"; shift 2 ;;
         --desk-mute) DESK_MUTE="$2"; shift 2 ;;
@@ -163,6 +165,61 @@ EOF
     fi
     
     rm -f "$TMP_IMG"
+    exit 0
+fi
+
+# ---------------------------------------------------------
+# INSTANT OCR SCANNING EXECUTION
+# ---------------------------------------------------------
+if [ "$OCR_MODE" = true ]; then
+    RES_FILE="$QS_RUN_SCREENSHOT/ocr_result"
+    export DEBUG_LOG="$QS_LOG_DIR/ocr_debug.log"
+    rm -f "$RES_FILE" "$DEBUG_LOG"
+    
+    echo "=== OCR SCAN INITIATED $(date) ===" > "$DEBUG_LOG"
+    
+    if ! command -v tesseract &> /dev/null; then
+        echo -e "ERROR: tesseract is not installed. Please install it." > "$RES_FILE"
+        notify-send -u critical -a "OCR" "Tesseract no encontrado" "Por favor instala tesseract"
+        exit 1
+    fi
+
+    TMP_IMG="$QS_RUN_SCREENSHOT/ocr_temp_$$.png"
+    if [ -n "$GEOMETRY" ]; then
+        grim -g "$GEOMETRY" "$TMP_IMG"
+    else
+        GEOM=$(slurp)
+        if [ -z "$GEOM" ]; then
+            exit 0
+        fi
+        grim -g "$GEOM" "$TMP_IMG"
+    fi
+
+    # Check available languages
+    AVAILABLE_LANGS=$(tesseract --list-langs 2>/dev/null)
+    OCR_LANGS=""
+    if echo "$AVAILABLE_LANGS" | grep -qx "spa"; then
+        OCR_LANGS="spa"
+    fi
+    if echo "$AVAILABLE_LANGS" | grep -qx "eng"; then
+        [ -n "$OCR_LANGS" ] && OCR_LANGS="${OCR_LANGS}+eng" || OCR_LANGS="eng"
+    fi
+    [ -z "$OCR_LANGS" ] && OCR_LANGS="eng"
+
+    OCR_TEXT=$(tesseract "$TMP_IMG" stdout -l "$OCR_LANGS" 2>>"$DEBUG_LOG")
+    rm -f "$TMP_IMG"
+
+    OCR_TEXT_TRIMMED=$(echo "$OCR_TEXT" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+
+    if [ -n "$OCR_TEXT_TRIMMED" ]; then
+        echo -n "$OCR_TEXT_TRIMMED" | wl-copy
+        echo -n "$OCR_TEXT_TRIMMED" > "$RES_FILE"
+        NOTIF_PREVIEW=$(echo "$OCR_TEXT_TRIMMED" | head -n 4)
+        notify-send -a "OCR" -i "edit-copy" "Texto copiado al portapapeles" "$NOTIF_PREVIEW"
+    else
+        echo -n "NOT_FOUND" > "$RES_FILE"
+        notify-send -a "OCR" "Sin texto detectado" "No se reconoció ningún texto en el área seleccionada."
+    fi
     exit 0
 fi
 
