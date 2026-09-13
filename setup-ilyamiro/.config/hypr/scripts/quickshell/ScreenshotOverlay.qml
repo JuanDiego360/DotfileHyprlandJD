@@ -143,6 +143,28 @@ PanelWindow {
     property bool isOcrSuccess: false
     property string ocrResultText: ""
 
+    // --- Global Tooltip State ---
+    property string activeTooltipText: ""
+    property real tooltipTargetX: 0
+    property real tooltipTargetY: 0
+    property real tooltipTargetH: s(36)
+    property bool isTooltipVisible: false
+
+    function showTooltip(text, targetX, targetY, targetH) {
+        if (!text || text === "") return;
+        activeTooltipText = text;
+        tooltipTargetX = targetX;
+        tooltipTargetY = targetY;
+        tooltipTargetH = targetH !== undefined ? targetH : s(36);
+        isTooltipVisible = true;
+    }
+
+    function hideTooltip(text) {
+        if (text === undefined || activeTooltipText === text) {
+            isTooltipVisible = false;
+        }
+    }
+
     function saveCache() {
         if (root.hasSelection && !root.isVideoMode) {
             let data = Math.round(root.selX) + "," + Math.round(root.selY) + "," + Math.round(root.selW) + "," + Math.round(root.selH);
@@ -214,6 +236,7 @@ PanelWindow {
         id: tBtn
         property string iconTxt: ""
         property string label: ""
+        property string tooltip: ""
         property bool isDanger: false
         signal clicked()
 
@@ -248,7 +271,21 @@ PanelWindow {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            onClicked: tBtn.clicked() 
+            onClicked: {
+                root.hideTooltip();
+                tBtn.clicked();
+            }
+            onEntered: {
+                if (tBtn.tooltip !== "") {
+                    let p = tBtn.mapToItem(null, tBtn.width / 2, 0);
+                    root.showTooltip(tBtn.tooltip, p.x, p.y, tBtn.height);
+                }
+            }
+            onExited: {
+                if (tBtn.tooltip !== "") {
+                    root.hideTooltip(tBtn.tooltip);
+                }
+            }
         }
     }
 
@@ -385,6 +422,7 @@ PanelWindow {
             root.isScanningOcr = false;
             root.showOcrPopup = false;
             ocrWorkerProcess.running = false;
+            root.hideTooltip();
 
             maximizeAnim.stop() 
             root.interactionMode = getInteractionMode(mouse.x, mouse.y, mouse.modifiers)
@@ -603,12 +641,22 @@ PanelWindow {
                         Item {
                             width: parent.width / 2; height: parent.height
                             Text { anchors.centerIn: parent; font.family: "Iosevka Nerd Font"; text: "󰄄"; color: !root.isVideoMode ? _theme.crust : _theme.text; font.pixelSize: s(16) }
-                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.isVideoMode = false }
+                            MouseArea { 
+                                anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.isVideoMode = false
+                                hoverEnabled: true
+                                onEntered: { let p = mapToItem(null, width / 2, 0); root.showTooltip("Modo imagen", p.x, p.y, height); }
+                                onExited: root.hideTooltip("Modo imagen")
+                            }
                         }
                         Item {
                             width: parent.width / 2; height: parent.height
                             Text { anchors.centerIn: parent; font.family: "Iosevka Nerd Font"; text: ""; color: root.isVideoMode ? _theme.crust : _theme.text; font.pixelSize: s(16) }
-                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.isVideoMode = true }
+                            MouseArea { 
+                                anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.isVideoMode = true
+                                hoverEnabled: true
+                                onEntered: { let p = mapToItem(null, width / 2, 0); root.showTooltip("Modo grabación", p.x, p.y, height); }
+                                onExited: root.hideTooltip("Modo grabación")
+                            }
                         }
                     }
                 }
@@ -651,22 +699,38 @@ PanelWindow {
 
             AnimWrap {
                 isShown: !root.isVideoMode; contentWidth: s(36)
-                ToolbarBtn { iconTxt: "󰏫"; onClicked: root.executeCapture(true, false) }
+                ToolbarBtn { 
+                    iconTxt: "󰏫"
+                    tooltip: "Editar en Satty"
+                    onClicked: root.executeCapture(true, false) 
+                }
             }
 
             AnimWrap {
                 isShown: !root.isVideoMode; contentWidth: s(36)
-                ToolbarBtn { iconTxt: "󰆏"; onClicked: root.executeCopyClipboard() }
+                ToolbarBtn { 
+                    iconTxt: "󰆏"
+                    tooltip: "Copiar al portapapeles"
+                    onClicked: root.executeCopyClipboard() 
+                }
             }
 
             AnimWrap {
                 isShown: !root.isVideoMode; contentWidth: s(36)
-                ToolbarBtn { iconTxt: "⿻"; onClicked: root.performQrScan() }
+                ToolbarBtn { 
+                    iconTxt: "⿻"
+                    tooltip: "Escanear código QR"
+                    onClicked: root.performQrScan() 
+                }
             }
 
             AnimWrap {
                 isShown: !root.isVideoMode; contentWidth: s(36)
-                ToolbarBtn { iconTxt: "󰚞"; onClicked: root.performOcrScan() }
+                ToolbarBtn { 
+                    iconTxt: "󰚞"
+                    tooltip: "Extraer texto (OCR)"
+                    onClicked: root.performOcrScan() 
+                }
             }
 
             AnimWrap {
@@ -676,7 +740,11 @@ PanelWindow {
             
             AnimWrap {
                 isShown: !root.isVideoMode; contentWidth: s(36)
-                ToolbarBtn { iconTxt: root.isMaximized ? "" : ""; onClicked: root.toggleMaximize() }
+                ToolbarBtn { 
+                    iconTxt: root.isMaximized ? "" : ""
+                    tooltip: root.isMaximized ? "Restaurar selección" : "Pantalla completa"
+                    onClicked: root.toggleMaximize() 
+                }
             }
 
             // Universal Close Button
@@ -689,7 +757,9 @@ PanelWindow {
                     Rectangle { width: s(2); height: s(16); anchors.verticalCenter: parent.verticalCenter; color: _theme.surface0; radius: s(1);}
                     ToolbarBtn { 
                         anchors.verticalCenter: parent.verticalCenter
-                        iconTxt: "󰅖"; isDanger: true; onClicked: Qt.quit() 
+                        iconTxt: "󰅖"; isDanger: true
+                        tooltip: "Cerrar"
+                        onClicked: Qt.quit() 
                     }
                 }
             }
@@ -769,7 +839,17 @@ PanelWindow {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: root.executeCapture(false, root.isVideoMode)
+                    onClicked: {
+                        root.hideTooltip();
+                        root.executeCapture(false, root.isVideoMode);
+                    }
+                    onEntered: {
+                        let p = mapToItem(null, width / 2, 0);
+                        root.showTooltip(root.isVideoMode ? "Iniciar grabación" : "Guardar captura", p.x, p.y, height);
+                    }
+                    onExited: {
+                        root.hideTooltip();
+                    }
                 }
             }
 
@@ -856,6 +936,7 @@ PanelWindow {
                 ToolbarBtn {
                     visible: model.qSuccess
                     iconTxt: "󰆏"
+                    tooltip: "Copiar contenido QR"
                     onClicked: {
                         Quickshell.execDetached(["bash", "-c", `echo -n '${model.qText.replace(/'/g, "'\\''")}' | wl-copy`]);
                         root.showQrPopup = false;
@@ -865,6 +946,7 @@ PanelWindow {
                 ToolbarBtn {
                     visible: model.qSuccess && (model.qText.startsWith("http://") || model.qText.startsWith("https://"))
                     iconTxt: "󰌹"
+                    tooltip: "Abrir en el navegador"
                     onClicked: {
                         Quickshell.execDetached(["xdg-open", model.qText]);
                         Qt.quit();
@@ -872,7 +954,7 @@ PanelWindow {
                 }
 
                 Rectangle { width: s(2); Layout.fillHeight: true; Layout.topMargin: s(10); Layout.bottomMargin: s(10); color: _theme.surface0; radius: s(1) }
-                ToolbarBtn { iconTxt: "󰅖"; isDanger: true; onClicked: root.showQrPopup = false }
+                ToolbarBtn { iconTxt: "󰅖"; isDanger: true; tooltip: "Cerrar"; onClicked: root.showQrPopup = false }
             }
         }
     }
@@ -1062,6 +1144,7 @@ PanelWindow {
             ToolbarBtn {
                 visible: root.isOcrSuccess
                 iconTxt: "󰆏"
+                tooltip: "Copiar texto"
                 onClicked: {
                     Quickshell.execDetached(["bash", "-c", `echo -n '${root.ocrResultText.replace(/'/g, "'\\''")}' | wl-copy`]);
                     root.showOcrPopup = false;
@@ -1078,6 +1161,7 @@ PanelWindow {
             ToolbarBtn {
                 iconTxt: "󰅖"
                 isDanger: true
+                tooltip: "Cerrar"
                 onClicked: {
                     root.showOcrPopup = false;
                 }
@@ -1187,5 +1271,41 @@ PanelWindow {
         root.visible = false
         captureTimer.pendingCmd = cmd
         captureTimer.start()
+    }
+
+    // --- Global Floating Tooltip Pill ---
+    Rectangle {
+        id: globalTooltip
+        z: 99999
+        visible: opacity > 0
+        opacity: (root.isTooltipVisible && !root.isSelecting) ? 1.0 : 0.0
+
+        property bool fitsAbove: (root.tooltipTargetY - height - s(8)) >= 0
+        property real targetCalculatedX: Math.max(s(10), Math.min(root.width - width - s(10), root.tooltipTargetX - (width / 2)))
+        property real targetCalculatedY: fitsAbove ? (root.tooltipTargetY - height - s(8)) : (root.tooltipTargetY + root.tooltipTargetH + s(8))
+
+        x: targetCalculatedX
+        y: targetCalculatedY
+
+        width: tooltipLabel.implicitWidth + s(18)
+        height: s(26)
+        radius: s(8)
+        color: Qt.rgba(_theme.crust.r, _theme.crust.g, _theme.crust.b, 0.95)
+        border.color: Qt.rgba(_theme.mauve.r, _theme.mauve.g, _theme.mauve.b, 0.5)
+        border.width: s(1)
+
+        Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
+        Behavior on x { enabled: globalTooltip.opacity > 0.1; NumberAnimation { duration: 120; easing.type: Easing.OutQuad } }
+        Behavior on y { enabled: globalTooltip.opacity > 0.1; NumberAnimation { duration: 120; easing.type: Easing.OutQuad } }
+
+        Text {
+            id: tooltipLabel
+            anchors.centerIn: parent
+            text: root.activeTooltipText
+            font.family: "JetBrains Mono"
+            font.pixelSize: s(11)
+            font.weight: Font.DemiBold
+            color: _theme.text
+        }
     }
 }
