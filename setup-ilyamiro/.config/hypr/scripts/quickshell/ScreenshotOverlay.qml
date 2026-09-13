@@ -384,7 +384,7 @@ PanelWindow {
             qrWaitTimer.stop();
             root.isScanningOcr = false;
             root.showOcrPopup = false;
-            ocrWaitTimer.stop();
+            ocrWorkerProcess.running = false;
 
             maximizeAnim.stop() 
             root.interactionMode = getInteractionMode(mouse.x, mouse.y, mouse.modifiers)
@@ -652,6 +652,11 @@ PanelWindow {
             AnimWrap {
                 isShown: !root.isVideoMode; contentWidth: s(36)
                 ToolbarBtn { iconTxt: "󰏫"; onClicked: root.executeCapture(true, false) }
+            }
+
+            AnimWrap {
+                isShown: !root.isVideoMode; contentWidth: s(36)
+                ToolbarBtn { iconTxt: "󰆏"; onClicked: root.executeCopyClipboard() }
             }
 
             AnimWrap {
@@ -1080,44 +1085,82 @@ PanelWindow {
         }
     }
 
+    // --- OCR Loading Indicator ---
+    Rectangle {
+        id: ocrLoadingIndicator
+        visible: opacity > 0
+        opacity: root.isScanningOcr ? 1.0 : 0.0
+        z: 90
+        width: ocrLoadingRow.implicitWidth + s(32)
+        height: s(44)
+        radius: s(22)
+        color: _theme.base
+        border.color: _theme.mauve
+        border.width: s(2)
+
+        x: Math.max(s(10), Math.min(parent.width - width - s(10), root.selX + (root.selW / 2) - (width / 2)))
+        y: (root.selY + root.selH + s(15) + height <= root.height) ? (root.selY + root.selH + s(15)) : Math.max(s(10), root.selY - height - s(15))
+
+        Behavior on opacity { NumberAnimation { duration: 200 } }
+
+        RowLayout {
+            id: ocrLoadingRow
+            anchors.centerIn: parent
+            spacing: s(8)
+
+            Text {
+                text: "󰚞"
+                font.family: "Iosevka Nerd Font"
+                font.pixelSize: s(18)
+                color: _theme.mauve
+            }
+
+            Text {
+                text: "Extrayendo texto (OCR)..."
+                font.family: "JetBrains Mono"
+                font.pixelSize: s(13)
+                font.weight: Font.DemiBold
+                color: _theme.text
+            }
+        }
+    }
+
     Process {
-        id: ocrReaderProcess
+        id: ocrWorkerProcess
         property string accumulated: ""
-        command: ["cat", paths.getRunDir("screenshot") + "/ocr_result"]
-        stdout: SplitParser { splitMarker: ""; onRead: data => ocrReaderProcess.accumulated += data }
+        stdout: SplitParser { splitMarker: ""; onRead: data => ocrWorkerProcess.accumulated += data }
         
         onExited: (exitCode) => {
-            let res = ocrReaderProcess.accumulated.trim()
-            ocrReaderProcess.accumulated = ""
+            let res = ocrWorkerProcess.accumulated.trim()
+            ocrWorkerProcess.accumulated = ""
             root.isScanningOcr = false
 
             if (exitCode !== 0 || res === "" || res === "NOT_FOUND") {
-                root.ocrResultText = (res === "NOT_FOUND") ? "No se reconoció texto." : "Error o tiempo agotado en OCR."
+                root.ocrResultText = (res === "NOT_FOUND") ? "No se reconoció texto en el área." : "Error al procesar el texto con OCR."
                 root.isOcrSuccess = false
             } else {
                 root.ocrResultText = res
                 root.isOcrSuccess = true
             }
             root.showOcrPopup = true
-            Quickshell.execDetached(["bash", "-c", "rm -f " + paths.getRunDir("screenshot") + "/ocr_result"])
         }
     }
 
-    Timer {
-        id: ocrWaitTimer
-        interval: 1000
-        repeat: false
-        onTriggered: ocrReaderProcess.running = true
-    }
-
     function performOcrScan() {
-        Quickshell.execDetached(["bash", "-c", "rm -f " + paths.getRunDir("screenshot") + "/ocr_result"])
         root.isScanningOcr = true
         root.showOcrPopup = false
         root.ocrResultText = ""
-        let cmd = `bash ~/.config/hypr/scripts/screenshot.sh --geometry "${root.geometryString}" --ocr`
-        Quickshell.execDetached(["bash", "-c", cmd])
-        ocrWaitTimer.start()
+        ocrWorkerProcess.accumulated = ""
+        ocrWorkerProcess.command = ["bash", Quickshell.env("HOME") + "/.config/hypr/scripts/screenshot.sh", "--geometry", root.geometryString, "--ocr"]
+        ocrWorkerProcess.running = false
+        ocrWorkerProcess.running = true
+    }
+
+    function executeCopyClipboard() {
+        let cmd = `bash ~/.config/hypr/scripts/screenshot.sh --geometry "${root.geometryString}" --clipboard`
+        root.visible = false
+        captureTimer.pendingCmd = cmd
+        captureTimer.start()
     }
 
     Timer {

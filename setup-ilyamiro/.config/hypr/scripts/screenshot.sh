@@ -49,6 +49,7 @@ RECORD_MODE=false
 REGION_MODE=false
 SCAN_QR_MODE=false
 OCR_MODE=false
+CLIPBOARD_MODE=false
 GEOMETRY=""
 
 # Load saved audio preferences as defaults
@@ -77,6 +78,7 @@ while [[ "$#" -gt 0 ]]; do
         --region) REGION_MODE=true; shift ;;
         --scan-qr) SCAN_QR_MODE=true; shift ;;
         --ocr) OCR_MODE=true; shift ;;
+        --clipboard) CLIPBOARD_MODE=true; shift ;;
         --geometry) GEOMETRY="$2"; shift 2 ;;
         --desk-vol) DESK_VOL="$2"; shift 2 ;;
         --desk-mute) DESK_MUTE="$2"; shift 2 ;;
@@ -214,10 +216,12 @@ if [ "$OCR_MODE" = true ]; then
     if [ -n "$OCR_TEXT_TRIMMED" ]; then
         echo -n "$OCR_TEXT_TRIMMED" | wl-copy
         echo -n "$OCR_TEXT_TRIMMED" > "$RES_FILE"
+        echo "$OCR_TEXT_TRIMMED"
         NOTIF_PREVIEW=$(echo "$OCR_TEXT_TRIMMED" | head -n 4)
         notify-send -a "OCR" -i "edit-copy" "Texto copiado al portapapeles" "$NOTIF_PREVIEW"
     else
         echo -n "NOT_FOUND" > "$RES_FILE"
+        echo "NOT_FOUND"
         notify-send -a "OCR" "Sin texto detectado" "No se reconoció ningún texto en el área seleccionada."
     fi
     exit 0
@@ -285,10 +289,10 @@ MODE_CACHE_FILE="$QS_CACHE_SCREENSHOT/video_mode"
 
 rm -f "$CACHE_DIR/processing.lock"
 
-if [ "$REGION_MODE" = true ]; then
+if [ "$REGION_MODE" = true ] || ([ "$CLIPBOARD_MODE" = true ] && [ -z "$GEOMETRY" ] && [ "$FULL_MODE" != true ]); then
     GEOMETRY=$(slurp)
     if [ -z "$GEOMETRY" ]; then
-        notify-send -a "Screen Recorder" "Recording cancelled" "No region selected."
+        notify-send -a "Screenshot" "Captura cancelada" "No se seleccionó ninguna región."
         exit 0
     fi
 fi
@@ -380,6 +384,11 @@ if [ "$FULL_MODE" = true ] || [ -n "$GEOMETRY" ]; then
 
     if [ "$EDIT_MODE" = true ]; then
         eval $GRIM_CMD | GSK_RENDERER=gl satty --filename - --output-filename "$FILENAME" --init-tool brush --copy-command wl-copy
+    elif [ "$CLIPBOARD_MODE" = true ]; then
+        eval $GRIM_CMD > "$FILENAME"
+        wl-copy --type image/png < "$FILENAME"
+        notify-send -a "Screenshot" -i "$FILENAME" "Captura copiada al portapapeles" "La imagen se ha copiado correctamente."
+        exit 0
     else
         eval $GRIM_CMD | tee "$FILENAME" | wl-copy
     fi
