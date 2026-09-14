@@ -92,6 +92,12 @@ else
     echo "========================================================"
 fi
 
+# Guardar registro persistente de actualización para no volver a pedir hoy
+mkdir -p "$HOME/.local/state/quickshell/updater"
+date +%Y-%m-%d > "$HOME/.local/state/quickshell/updater/last_update_date"
+date +%Y-%m-%d > "$HOME/.local/state/quickshell/updater/last_check_date"
+date +%s > "$HOME/.local/state/quickshell/updater/last_check_timestamp"
+
 # Notificar a Quickshell borrando los flags de actualizaciones pendientes
 rm -f "$HOME/.cache/quickshell/updater/update_pending"
 rm -f "$HOME/.cache/quickshell/updater/notified_count"
