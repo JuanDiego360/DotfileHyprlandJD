@@ -11,20 +11,16 @@ echo
 # Variables de entorno para compilación de paquetes Rust/Cargo desde AUR
 export CARGO_NET_GIT_FETCH_WITH_CLI=true
 
-# 1. Actualización mediante herramienta nativa de CachyOS (cachy-update) y AUR
-if command -v cachy-update &> /dev/null; then
-    echo "--> 1. Sincronizando y actualizando con la herramienta nativa 'cachy-update'..."
-    cachy-update
-else
-    echo "--> 1. Comprobando herramienta nativa CachyOS (cachy-update)..."
-    if sudo pacman -S --needed --noconfirm cachy-update 2>/dev/null && command -v cachy-update &>/dev/null; then
-        echo "--> 'cachy-update' instalado exitosamente. Iniciando actualización..."
-        cachy-update
-    else
-        echo "--> Actualizando con 'yay' (repositorios oficiales, CachyOS y AUR)..."
-        yay -Syu
-    fi
+# 1. Actualización exclusiva con la herramienta nativa de CachyOS (cachy-update)
+# Nota: cachy-update se encarga automáticamente de los repositorios optimizados, oficiales y de AUR (vía yay/paru)
+if ! command -v cachy-update &> /dev/null; then
+    echo "--> 1. Instalando la herramienta nativa 'cachy-update'..."
+    sudo pacman -S --needed --noconfirm cachy-update
 fi
+
+echo "--> 1. Sincronizando y actualizando el sistema con 'cachy-update'..."
+echo "       (Gestiona repositorios oficiales, optimizaciones CachyOS y AUR automáticamente)"
+cachy-update
 
 # 2. Actualización de Flatpak (si existe)
 if command -v flatpak &> /dev/null; then
