@@ -5,8 +5,8 @@ source "$(dirname "${BASH_SOURCE[0]}")/caching.sh"
 # Asegurar directorios de caché y estado persistente
 qs_ensure_cache "updater"
 
-# Intervalo mínimo entre comprobaciones en segundos (86400s = 24 horas / 1 día completo)
-INTERVAL=86400
+# Intervalo mínimo entre comprobaciones en segundos (604800s = 7 días / 1 semana completa)
+INTERVAL=$((7 * 86400))
 
 # Archivos de caché volátil
 CACHE_FILE="$QS_CACHE_UPDATER/notified_count"
@@ -45,6 +45,17 @@ get_last_update_timestamp() {
         fi
     fi
 
+    echo "$ts"
+}
+
+# Obtiene la fecha/hora en segundos epoch de la última comprobación realizada
+get_last_check_timestamp() {
+    local ts=0
+    if [[ -f "$LAST_CHECK_TIMESTAMP_FILE" ]]; then
+        local saved_ts
+        saved_ts=$(cat "$LAST_CHECK_TIMESTAMP_FILE" 2>/dev/null)
+        [[ "$saved_ts" =~ ^[0-9]+$ ]] && ts=$saved_ts
+    fi
     echo "$ts"
 }
 
@@ -91,18 +102,6 @@ was_checked_today() {
     return 1
 }
 
-# Calcula los segundos hasta las 00:05 AM de mañana
-get_seconds_until_tomorrow() {
-    local now tomorrow_sec
-    now=$(date +%s)
-    tomorrow_sec=$(date -d "tomorrow 00:05:00" +%s 2>/dev/null)
-    if [[ -n "$tomorrow_sec" && "$tomorrow_sec" -gt "$now" ]]; then
-        echo $((tomorrow_sec - now))
-    else
-        echo "$INTERVAL"
-    fi
-}
-
 check_system_updates() {
     local pacman_count=0
     local aur_count=0
@@ -110,7 +109,7 @@ check_system_updates() {
     local pacman_list=""
     local aur_list=""
 
-    # 1. Comprobar repositorios oficiales con checkupdates (seguro, no bloquea pacman)
+    # 1. Comprobar repositorios oficiales y CachyOS con checkupdates (seguro, no bloquea pacman)
     if command -v checkupdates &>/dev/null; then
         pacman_list=$(checkupdates 2>/dev/null)
         if [[ -n "$pacman_list" ]]; then
@@ -178,7 +177,7 @@ check_system_updates() {
             echo "$total" > "$CACHE_FILE"
 
             local msg=""
-            (( pacman_count > 0 )) && msg+="Pacman: $pacman_count  "
+            (( pacman_count > 0 )) && msg+="Pacman/CachyOS: $pacman_count  "
             (( aur_count > 0 )) && msg+="AUR: $aur_count  "
             (( flatpak_count > 0 )) && msg+="Flatpak: $flatpak_count  "
             (( dots_pending > 0 )) && msg+="Dotfiles: 1  "
@@ -205,7 +204,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         last_update_ts=$(get_last_update_timestamp)
         elapsed=$((now - last_update_ts))
 
-        # 1. Si se actualizó hace menos de 24 horas (86400 segundos), esperar el tiempo restante
+        # 1. Si se actualizó hace menos de 7 días (INTERVAL segundos), esperar el tiempo restante
         if (( last_update_ts > 0 && elapsed < INTERVAL )); then
             remaining=$((INTERVAL - elapsed))
             rm -f "$PENDING_FILE"
@@ -214,31 +213,23 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
             continue
         fi
 
-        # 2. Si ya fue actualizado hoy en el calendario, limpiar banderas y esperar a mañana
-        if was_updated_today; then
-            rm -f "$PENDING_FILE"
-            rm -f "$CACHE_FILE"
-            sleep_time=$(get_seconds_until_tomorrow)
-            sleep "$sleep_time"
+        # 2. Si ya se realizó una comprobación hace menos de 7 días, esperar el tiempo restante
+        last_check_ts=$(get_last_check_timestamp)
+        elapsed_check=$((now - last_check_ts))
+        if (( last_check_ts > 0 && elapsed_check < INTERVAL )); then
+            remaining_check=$((INTERVAL - elapsed_check))
+            sleep "$remaining_check"
             continue
         fi
 
-        # 3. Si ya se realizó la comprobación hoy, no volver a comprobar en cada encendido del mismo día
-        if was_checked_today; then
-            sleep_time=$(get_seconds_until_tomorrow)
-            sleep "$sleep_time"
-            continue
-        fi
-
-        # 4. Comprobación diaria del sistema
+        # 3. Comprobación semanal del sistema
         check_system_updates
 
         # Guardar marcas de la comprobación
         echo "$today" > "$LAST_CHECK_FILE" 2>/dev/null
         date +%s > "$LAST_CHECK_TIMESTAMP_FILE" 2>/dev/null
 
-        # Dormir hasta mañana o intervalo
-        sleep_time=$(get_seconds_until_tomorrow)
-        sleep "$sleep_time"
+        # Esperar 7 días para la próxima comprobación
+        sleep "$INTERVAL"
     done
 fi

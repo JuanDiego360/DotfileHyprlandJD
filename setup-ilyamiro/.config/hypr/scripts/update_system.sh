@@ -4,18 +4,29 @@
 clear
 
 echo "========================================================"
-echo "   ACTUALIZACIÓN COMPLETA DEL SISTEMA Y LIMPIEZA"
+echo "   ACTUALIZACIÓN COMPLETA DEL SISTEMA Y LIMPIEZA (CachyOS)"
 echo "========================================================"
 echo
 
 # Variables de entorno para compilación de paquetes Rust/Cargo desde AUR
 export CARGO_NET_GIT_FETCH_WITH_CLI=true
 
-# 1. Actualización de Repositorios oficiales y AUR
-echo "--> 1. Buscando y aplicando actualizaciones de Pacman y AUR con 'yay'..."
-yay -Syu
+# 1. Actualización mediante herramienta nativa de CachyOS (cachy-update) y AUR
+if command -v cachy-update &> /dev/null; then
+    echo "--> 1. Sincronizando y actualizando con la herramienta nativa 'cachy-update'..."
+    cachy-update
+else
+    echo "--> 1. Comprobando herramienta nativa CachyOS (cachy-update)..."
+    if sudo pacman -S --needed --noconfirm cachy-update 2>/dev/null && command -v cachy-update &>/dev/null; then
+        echo "--> 'cachy-update' instalado exitosamente. Iniciando actualización..."
+        cachy-update
+    else
+        echo "--> Actualizando con 'yay' (repositorios oficiales, CachyOS y AUR)..."
+        yay -Syu
+    fi
+fi
 
-# 2. Actualización de Flatpak
+# 2. Actualización de Flatpak (si existe)
 if command -v flatpak &> /dev/null; then
     echo
     echo "--> 2. Buscando y aplicando actualizaciones de Flatpak..."
@@ -30,7 +41,7 @@ echo
 echo "--> 3. Realizando tareas de limpieza..."
 
 # Huérfanos de pacman
-orphans=$(pacman -Qtdq)
+orphans=$(pacman -Qtdq 2>/dev/null)
 if [ -n "$orphans" ]; then
     echo "Eliminando paquetes huérfanos de Pacman: $orphans"
     # shellcheck disable=SC2086
@@ -42,7 +53,7 @@ fi
 # Limpieza de dependencias innecesarias con yay
 if command -v yay &> /dev/null; then
     echo "Limpiando dependencias innecesarias de yay (yay -Yc)..."
-    yay -Yc --noconfirm
+    yay -Yc --noconfirm 2>/dev/null || true
 fi
 
 # Limpieza de caché de paquetes (mantiene las últimas 2 versiones)
@@ -57,18 +68,18 @@ fi
 # Limpieza de Flatpak unused runtimes
 if command -v flatpak &> /dev/null; then
     echo "Eliminando runtimes y aplicaciones Flatpak sin usar..."
-    flatpak uninstall --unused -y
+    flatpak uninstall --unused -y 2>/dev/null || true
 fi
 
-# 4. Comprobación de reinicio
+# 4. Comprobación de reinicio y kernels
 echo
-echo "--> 4. Comprobando si es necesario reiniciar el sistema..."
+echo "--> 4. Comprobando estado del kernel y reinicio del sistema..."
 reboot_needed=false
 running_kernel=$(uname -r)
 
 if [ ! -d "/usr/lib/modules/$running_kernel" ]; then
     reboot_needed=true
-    echo "⚠️  ¡El kernel ha sido actualizado! (Kernel ejecutándose: $running_kernel no existe en /usr/lib/modules)"
+    echo "⚠️  ¡El kernel actual ha sido actualizado! (Kernel en ejecución: $running_kernel)"
 fi
 
 # Buscar si se actualizaron paquetes críticos en la última transacción de pacman
@@ -92,7 +103,7 @@ else
     echo "========================================================"
 fi
 
-# Guardar registro persistente de actualización para no volver a pedir hoy
+# Guardar registro persistente de actualización (reinicia el ciclo semanal)
 mkdir -p "$HOME/.local/state/quickshell/updater"
 date +%Y-%m-%d > "$HOME/.local/state/quickshell/updater/last_update_date"
 date +%Y-%m-%d > "$HOME/.local/state/quickshell/updater/last_check_date"
@@ -103,5 +114,6 @@ rm -f "$HOME/.cache/quickshell/updater/update_pending"
 rm -f "$HOME/.cache/quickshell/updater/notified_count"
 rm -f "$HOME/.cache/quickshell/updater/updates_summary.txt"
 
+echo
 echo "Presione cualquier tecla para cerrar esta ventana..."
 read -n 1 -s -r
