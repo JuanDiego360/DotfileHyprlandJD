@@ -52,6 +52,8 @@ TEXT_FILES=(
     "$HOME/.config/qt5ct/qss/matugen-style.qss"
     "$HOME/.config/qt6ct/qss/matugen-style.qss"
     "$HOME/.config/hypr/colors.conf"
+    "$HOME/.config/wezterm/matugen-colors.conf"
+    "$HOME/.config/starship.toml"
 )
 
 for file in "${TEXT_FILES[@]}"; do
@@ -71,8 +73,14 @@ done
 # 3. Reload System Components
 # ------------------------------------------------------------------------------
 
-# Reload Kitty instances
-killall -USR1 kitty
+# Reload WezTerm: lee ~/.config/wezterm/matugen-colors.conf, pero solo relee la
+# configuracion cuando cambia el mtime de wezterm.lua -> lo tocamos.
+if pgrep -x "wezterm-gui" > /dev/null; then
+    touch "$HOME/.config/wezterm/wezterm.lua"
+fi
+
+# (Kitty no se usa: los colores de kitty siguen generandose pero no se recargan)
+# killall -USR1 kitty
 
 # Reload CAVA
 # ALWAYS rebuild the final config file from the base and newly generated colors
