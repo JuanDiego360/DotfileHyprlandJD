@@ -167,6 +167,9 @@ install_fonts() {
 }
 
 install_dependencies() {
+    local install_state="${1:-$INSTALL_STATE}"
+    local is_reinstall="${2:-$IS_REINSTALL}"
+    shift 2 2>/dev/null || true
     local compositors=("$@")
 
     if pacman -Qq quickshell-git &>/dev/null; then
@@ -182,8 +185,10 @@ install_dependencies() {
         target_list+=("sddm" "qt6-declarative" "qt6-svg")
     fi
 
-    echo -e "\n\e[36m[ INFO ]\e[0m $(t "installer.deps.syncing")"
-    sudo pacman -Syyu --noconfirm
+    if [[ ("$install_state" == "fresh" || "$install_state" == "legacy") && "$is_reinstall" != "true" ]]; then
+        echo -e "\n\e[36m[ INFO ]\e[0m $(t "installer.deps.syncing")"
+        sudo pacman -Syyu --noconfirm
+    fi
 
     local missing_raw
     missing_raw=$(pacman -T "${target_list[@]}" 2>/dev/null || true)

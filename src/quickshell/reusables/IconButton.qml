@@ -16,7 +16,7 @@ Item {
     property int iconOffsetX: 0
     property int iconOffsetY: 0
 
-    property color accentColor: "#89b4fa"
+    property color accentColor: ThemeBackend.surface0
     property color textColor: "#11111b"
 
     property bool action_highlight: false

@@ -1,8 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import "../"
-import "../reusables"
+import "../../"
+import "../../reusables"
 
 Item {
     id: barTabRoot
@@ -39,7 +39,6 @@ Item {
         "time": {"format": "HH:mm:ss"},
         "autohide": false,
         "autohideTimeout": 1000,
-        "workspaceCount": 8,
         "groupColors": {},
         "modules": {
             "left": ["left", "workspaces", "media"],
@@ -62,10 +61,8 @@ Item {
         return "modular";
     }
     property bool distinctPills: barSettings.distinctPills !== undefined ? barSettings.distinctPills : false
-    property string timeFormat: barSettings.time && barSettings.time.format !== undefined ? barSettings.time.format : "HH:mm:ss"
     property bool autohide: barSettings.autohide !== undefined ? barSettings.autohide : false
     property int autohideTimeout: barSettings.autohideTimeout !== undefined ? barSettings.autohideTimeout : 1000
-    property int workspaceCount: barSettings.workspaceCount !== undefined ? barSettings.workspaceCount : 8
 
     ListModel { id: leftModel }
     ListModel { id: centerModel }
@@ -199,9 +196,9 @@ Item {
     function getModuleInfo(id) {
         let labels = {
             "left": I18n.t("guide.bar.modules.actions"),
-            "workspaces": I18n.t("guide.bar.modules.workspaces"),
+            "workspaces": I18n.t("guide.bar.modules.workspaces.name"),
             "focus": I18n.t("guide.bar.modules.focus"),
-            "timedate": I18n.t("guide.bar.modules.timedate"),
+            "timedate": I18n.t("guide.bar.modules.timedate.name"),
             "info": I18n.t("guide.bar.modules.info"),
             "weather": I18n.t("guide.bar.modules.weather"),
             "media": I18n.t("guide.bar.modules.media"),
@@ -424,10 +421,8 @@ Item {
         let current = Config.getSetting("bar", barTabRoot.defaultBarSettings);
         current.modules = JSON.parse(JSON.stringify(barTabRoot.defaultBarSettings.modules));
         current.groupColors = {};
-        current.workspaceCount = barTabRoot.defaultBarSettings.workspaceCount;
         current.distinctPills = barTabRoot.defaultBarSettings.distinctPills;
         barTabRoot.assignedGroupColors = {};
-        barTabRoot.workspaceCount = barTabRoot.defaultBarSettings.workspaceCount;
         barTabRoot.distinctPills = barTabRoot.defaultBarSettings.distinctPills;
         barTabRoot.lastSavedModulesString = barTabRoot.getModulesString(current.modules);
         Config.setSetting("bar", current);
@@ -721,10 +716,8 @@ Item {
             barTabRoot.barStyle = "modular";
         }
         barTabRoot.distinctPills = ts.distinctPills !== undefined ? ts.distinctPills : false;
-        barTabRoot.timeFormat = ts.time && ts.time.format !== undefined ? ts.time.format : "HH:mm:ss";
         barTabRoot.autohide = ts.autohide !== undefined ? ts.autohide : false;
         barTabRoot.autohideTimeout = ts.autohideTimeout !== undefined ? ts.autohideTimeout : 1000;
-        barTabRoot.workspaceCount = ts.workspaceCount !== undefined ? ts.workspaceCount : 8;
         if (ts.groupColors) {
             barTabRoot.assignedGroupColors = ts.groupColors;
         }
@@ -758,11 +751,8 @@ Item {
         current.opacity = barTabRoot.currentBarOpacity;
         current.style = barTabRoot.barStyle;
         current.distinctPills = barTabRoot.distinctPills;
-        if (!current.time) current.time = {};
-        current.time.format = barTabRoot.timeFormat;
         current.autohide = barTabRoot.autohide;
         current.autohideTimeout = barTabRoot.autohideTimeout;
-        current.workspaceCount = barTabRoot.workspaceCount;
         if (!current.modules) current.modules = barTabRoot.defaultBarSettings.modules;
         current.groupColors = barTabRoot.assignedGroupColors;
 
@@ -778,7 +768,7 @@ Item {
             Layout.preferredWidth: 1
             Layout.fillHeight: lName !== "available"
             implicitHeight: Math.max(rootObj.s(lName === "available" ? 68 : 90), titleText.implicitHeight + (flowList.childrenRect.height > 0 ? flowList.childrenRect.height : flowList.implicitHeight) + rootObj.s(20))
-            color: ThemeBackend.mantle
+            color: ThemeBackend.base
             radius: barTabRoot.cardRadius
             border.width: 1
             border.color: Qt.alpha(ThemeBackend.surface1, 0.4)
@@ -857,9 +847,9 @@ Item {
                         property string moduleId: model.moduleId
                         property string moduleLabel: {
                             if (moduleId === "left") return I18n.t("guide.bar.modules.actions");
-                            if (moduleId === "workspaces") return I18n.t("guide.bar.modules.workspaces");
+                            if (moduleId === "workspaces") return I18n.t("guide.bar.modules.workspaces.name");
                             if (moduleId === "focus") return I18n.t("guide.bar.modules.focus");
-                            if (moduleId === "timedate") return I18n.t("guide.bar.modules.timedate");
+                            if (moduleId === "timedate") return I18n.t("guide.bar.modules.timedate.name");
                             if (moduleId === "info") return I18n.t("guide.bar.modules.info");
                             if (moduleId === "weather") return I18n.t("guide.bar.modules.weather");
                             if (moduleId === "media") return I18n.t("guide.bar.modules.media");
@@ -1481,70 +1471,6 @@ Item {
 
             Rectangle {
                 Layout.fillWidth: true
-                implicitHeight: rowTimeLayout.implicitHeight + rootObj.s(24)
-                radius: ThemeBackend.borderRadius
-                color: Qt.alpha(ThemeBackend.surface0, 0.4)
-                border.width: 0
-
-                RowLayout {
-                    id: rowTimeLayout
-                    anchors.left: parent.left
-                    anchors.leftMargin: rootObj.s(14)
-                    anchors.right: parent.right
-                    anchors.rightMargin: rootObj.s(14)
-                    anchors.verticalCenter: parent.verticalCenter
-                    spacing: rootObj.s(12)
-
-                    IconButton {
-                        enabled: false
-                        size: rootObj.s(32)
-                        Layout.preferredWidth: rootObj.s(32)
-                        Layout.preferredHeight: rootObj.s(32)
-                        Layout.alignment: Qt.AlignVCenter
-                        cornerRadius: ThemeBackend.borderRadius
-                        buttonIcon: "󰅐"
-                        iconFontSize: rootObj.s(16)
-                        accentColor: ThemeBackend.surface0
-                        textColor: "#ffffff"
-                    }
-
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        Layout.alignment: Qt.AlignVCenter
-                        spacing: rootObj.s(2)
-                        Text { Layout.fillWidth: true; text: I18n.t("guide.bar.time.title"); font.family: ThemeBackend.fontFamily; font.pixelSize: rootObj.s(13); color: ThemeBackend.text }
-                        Text { Layout.fillWidth: true; text: I18n.t("guide.bar.time.desc"); font.family: ThemeBackend.fontFamily; font.pixelSize: rootObj.s(11); color: ThemeBackend.subtext0 }
-                    }
-
-                    Input {
-                        Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                        implicitWidth: rootObj.s(140)
-                        implicitHeight: rootObj.s(32)
-                        text: barTabRoot.timeFormat
-                        placeholderText: "HH:mm:ss"
-                        baseColor: ThemeBackend.surface0
-                        accentColor: ThemeBackend.mauve
-                        textColor: ThemeBackend.text
-                        subTextColor: ThemeBackend.subtext0
-                        borderColor: Qt.alpha(ThemeBackend.surface2, 0.6)
-                        cornerRadius: ThemeBackend.borderRadius
-                        fontPixelSize: rootObj.s(11)
-                        onTextEdited: function(newText) {
-                            barTabRoot.clearPendingGroup();
-                            barTabRoot.timeFormat = newText;
-                            barTabRoot.updateBarSettings();
-                        }
-                        onAccepted: function(finalText) {
-                            barTabRoot.clearPendingGroup();
-                            barTabRoot.timeFormat = finalText;
-                            barTabRoot.updateBarSettings();
-                        }
-                    }
-                }
-            }
-
-            Rectangle {
-                Layout.fillWidth: true
                 implicitHeight: rowAutohideLayout.implicitHeight + rootObj.s(24)
                 radius: ThemeBackend.borderRadius
                 color: Qt.alpha(ThemeBackend.surface0, 0.4)
@@ -1678,80 +1604,6 @@ Item {
                                     barTabRoot.updateBarSettings();
                                 }
                             }
-                        }
-                    }
-                }
-            }
-
-            Rectangle {
-                Layout.fillWidth: true
-                implicitHeight: rowWorkspacesCountLayout.implicitHeight + rootObj.s(24)
-                radius: ThemeBackend.borderRadius
-                color: Qt.alpha(ThemeBackend.surface0, 0.4)
-                border.width: 0
-
-                RowLayout {
-                    id: rowWorkspacesCountLayout
-                    anchors.left: parent.left
-                    anchors.leftMargin: rootObj.s(14)
-                    anchors.right: parent.right
-                    anchors.rightMargin: rootObj.s(14)
-                    anchors.verticalCenter: parent.verticalCenter
-                    spacing: rootObj.s(12)
-
-                    IconButton {
-                        enabled: false
-                        size: rootObj.s(32)
-                        Layout.preferredWidth: rootObj.s(32)
-                        Layout.preferredHeight: rootObj.s(32)
-                        Layout.alignment: Qt.AlignVCenter
-                        cornerRadius: ThemeBackend.borderRadius
-                        buttonIcon: "󰮯"
-                        iconFontSize: rootObj.s(16)
-                        accentColor: ThemeBackend.surface0
-                        textColor: "#ffffff"
-                    }
-
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        Layout.alignment: Qt.AlignVCenter
-                        spacing: rootObj.s(2)
-                        Text { Layout.fillWidth: true; text: I18n.t("guide.bar.workspaces.title"); font.family: ThemeBackend.fontFamily; font.pixelSize: rootObj.s(13); color: ThemeBackend.text }
-                        Text { Layout.fillWidth: true; text: I18n.t("guide.bar.workspaces.desc"); font.family: ThemeBackend.fontFamily; font.pixelSize: rootObj.s(11); color: ThemeBackend.subtext0 }
-                    }
-
-                    NumberSelector {
-                        id: workspaceCountSelector
-                        Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                        implicitWidth: rootObj.s(140)
-                        implicitHeight: rootObj.s(32)
-                        from: 2
-                        to: 10
-                        stepSize: 1
-                        decimals: 0
-                        value: barTabRoot.workspaceCount
-                        baseColor: ThemeBackend.surface0
-                        accentColor: ThemeBackend.mauve
-                        buttonColor: ThemeBackend.surface1
-                        buttonTextColor: ThemeBackend.text
-                        textColor: ThemeBackend.text
-                        subTextColor: ThemeBackend.subtext0
-                        borderColor: Qt.alpha(ThemeBackend.surface2, 0.6)
-                        cornerRadius: ThemeBackend.borderRadius
-                        fontFamily: ThemeBackend.fontFamily
-                        fontPixelSize: rootObj.s(12)
-                        onValueChanged: {
-                            let rounded = Math.round(workspaceCountSelector.value);
-                            if (barTabRoot.workspaceCount !== rounded) {
-                                barTabRoot.clearPendingGroup();
-                                barTabRoot.workspaceCount = rounded;
-                                barTabRoot.updateBarSettings();
-                            }
-                        }
-                        onTriggered: {
-                            barTabRoot.clearPendingGroup();
-                            barTabRoot.workspaceCount = Math.round(workspaceCountSelector.value);
-                            barTabRoot.updateBarSettings();
                         }
                     }
                 }

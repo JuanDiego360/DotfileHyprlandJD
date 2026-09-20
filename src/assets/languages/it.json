@@ -39,7 +39,10 @@
       "display_widgets": "Widget",
       "display_general": "Generale",
       "osd": "OSD",
-      "dock": "Dock"
+      "dock": "Dock",
+      "bar_general": "Generale",
+      "bar_modules": "Moduli",
+      "bar_side_modules": "Moduli laterali"
     },
     "launcher": {
       "position": {
@@ -259,14 +262,32 @@
         "hide_bar": {
           "title": "Nascondi barra nel redattore",
           "desc": "Nascondi automaticamente la barra durante la modifica dei widget in modalità redattore"
-        }
+        },
+        "hide_presets": "Nascondi predefiniti",
+        "choose_preset": "Scegli un predefinito",
+        "presets": {
+          "title": "Predefiniti widget"
+        },
+        "save_preset": {
+          "title": "Salva preset"
+        },
+        "preset_name_placeholder": "Inserisci il nome del preset..."
       }
     },
     "bar": {
       "modules": {
         "vis": "Visualizzatore (cava)",
         "actions": "Azioni",
-        "workspaces": "Spazi di lavoro",
+        "workspaces": {
+          "style": {
+            "name": {
+              "pills": "Pillole",
+              "numbers": "Numeri",
+              "pacman": "Pacman"
+            }
+          },
+          "name": "Spazi di lavoro"
+        },
         "media": "Media",
         "tray": "Tray",
         "keyboard": "Tastiera",
@@ -276,7 +297,16 @@
         "battery": "Batteria",
         "focus": "Focus",
         "sysmon": "Monitor sistema",
-        "timedate": "Data/Ora",
+        "timedate": {
+          "name": "Ora e data",
+          "style": {
+            "name": {
+              "classic": "Classico",
+              "material": "Material",
+              "badge": "Matrice di punti"
+            }
+          }
+        },
         "info": "Registratore/Timer",
         "weather": "Meteo"
       },
@@ -335,6 +365,12 @@
       "distinct_pills": {
         "title": "Abilita uno stile modulare e compatto per i widget",
         "desc": "Aggiunge un bordo ai moduli della barra e ne riduce le dimensioni per adattarsi a un aspetto modulare"
+      },
+      "timedate": {
+        "show_date": {
+          "title": "Mostra data",
+          "desc": "Mostra il testo della data accanto all'orologio"
+        }
       }
     },
     "theme": {
@@ -591,6 +627,14 @@
       "exclusive": {
         "title": "Modalità esclusiva",
         "desc": "Impedisci alle finestre di occupare lo spazio del dock"
+      },
+      "on_top": {
+        "title": "Posiziona la dock sopra le finestre",
+        "desc": "Mantieni la dock visibile sopra le finestre delle applicazioni"
+      },
+      "smart_autohide": {
+        "title": "Nascondi automaticamente intelligente",
+        "desc": "Nascondi il dock solo quando ci sono finestre aperte, mantienilo visibile sul desktop"
       }
     }
   },
@@ -622,7 +666,10 @@
   },
   "applauncher": {
     "search": "Cerca",
-    "placeholder": "Inizia con > per un comando..."
+    "placeholder": "Inizia con > per un comando...",
+    "tab_applications": "Applicazioni",
+    "tab_files": "File",
+    "placeholder_files": "Cerca file o inserisci percorso..."
   },
   "calendar": {
     "loading": "Caricamento...",
@@ -964,7 +1011,8 @@
       "click_to_add": "Clicca un widget nella barra in basso per aggiungerlo",
       "done": "Fatto",
       "widget_singular": "widget",
-      "widgets_plural": "widgets"
+      "widgets_plural": "widgets",
+      "widgets_short": "w"
     },
     "types": {
       "clock": "Orologio",
@@ -987,7 +1035,24 @@
       "rounded": "Arrotondato",
       "bars": "Barre",
       "continuous": "Continuo",
-      "default": "Predefinito"
+      "default": "Predefinito",
+      "material": "Material",
+      "materialAnalog": "Material analogico",
+      "lumen": "Lumen"
+    },
+    "presets": {
+      "minimal": {
+        "name": "Minimale",
+        "desc": "Layout pulito e discreto con orologio digitale minimale e meteo compatto."
+      },
+      "media_station": {
+        "name": "Stazione Multimediale",
+        "desc": "Configurazione multimediale con visualizzatore audio centrato e controller musicale circolare."
+      },
+      "dashboard": {
+        "name": "Cruscotto",
+        "desc": "Monitor di sistema completo con orologio digitale, utilizzo hardware e stato della batteria."
+      }
     }
   },
   "cli": {

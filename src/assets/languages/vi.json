@@ -39,7 +39,10 @@
       "display_widgets": "Tiện ích",
       "display_general": "Chung",
       "osd": "OSD",
-      "dock": "Dock"
+      "dock": "Dock",
+      "bar_general": "Chung",
+      "bar_modules": "Mô-đun",
+      "bar_side_modules": "Mô-đun bên cạnh"
     },
     "launcher": {
       "position": {
@@ -259,14 +262,32 @@
         "hide_bar": {
           "title": "Ẩn thanh trong trình chỉnh sửa",
           "desc": "Tự động ẩn thanh khi chỉnh sửa tiện ích con ở chế độ biên tập"
-        }
+        },
+        "hide_presets": "Ẩn mẫu có sẵn",
+        "choose_preset": "Chọn mẫu có sẵn",
+        "presets": {
+          "title": "Mẫu tiện ích"
+        },
+        "save_preset": {
+          "title": "Lưu preset"
+        },
+        "preset_name_placeholder": "Nhập tên preset..."
       }
     },
     "bar": {
       "modules": {
         "vis": "Trình hiển thị âm thanh (cava)",
         "actions": "Thao tác",
-        "workspaces": "Không gian làm việc",
+        "workspaces": {
+          "style": {
+            "name": {
+              "pills": "Dạng viên",
+              "numbers": "Số",
+              "pacman": "Pacman"
+            }
+          },
+          "name": "Không gian làm việc"
+        },
         "media": "Phương tiện",
         "tray": "Khay hệ thống",
         "keyboard": "Bàn phím",
@@ -276,7 +297,16 @@
         "battery": "Pin",
         "focus": "Tiêu điểm",
         "sysmon": "Trình theo dõi hệ thống",
-        "timedate": "Giờ/Ngày",
+        "timedate": {
+          "name": "Thời gian & ngày",
+          "style": {
+            "name": {
+              "classic": "Cổ điển",
+              "material": "Material",
+              "badge": "Ma trận điểm"
+            }
+          }
+        },
         "info": "Ghi hình/Hẹn giờ",
         "weather": "Thời tiết"
       },
@@ -336,6 +366,12 @@
       "distinct_pills": {
         "title": "Bật kiểu dáng mô-đun và gọn gàng cho tiện ích",
         "desc": "Thêm đường viền cho các mô-đun trên thanh và thu nhỏ kích thước để phù hợp với giao diện mô-đun"
+      },
+      "timedate": {
+        "show_date": {
+          "title": "Hiển thị ngày",
+          "desc": "Hiển thị văn bản ngày bên cạnh đồng hồ"
+        }
       }
     },
     "theme": {
@@ -592,6 +628,14 @@
       "exclusive": {
         "title": "Chế độ độc quyền",
         "desc": "Ngăn cửa sổ chiếm không gian của dock"
+      },
+      "on_top": {
+        "title": "Đặt dock lên trên các cửa sổ",
+        "desc": "Giữ dock hiển thị phía trên các cửa sổ ứng dụng"
+      },
+      "smart_autohide": {
+        "title": "Tự động ẩn thông minh",
+        "desc": "Chỉ ẩn dock khi có cửa sổ mở, giữ hiển thị trên màn hình chính"
       }
     }
   },
@@ -623,7 +667,10 @@
   },
   "applauncher": {
     "search": "Tìm kiếm",
-    "placeholder": "Bắt đầu bằng dấu > để nhập lệnh..."
+    "placeholder": "Bắt đầu bằng dấu > để nhập lệnh...",
+    "tab_applications": "Ứng dụng",
+    "tab_files": "Tệp",
+    "placeholder_files": "Tìm kiếm tệp hoặc nhập đường dẫn..."
   },
   "calendar": {
     "loading": "Đang tải...",
@@ -965,7 +1012,8 @@
       "click_to_add": "Nhấp vào biểu tượng tiện ích ở thanh công cụ phía dưới để thêm",
       "done": "Hoàn tất",
       "widget_singular": "tiện ích",
-      "widgets_plural": "tiện ích"
+      "widgets_plural": "tiện ích",
+      "widgets_short": "tiện ích"
     },
     "types": {
       "clock": "Đồng hồ",
@@ -988,7 +1036,24 @@
       "rounded": "Bo tròn",
       "bars": "Thanh",
       "continuous": "Liên tục",
-      "default": "Mặc định"
+      "default": "Mặc định",
+      "material": "Material",
+      "materialAnalog": "Material kim",
+      "lumen": "Lumen"
+    },
+    "presets": {
+      "minimal": {
+        "name": "Tối giản",
+        "desc": "Bố cục tinh tế và tối giản với đồng hồ số gọn gàng cùng thông tin thời tiết."
+      },
+      "media_station": {
+        "name": "Trạm Đa Phương Tiện",
+        "desc": "Thiết lập đa phương tiện với thanh sóng âm trung tâm và trình điều khiển nhạc hình tròn."
+      },
+      "dashboard": {
+        "name": "Bảng Điều Khiển",
+        "desc": "Bảng theo dõi toàn diện với đồng hồ số, mức sử dụng phần cứng và trạng thái pin."
+      }
     }
   },
   "cli": {

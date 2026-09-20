@@ -27,12 +27,12 @@ Item {
         return typeof scaleFunc === "function" ? scaleFunc(val) : (typeof Scaler !== "undefined" ? Scaler.s(val) : val);
     }
 
-    property real cardRadius: compact ? s(14) : s(16)
+    property real cardRadius: compact ? s(Math.max(0, ThemeBackend.clampedBorderRadius - 2)) : s(ThemeBackend.clampedBorderRadius)
     property real contentMargins: compact ? s(10) : s(12)
     property real waveAmpMax: compact ? s(4) : s(5)
 
     property real iconSize: compact ? s(26) : s(28)
-    property real iconCornerRadius: iconSize / 2
+    property real iconCornerRadius: Math.min(iconSize / 2, s(ThemeBackend.borderRadius))
     property real iconFontSize: compact ? s(14) : s(16)
     property real midTextFontSize: compact ? s(10.5) : s(13)
     property real titleFontSize: compact ? s(10.5) : s(13)

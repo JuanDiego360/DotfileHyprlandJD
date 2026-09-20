@@ -39,7 +39,10 @@
       "display_widgets": "Widgets",
       "display_general": "General",
       "osd": "On-Screen Display",
-      "dock": "Dock"
+      "dock": "Dock",
+      "bar_general": "General",
+      "bar_modules": "Modules",
+      "bar_side_modules": "Side modules"
     },
     "launcher": {
       "position": {
@@ -259,14 +262,32 @@
         "hide_bar": {
           "title": "Hide the bar in the redactor",
           "desc": "Automatically hide the bar when editing widgets in redactor mode"
-        }
+        },
+        "hide_presets": "Hide Presets",
+        "choose_preset": "Choose a preset",
+        "presets": {
+          "title": "Widget Presets"
+        },
+        "save_preset": {
+          "title": "Save Preset"
+        },
+        "preset_name_placeholder": "Enter preset name..."
       }
     },
     "bar": {
       "modules": {
         "vis": "Visualizer (cava)",
         "actions": "Actions",
-        "workspaces": "Workspaces",
+        "workspaces": {
+          "style": {
+            "name": {
+              "pills": "Pills",
+              "numbers": "Numbers",
+              "pacman": "Pacman"
+            }
+          },
+          "name": "Workspaces"
+        },
         "media": "Media",
         "tray": "Tray",
         "keyboard": "Keyboard",
@@ -276,7 +297,16 @@
         "battery": "Battery",
         "focus": "Focus",
         "sysmon": "System monitor",
-        "timedate": "Time/date",
+        "timedate": {
+          "name": "Time & Date",
+          "style": {
+            "name": {
+              "classic": "Classic",
+              "material": "Material",
+              "badge": "Dot Matrix"
+            }
+          }
+        },
         "info": "Recording/timer",
         "weather": "Weather"
       },
@@ -336,6 +366,12 @@
       "distinct_pills": {
         "title": "Enable a modular and compact style for widgets",
         "desc": "Makes bar's modules have an outlining rectangle and shrink their size to fit the modular look"
+      },
+      "timedate": {
+        "show_date": {
+          "title": "Show Date",
+          "desc": "Display the date text alongside the clock"
+        }
       }
     },
     "theme": {
@@ -592,6 +628,14 @@
       "exclusive": {
         "title": "Exclusive mode",
         "desc": "Prevent windows from taking space occupied by the dock"
+      },
+      "on_top": {
+        "title": "Place dock on top of windows",
+        "desc": "Keep the dock visible above application windows"
+      },
+      "smart_autohide": {
+        "title": "Smart auto-hide",
+        "desc": "Auto-hide dock only when windows are open, keep visible on desktop"
       }
     }
   },
@@ -623,7 +667,10 @@
   },
   "applauncher": {
     "search": "Search",
-    "placeholder": "Start with > for a command..."
+    "placeholder": "Start with > for a command...",
+    "tab_applications": "Applications",
+    "tab_files": "Files",
+    "placeholder_files": "Search files or enter path..."
   },
   "calendar": {
     "loading": "Loading...",
@@ -965,7 +1012,8 @@
       "click_to_add": "Click a widget icon in the bottom toolbar to add it",
       "done": "Done",
       "widget_singular": "widget",
-      "widgets_plural": "widgets"
+      "widgets_plural": "widgets",
+      "widgets_short": "w"
     },
     "types": {
       "clock": "Clock",
@@ -988,7 +1036,21 @@
       "rounded": "Rounded",
       "bars": "Bars",
       "continuous": "Continuous",
-      "default": "Default"
+      "default": "Default",
+      "material": "Material",
+      "materialAnalog": "Material Analog",
+      "lumen": "Lumen"
+    },
+    "presets": {
+      "minimal": {
+        "name": "Minimal"
+      },
+      "media_station": {
+        "name": "Media station"
+      },
+      "dashboard": {
+        "name": "Dashboard"
+      }
     }
   },
   "cli": {

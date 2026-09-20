@@ -5,9 +5,8 @@ import QtQuick.Controls
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
-import Quickshell.Services.SystemTray
-import "../../reusables"
-import "../../"
+import "../../../reusables"
+import "../../../"
 
 Rectangle {
     id: workspacesWidgetRoot
@@ -28,11 +27,121 @@ Rectangle {
     property int swayActiveIndex: 0
     property var swayOccupiedMap: ({})
 
-    property int workspaceCount: (typeof Config !== "undefined" && Config.rawSettings && Config.rawSettings.bar && Config.rawSettings.bar.workspaceCount !== undefined) ? Math.max(2, Math.min(10, Config.rawSettings.bar.workspaceCount)) : ((typeof Config !== "undefined" && Config.rawSettings && Config.rawSettings.general && Config.rawSettings.general.workspaceCount !== undefined) ? Math.max(2, Math.min(10, Config.rawSettings.general.workspaceCount)) : ((typeof Config !== "undefined" && Config.rawSettings && Config.rawSettings.workspaceCount !== undefined) ? Math.max(2, Math.min(10, Config.rawSettings.workspaceCount)) : 8))
+    property int configRevision: 0
+
+    Connections {
+        target: (typeof Config !== "undefined") ? Config : null
+        function onSettingsLoaded() { workspacesWidgetRoot.configRevision++; }
+        function onRawSettingsChanged() { workspacesWidgetRoot.configRevision++; }
+    }
+
+    property string workspacesStyle: {
+        let dummy = configRevision;
+        if (typeof Config !== "undefined" && Config.rawSettings && Config.rawSettings.bar) {
+            if (Config.rawSettings.bar.workspacesStyle) return Config.rawSettings.bar.workspacesStyle;
+            if (Config.rawSettings.bar.workspaces && Config.rawSettings.bar.workspaces.style) return Config.rawSettings.bar.workspaces.style;
+        }
+        return "pills";
+    }
+
+    property int baseWorkspaceCount: {
+        let dummy = configRevision;
+        if (typeof Config !== "undefined" && Config.rawSettings) {
+            if (Config.rawSettings.bar && Config.rawSettings.bar.workspaceCount !== undefined) {
+                return Math.max(2, Math.min(10, Config.rawSettings.bar.workspaceCount));
+            }
+            if (Config.rawSettings.general && Config.rawSettings.general.workspaceCount !== undefined) {
+                return Math.max(2, Math.min(10, Config.rawSettings.general.workspaceCount));
+            }
+            if (Config.rawSettings.workspaceCount !== undefined) {
+                return Math.max(2, Math.min(10, Config.rawSettings.workspaceCount));
+            }
+        }
+        return 8;
+    }
+
+    property int workspaceCount: Math.max(2, (activeIndex >= baseWorkspaceCount) ? (activeIndex + 1) : baseWorkspaceCount)
+
+    ListModel {
+        id: workspaceListModel
+    }
+
+    function syncModel() {
+        let target = workspaceCount;
+
+        while (workspaceListModel.count < target) {
+            workspaceListModel.append({ "modelData": workspaceListModel.count });
+        }
+        while (workspaceListModel.count > target) {
+            workspaceListModel.remove(workspaceListModel.count - 1);
+        }
+    }
+
+    onWorkspaceCountChanged: syncModel()
+
+    function findRepeater(obj) {
+        if (!obj) return null;
+        if (obj.model !== undefined && obj.count !== undefined && typeof obj.itemAt === "function") {
+            return obj;
+        }
+        if (obj.children) {
+            for (let i = 0; i < obj.children.length; i++) {
+                let res = findRepeater(obj.children[i]);
+                if (res) return res;
+            }
+        }
+        if (obj.data) {
+            for (let j = 0; j < obj.data.length; j++) {
+                let res = findRepeater(obj.data[j]);
+                if (res) return res;
+            }
+        }
+        return null;
+    }
+
+    function attachModel() {
+        if (faceLoader.item) {
+            faceLoader.item.widget = workspacesWidgetRoot;
+            let rep = findRepeater(faceLoader.item);
+            if (rep && rep.model !== workspaceListModel) {
+                rep.model = workspaceListModel;
+            }
+        }
+    }
+
+    function s(val) {
+        if (barWindow && typeof barWindow.s === "function") return barWindow.s(val);
+        if (typeof Scaler !== "undefined" && typeof Scaler.s === "function") return Math.round(Scaler.s(val));
+        return val;
+    }
 
     function wsForId(id) {
         if (isNiri || isSway) return null;
         return Hyprland.workspaces.values.find(w => w.id === id) ?? null;
+    }
+
+    function isOccupied(index) {
+        if (isNiri) {
+            return !!niriOccupiedMap[index];
+        }
+        if (isSway) {
+            return !!swayOccupiedMap[index];
+        }
+        let ws = wsForId(index + 1);
+        return ws !== null && ws.toplevels && ws.toplevels.values && ws.toplevels.values.length > 0;
+    }
+
+    function focusWorkspace(index) {
+        let wsId = index + 1;
+        if (isNiri) {
+            niriActiveIndex = index;
+            Quickshell.execDetached(["niri", "msg", "action", "focus-workspace", wsId.toString()]);
+        } else if (isSway) {
+            swayActiveIndex = index;
+            Quickshell.execDetached(["swaymsg", "workspace", "number", wsId.toString()]);
+        } else {
+            Hyprland.dispatch("hl.dsp.focus({ workspace = " + wsId + " })");
+        }
     }
 
     property int activeIndex: {
@@ -46,7 +155,7 @@ Rectangle {
             if (!fw) return -1;
             idx = fw.id - 1;
         }
-        return (idx >= 0 && idx < workspaceCount) ? idx : -1;
+        return idx >= 0 ? idx : -1;
     }
 
     Component.onCompleted: {
@@ -60,6 +169,7 @@ Rectangle {
         if (workspacesWidgetRoot.isSway && workspacesWidgetRoot.moduleActive) {
             swayPoller.running = true;
         }
+        syncModel();
     }
 
     onModuleActiveChanged: {
@@ -235,7 +345,7 @@ Rectangle {
     y: barWindow ? barWindow.baseOffsetY + (barWindow.barHeight - height) / 2 : 0
     clip: true
 
-    property real targetWidth: (moduleActive && workspaceCount > 0) ? wsLayout.implicitWidth + barWindow.s(isCompact ? 18 : 22) : 0
+    property real targetWidth: (moduleActive && workspaceCount > 0 && faceLoader.item) ? faceLoader.item.implicitWidth + s(isCompact ? 18 : 22) : 0
     width: targetWidth
     Behavior on width { NumberAnimation { duration: 400; easing.type: Easing.OutQuint } }
 
@@ -253,7 +363,9 @@ Rectangle {
     MouseArea {
         id: wsScrollArea
         anchors.fill: parent
+        z: 10
         acceptedButtons: Qt.NoButton
+        cursorShape: Qt.PointingHandCursor
         onWheel: wheel => {
             wsWheelTimer.restart();
             workspacesWidgetRoot.wheelAccumulator += wheel.angleDelta.y;
@@ -275,160 +387,36 @@ Rectangle {
                         }
                     }
                     if (nextIndex !== workspacesWidgetRoot.activeIndex) {
-                        if (workspacesWidgetRoot.isNiri) {
-                            workspacesWidgetRoot.niriActiveIndex = nextIndex;
-                            Quickshell.execDetached(["niri", "msg", "action", "focus-workspace", (nextIndex + 1).toString()]);
-                        } else if (workspacesWidgetRoot.isSway) {
-                            workspacesWidgetRoot.swayActiveIndex = nextIndex;
-                            Quickshell.execDetached(["swaymsg", "workspace", "number", (nextIndex + 1).toString()]);
-                        } else {
-                            Hyprland.dispatch("hl.dsp.focus({ workspace = " + (nextIndex + 1) + " })");
-                        }
+                        workspacesWidgetRoot.focusWorkspace(nextIndex);
                     }
                 }
             }
         }
     }
 
-    Rectangle {
-        id: activeHighlight
-        z: 3
-        radius: barWindow.s(workspacesWidgetRoot.isCompact ? 7 : 8)
-        color: workspacesWidgetRoot.isCompact ? Qt.lighter(ThemeBackend.mauve, 1.05) : ThemeBackend.mauve
-
-        property int prevIdx: 0
-        property int curIdx: workspacesWidgetRoot.activeIndex
-
-        onCurIdxChanged: {
-            if (curIdx >= 0 && prevIdx >= 0) {
-                if (curIdx > prevIdx) {
-                    leftAnim.duration = 400;
-                    rightAnim.duration = 300;
-                } else if (curIdx < prevIdx) {
-                    leftAnim.duration = 300;
-                    rightAnim.duration = 400;
-                }
-            }
-            if (curIdx >= 0) {
-                prevIdx = curIdx;
-            }
-        }
-
-        function getX(index, activeIndex) {
-            if (index < 0) return 0;
-            let xPos = 0;
-            let spacing = barWindow.s(workspacesWidgetRoot.isCompact ? 7 : 8);
-            let activeW = barWindow.s(workspacesWidgetRoot.isCompact ? 34 : 36);
-            let inactiveW = barWindow.s(workspacesWidgetRoot.isCompact ? 16 : 18);
-            for (let i = 0; i < index; i++) {
-                xPos += (i === activeIndex ? activeW : inactiveW) + spacing;
-            }
-            return xPos;
-        }
-
-        property real targetLeft: curIdx >= 0 ? getX(curIdx, curIdx) : 0
-        property real targetRight: curIdx >= 0 ? targetLeft + barWindow.s(workspacesWidgetRoot.isCompact ? 34 : 36) : 0
-        property real actualLeft: targetLeft
-        property real actualRight: targetRight
-
-        Behavior on actualLeft { NumberAnimation { id: leftAnim; duration: 380; easing.type: Easing.OutQuint } }
-        Behavior on actualRight { NumberAnimation { id: rightAnim; duration: 380; easing.type: Easing.OutQuint } }
-
-        x: wsLayout.x + actualLeft
-        y: wsLayout.y + (wsLayout.height - height) / 2
-        width: actualRight - actualLeft
-        height: barWindow.s(workspacesWidgetRoot.isCompact ? 16 : 18)
-        opacity: (workspacesWidgetRoot.workspaceCount > 0 && workspacesWidgetRoot.activeIndex >= 0) ? 1.0 : 0.0
-        Behavior on opacity { NumberAnimation { duration: 180 } }
-    }
-
-    Row {
-        id: wsLayout
+    Loader {
+        id: faceLoader
         z: 2
-        anchors.centerIn: parent
-        spacing: barWindow.s(workspacesWidgetRoot.isCompact ? 7 : 8)
-
-        Repeater {
-            model: workspacesWidgetRoot.workspaceCount
-
-            delegate: Item {
-                id: wsPill
-
-                required property int index
-                property int wsId: index + 1
-                property var ws: workspacesWidgetRoot.wsForId(wsId)
-                property bool isOccupied: {
-                    if (workspacesWidgetRoot.isNiri) {
-                        return !!workspacesWidgetRoot.niriOccupiedMap[index];
-                    }
-                    if (workspacesWidgetRoot.isSway) {
-                        return !!workspacesWidgetRoot.swayOccupiedMap[index];
-                    }
-                    return ws !== null && ws.toplevels && ws.toplevels.values && ws.toplevels.values.length > 0;
-                }
-                property bool isActive: index === workspacesWidgetRoot.activeIndex
-                property bool initAnimTrigger: false
-
-                width: isActive ? barWindow.s(workspacesWidgetRoot.isCompact ? 34 : 36) : barWindow.s(workspacesWidgetRoot.isCompact ? 16 : 18)
-                height: barWindow.s(workspacesWidgetRoot.isCompact ? 16 : 18)
-                anchors.verticalCenter: parent.verticalCenter
-
-                Behavior on width { NumberAnimation { duration: 400; easing.type: Easing.OutQuint } }
-
-                Rectangle {
-                    id: wsVisualShape
-                    anchors.fill: parent
-                    radius: barWindow.s(workspacesWidgetRoot.isCompact ? 8 : 10)
-                    color: wsPill.isActive ? "transparent" : (wsPill.isOccupied ? ThemeBackend.surface2 : (workspacesWidgetRoot.isCompact ? ThemeBackend.surface1 : ThemeBackend.surface0))
-                    border.width: 0
-
-                    Behavior on color { ColorAnimation { duration: 250 } }
-
-                    scale: wsPillMouse.pressed ? 0.88 : (wsPillMouse.containsMouse ? 1.08 : 1.0)
-                    Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
-                }
-
-                opacity: initAnimTrigger ? 1.0 : 0.0
-                transform: Translate {
-                    y: wsPill.initAnimTrigger ? 0 : barWindow.s(15)
-                    Behavior on y { NumberAnimation { duration: 650; easing.type: Easing.OutQuint } }
-                }
-
-                Component.onCompleted: {
-                    if (!barWindow.startupCascadeFinished) {
-                        animTimer.interval = index * 50 + 100;
-                        if (workspacesWidgetRoot.moduleActive) animTimer.start();
-                    } else {
-                        initAnimTrigger = true;
-                    }
-                }
-
-                Timer {
-                    id: animTimer
-                    running: false; repeat: false
-                    onTriggered: wsPill.initAnimTrigger = true
-                }
-
-                Behavior on opacity { NumberAnimation { duration: 450; easing.type: Easing.OutCubic } }
-
-                MouseArea {
-                    id: wsPillMouse
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    anchors.fill: parent
-                    onClicked: {
-                        if (workspacesWidgetRoot.isNiri) {
-                            workspacesWidgetRoot.niriActiveIndex = wsPill.index;
-                            Quickshell.execDetached(["niri", "msg", "action", "focus-workspace", wsPill.wsId.toString()]);
-                        } else if (workspacesWidgetRoot.isSway) {
-                            workspacesWidgetRoot.swayActiveIndex = wsPill.index;
-                            Quickshell.execDetached(["swaymsg", "workspace", "number", wsPill.wsId.toString()]);
-                        } else {
-                            Hyprland.dispatch("hl.dsp.focus({ workspace = " + wsPill.wsId + " })");
-                        }
-                    }
-                }
+        anchors.left: parent.left
+        anchors.leftMargin: s(isCompact ? 18 : 22) / 2
+        anchors.verticalCenter: parent.verticalCenter
+        source: {
+            switch (workspacesWidgetRoot.workspacesStyle) {
+                case "numbers": return Qt.resolvedUrl("faces/NumbersFace.qml");
+                case "pacman": return Qt.resolvedUrl("faces/PacmanFace.qml");
+                case "pills":
+                default: return Qt.resolvedUrl("faces/PillsFace.qml");
             }
         }
+        onLoaded: {
+            attachModel();
+            Qt.callLater(attachModel);
+        }
+    }
+
+    Binding {
+        target: faceLoader.item
+        property: "widget"
+        value: workspacesWidgetRoot
     }
 }

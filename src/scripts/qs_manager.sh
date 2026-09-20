@@ -60,6 +60,10 @@ if [[ "$ACTION" == "workspace" ]]; then
         ACTION="$3"
         TARGET="$2"
         SUBTARGET="$4"
+    elif [[ "$4" =~ ^[0-9]+$ ]]; then
+        ACTION="$4"
+        TARGET="$2"
+        SUBTARGET="$3"
     else
         ACTION="$2"
         TARGET="$3"
@@ -68,19 +72,7 @@ if [[ "$ACTION" == "workspace" ]]; then
 fi
 
 if [[ "$ACTION" =~ ^[0-9]+$ ]]; then
-    if command -v _config_ensure_settings &>/dev/null; then
-        _config_ensure_settings
-    fi
-
-    MAX_WORKSPACES=8
-    if [[ -n "$CONFIG_SETTINGS_JSON" && -f "$CONFIG_SETTINGS_JSON" ]]; then
-        MAX_WORKSPACES="$(jq -r '.bar.workspaceCount // .workspaceCount // 8' "$CONFIG_SETTINGS_JSON" 2>/dev/null)"
-        if [[ ! "$MAX_WORKSPACES" =~ ^[0-9]+$ ]] || (( MAX_WORKSPACES < 1 )); then
-            MAX_WORKSPACES=8
-        fi
-    fi
-
-    if (( ACTION < 1 || ACTION > MAX_WORKSPACES )); then
+    if (( ACTION < 1 )); then
         exit 0
     fi
 
@@ -101,12 +93,10 @@ if [[ "$ACTION" =~ ^[0-9]+$ ]]; then
         fi
     else
         if [[ "$TARGET" == "move" ]]; then
-            CMD='hl.dsp.window.move({ workspace = "'"$ACTION"'" })'
+            hyprctl dispatch movetoworkspace "$ACTION" >/dev/null 2>&1 || hyprctl dispatch 'hl.dsp.window.move({ workspace = "'"$ACTION"'" })' >/dev/null 2>&1 &
         else
-            CMD='hl.dsp.focus({ workspace = "'"$ACTION"'" })'
+            hyprctl dispatch workspace "$ACTION" >/dev/null 2>&1 || hyprctl dispatch 'hl.dsp.focus({ workspace = "'"$ACTION"'" })' >/dev/null 2>&1 &
         fi
-        
-        hyprctl dispatch "$CMD" >/dev/null 2>&1 &
     fi
 
     send_qs_ipc "close" "" "" &

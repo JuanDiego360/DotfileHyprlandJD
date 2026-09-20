@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
@@ -44,9 +45,16 @@ ShellRoot {
                 property bool isVideoB: false
                 property bool playbackPaused: false
 
-                readonly property int transitionDuration: 1000
+                readonly property int fadeDuration: 1000
+                readonly property int maskDuration: 1600
                 property real transitionProgress: 1.0
                 property bool isPreloading: false
+                property int activeTransitionType: 0
+                property bool wipeIsVertical: false
+                property int swipeDirection: 0
+                property real transitionOriginX: 0.5
+                property real transitionOriginY: 0.5
+                property bool isInitialLoad: true
 
                 Component.onCompleted: restorePoller.running = true
 
@@ -126,7 +134,7 @@ ShellRoot {
                                 if (savedName !== "") {
                                     let histFile = barWindow.wpCacheDir + "/history.txt";
                                     Quickshell.execDetached(["bash", "-c",
-                                        "HIST='" + histFile + "'; if [ -f \"$HIST\" ]; then if [ \"$(head -n 1 \"$HIST\" 2>/dev/null)\" != '" + savedName + "' ]; then grep -v -F -x '" + savedName + "' \"$HIST\" > \"$HIST.tmp\" 2>/dev/null || true; printf '%s\n' '" + savedName + "' | cat - \"$HIST.tmp\" > \"$HIST\" 2>/dev/null; rm -f \"$HIST.tmp\"; fi; else printf '%s\n' '" + savedName + "' > \"$HIST\"; fi"
+                                        "HIST='" + histFile + "'; if [ -f \"$HIST\" ]; then if [ \"$(head -n 1 \"$HIST\" 2>/dev/null)\" != '" + savedName + "' ]; then grep -v -F -x '" + savedName + "' \"$HIST\" > \"$HIST.tmp\" 2>/dev/null || true; printf '%s\n' '" + savedName + "' | cat - \"$HIST.tmp\" > \"$HIST\"; rm -f \"$HIST.tmp\"; fi; else printf '%s\n' '" + savedName + "' > \"$HIST\"; fi"
                                     ]);
                                 }
                             }
@@ -204,6 +212,25 @@ ShellRoot {
                         barWindow.originalFileName = filename;
                     }
 
+                    if (barWindow.isInitialLoad) {
+                        barWindow.isInitialLoad = false;
+                        barWindow.transitionProgress = 1.0;
+                        barWindow.isPreloading = false;
+                        if (barWindow.activeLayer === 1) {
+                            barWindow.pathA = cleanPath;
+                            barWindow.isVideoA = vid;
+                            barWindow.activeLayer = 0;
+                            if (vid) barWindow.playA();
+                        } else {
+                            barWindow.pathB = cleanPath;
+                            barWindow.isVideoB = vid;
+                            barWindow.activeLayer = 1;
+                            if (vid) barWindow.playB();
+                        }
+                        barWindow.currentWallpaperPath = cleanPath;
+                        return;
+                    }
+
                     transitionAnim.stop();
                     videoWarmUpTimer.stop();
                     barWindow.transitionProgress = 0.0;
@@ -237,6 +264,22 @@ ShellRoot {
                 function changeWallpaper(path, ttype) {
                     if (!path) return;
 
+                    let isInterrupted = transitionAnim.running && barWindow.transitionProgress > 0.1 && barWindow.transitionProgress < 0.85;
+
+                    barWindow.isInitialLoad = false;
+                    if (isInterrupted) {
+                        barWindow.activeTransitionType = 0;
+                    } else if (typeof ttype === "number" && ttype >= 0) {
+                        barWindow.activeTransitionType = ttype;
+                    } else {
+                        barWindow.activeTransitionType = Math.floor(Math.random() * 4);
+                    }
+
+                    barWindow.wipeIsVertical = Math.random() < 0.5;
+                    barWindow.swipeDirection = Math.floor(Math.random() * 8);
+                    barWindow.transitionOriginX = 0.15 + Math.random() * 0.70;
+                    barWindow.transitionOriginY = 0.15 + Math.random() * 0.70;
+
                     let cleanPath = String(path).trim();
                     let slash = cleanPath.lastIndexOf("/");
                     let origName = cleanPath.substring(slash + 1);
@@ -254,7 +297,7 @@ ShellRoot {
                         " && printf '%s' '" + origName + "' > '" + wpStatePath + "_name'" +
                         " && cp -f '" + cleanPath + "' '" + dest + "'" +
                         (vid ? "" : " && cp -f '" + cleanPath + "' '" + snapshotPath + "' && cp -f '" + cleanPath + "' '" + monSnapshotPath + "'") +
-                        " && ( HIST='" + histFile + "'; if [ -f \"$HIST\" ]; then grep -v -F -x '" + origName + "' \"$HIST\" > \"$HIST.tmp\" 2>/dev/null || true; printf '%s\n' '" + origName + "' | cat - \"$HIST.tmp\" > \"$HIST\" 2>/dev/null; rm -f \"$HIST.tmp\"; else printf '%s\n' '" + origName + "' > \"$HIST\"; fi )"
+                        " && ( HIST='" + histFile + "'; if [ -f \"$HIST\" ]; then grep -v -F -x '" + origName + "' \"$HIST\" > \"$HIST.tmp\" 2>/dev/null || true; printf '%s\n' '" + origName + "' | cat - \"$HIST.tmp\" > \"$HIST\"; rm -f \"$HIST.tmp\"; else printf '%s\n' '" + origName + "' > \"$HIST\"; fi )"
                     ]);
 
                     if (vid) {
@@ -272,7 +315,7 @@ ShellRoot {
                     property: "transitionProgress"
                     from: 0.0
                     to: 1.0
-                    duration: barWindow.transitionDuration
+                    duration: barWindow.activeTransitionType === 0 ? barWindow.fadeDuration : barWindow.maskDuration
                     easing.type: Easing.InOutCubic
 
                     onFinished: {
@@ -360,7 +403,144 @@ ShellRoot {
 
                         opacity: {
                             if (barWindow.isPreloading && isIncoming) return 0.0;
+                            if (barWindow.activeTransitionType !== 0) return 1.0;
                             return isIncoming ? p : 1.0 - p;
+                        }
+
+                        layer.enabled: barWindow.activeTransitionType !== 0 && isIncoming && !barWindow.isPreloading && p < 1.0
+                        layer.effect: MultiEffect {
+                            maskEnabled: true
+                            maskSource: maskItemA
+                            maskThresholdMin: 0.0
+                            maskSpreadAtMin: 0.0
+                        }
+
+                        Item {
+                            id: maskItemA
+                            width: layerA.width
+                            height: layerA.height
+                            visible: false
+                            layer.enabled: true
+
+                            Rectangle {
+                                color: "white"
+                                transformOrigin: Item.Center
+
+                                readonly property real p: layerA.p
+                                readonly property real cx: barWindow.transitionOriginX * parent.width
+                                readonly property real cy: barWindow.transitionOriginY * parent.height
+                                readonly property real maxR: {
+                                    let w = parent.width;
+                                    let h = parent.height;
+                                    let d1 = Math.sqrt(cx * cx + cy * cy);
+                                    let d2 = Math.sqrt((w - cx) * (w - cx) + cy * cy);
+                                    let d3 = Math.sqrt(cx * cx + (h - cy) * (h - cy));
+                                    let d4 = Math.sqrt((w - cx) * (w - cx) + (h - cy) * (h - cy));
+                                    return Math.max(d1, d2, d3, d4);
+                                }
+                                readonly property real diam: p * maxR * 2
+                                readonly property real diagDiag: Math.sqrt(parent.width * parent.width + parent.height * parent.height)
+                                readonly property real diagSize: diagDiag * 2.5
+                                readonly property var diagGeom: {
+                                    let w = parent.width;
+                                    let h = parent.height;
+                                    let d = diagDiag;
+                                    if (d <= 0) return { x: 0, y: 0, rot: 0 };
+                                    let dir = barWindow.swipeDirection;
+                                    let px = 0, py = 0, ux = 0, uy = 0;
+                                    if (dir === 4) {
+                                        px = p * w; py = p * h;
+                                        ux = w / d; uy = h / d;
+                                    } else if (dir === 5) {
+                                        px = w - p * w; py = p * h;
+                                        ux = -w / d; uy = h / d;
+                                    } else if (dir === 6) {
+                                        px = p * w; py = h - p * h;
+                                        ux = w / d; uy = -h / d;
+                                    } else {
+                                        px = w - p * w; py = h - p * h;
+                                        ux = -w / d; uy = -h / d;
+                                    }
+                                    let halfL = diagSize / 2;
+                                    let cx = px - halfL * ux;
+                                    let cy = py - halfL * uy;
+                                    let rot = Math.atan2(uy, ux) * 180 / Math.PI;
+                                    return { x: cx - halfL, y: cy - halfL, rot: rot };
+                                }
+
+                                width: {
+                                    if (barWindow.activeTransitionType === 1) {
+                                        return barWindow.wipeIsVertical ? parent.width : p * parent.width;
+                                    }
+                                    if (barWindow.activeTransitionType === 2) {
+                                        return diam;
+                                    }
+                                    if (barWindow.activeTransitionType === 3) {
+                                        if (barWindow.swipeDirection === 0 || barWindow.swipeDirection === 1) {
+                                            return p * parent.width;
+                                        }
+                                        if (barWindow.swipeDirection === 2 || barWindow.swipeDirection === 3) {
+                                            return parent.width;
+                                        }
+                                        return diagSize;
+                                    }
+                                    return parent.width;
+                                }
+
+                                height: {
+                                    if (barWindow.activeTransitionType === 1) {
+                                        return barWindow.wipeIsVertical ? p * parent.height : parent.height;
+                                    }
+                                    if (barWindow.activeTransitionType === 2) {
+                                        return diam;
+                                    }
+                                    if (barWindow.activeTransitionType === 3) {
+                                        if (barWindow.swipeDirection === 0 || barWindow.swipeDirection === 1) {
+                                            return parent.height;
+                                        }
+                                        if (barWindow.swipeDirection === 2 || barWindow.swipeDirection === 3) {
+                                            return p * parent.height;
+                                        }
+                                        return diagSize;
+                                    }
+                                    return parent.height;
+                                }
+
+                                x: {
+                                    if (barWindow.activeTransitionType === 1) {
+                                        return barWindow.wipeIsVertical ? 0 : (parent.width - width) / 2;
+                                    }
+                                    if (barWindow.activeTransitionType === 2) {
+                                        return cx - width / 2;
+                                    }
+                                    if (barWindow.activeTransitionType === 3) {
+                                        if (barWindow.swipeDirection === 0) return 0;
+                                        if (barWindow.swipeDirection === 1) return parent.width - width;
+                                        if (barWindow.swipeDirection === 2 || barWindow.swipeDirection === 3) return 0;
+                                        return diagGeom.x;
+                                    }
+                                    return 0;
+                                }
+
+                                y: {
+                                    if (barWindow.activeTransitionType === 1) {
+                                        return barWindow.wipeIsVertical ? (parent.height - height) / 2 : 0;
+                                    }
+                                    if (barWindow.activeTransitionType === 2) {
+                                        return cy - height / 2;
+                                    }
+                                    if (barWindow.activeTransitionType === 3) {
+                                        if (barWindow.swipeDirection === 0 || barWindow.swipeDirection === 1) return 0;
+                                        if (barWindow.swipeDirection === 2) return 0;
+                                        if (barWindow.swipeDirection === 3) return parent.height - height;
+                                        return diagGeom.y;
+                                    }
+                                    return 0;
+                                }
+
+                                rotation: (barWindow.activeTransitionType === 3 && barWindow.swipeDirection >= 4) ? diagGeom.rot : 0
+                                radius: barWindow.activeTransitionType === 2 ? width / 2 : 0
+                            }
                         }
 
                         Image {
@@ -403,7 +583,144 @@ ShellRoot {
 
                         opacity: {
                             if (barWindow.isPreloading && isIncoming) return 0.0;
+                            if (barWindow.activeTransitionType !== 0) return 1.0;
                             return isIncoming ? p : 1.0 - p;
+                        }
+
+                        layer.enabled: barWindow.activeTransitionType !== 0 && isIncoming && !barWindow.isPreloading && p < 1.0
+                        layer.effect: MultiEffect {
+                            maskEnabled: true
+                            maskSource: maskItemB
+                            maskThresholdMin: 0.0
+                            maskSpreadAtMin: 0.0
+                        }
+
+                        Item {
+                            id: maskItemB
+                            width: layerB.width
+                            height: layerB.height
+                            visible: false
+                            layer.enabled: true
+
+                            Rectangle {
+                                color: "white"
+                                transformOrigin: Item.Center
+
+                                readonly property real p: layerB.p
+                                readonly property real cx: barWindow.transitionOriginX * parent.width
+                                readonly property real cy: barWindow.transitionOriginY * parent.height
+                                readonly property real maxR: {
+                                    let w = parent.width;
+                                    let h = parent.height;
+                                    let d1 = Math.sqrt(cx * cx + cy * cy);
+                                    let d2 = Math.sqrt((w - cx) * (w - cx) + cy * cy);
+                                    let d3 = Math.sqrt(cx * cx + (h - cy) * (h - cy));
+                                    let d4 = Math.sqrt((w - cx) * (w - cx) + (h - cy) * (h - cy));
+                                    return Math.max(d1, d2, d3, d4);
+                                }
+                                readonly property real diam: p * maxR * 2
+                                readonly property real diagDiag: Math.sqrt(parent.width * parent.width + parent.height * parent.height)
+                                readonly property real diagSize: diagDiag * 2.5
+                                readonly property var diagGeom: {
+                                    let w = parent.width;
+                                    let h = parent.height;
+                                    let d = diagDiag;
+                                    if (d <= 0) return { x: 0, y: 0, rot: 0 };
+                                    let dir = barWindow.swipeDirection;
+                                    let px = 0, py = 0, ux = 0, uy = 0;
+                                    if (dir === 4) {
+                                        px = p * w; py = p * h;
+                                        ux = w / d; uy = h / d;
+                                    } else if (dir === 5) {
+                                        px = w - p * w; py = p * h;
+                                        ux = -w / d; uy = h / d;
+                                    } else if (dir === 6) {
+                                        px = p * w; py = h - p * h;
+                                        ux = w / d; uy = -h / d;
+                                    } else {
+                                        px = w - p * w; py = h - p * h;
+                                        ux = -w / d; uy = -h / d;
+                                    }
+                                    let halfL = diagSize / 2;
+                                    let cx = px - halfL * ux;
+                                    let cy = py - halfL * uy;
+                                    let rot = Math.atan2(uy, ux) * 180 / Math.PI;
+                                    return { x: cx - halfL, y: cy - halfL, rot: rot };
+                                }
+
+                                width: {
+                                    if (barWindow.activeTransitionType === 1) {
+                                        return barWindow.wipeIsVertical ? parent.width : p * parent.width;
+                                    }
+                                    if (barWindow.activeTransitionType === 2) {
+                                        return diam;
+                                    }
+                                    if (barWindow.activeTransitionType === 3) {
+                                        if (barWindow.swipeDirection === 0 || barWindow.swipeDirection === 1) {
+                                            return p * parent.width;
+                                        }
+                                        if (barWindow.swipeDirection === 2 || barWindow.swipeDirection === 3) {
+                                            return parent.width;
+                                        }
+                                        return diagSize;
+                                    }
+                                    return parent.width;
+                                }
+
+                                height: {
+                                    if (barWindow.activeTransitionType === 1) {
+                                        return barWindow.wipeIsVertical ? p * parent.height : parent.height;
+                                    }
+                                    if (barWindow.activeTransitionType === 2) {
+                                        return diam;
+                                    }
+                                    if (barWindow.activeTransitionType === 3) {
+                                        if (barWindow.swipeDirection === 0 || barWindow.swipeDirection === 1) {
+                                            return parent.height;
+                                        }
+                                        if (barWindow.swipeDirection === 2 || barWindow.swipeDirection === 3) {
+                                            return p * parent.height;
+                                        }
+                                        return diagSize;
+                                    }
+                                    return parent.height;
+                                }
+
+                                x: {
+                                    if (barWindow.activeTransitionType === 1) {
+                                        return barWindow.wipeIsVertical ? 0 : (parent.width - width) / 2;
+                                    }
+                                    if (barWindow.activeTransitionType === 2) {
+                                        return cx - width / 2;
+                                    }
+                                    if (barWindow.activeTransitionType === 3) {
+                                        if (barWindow.swipeDirection === 0) return 0;
+                                        if (barWindow.swipeDirection === 1) return parent.width - width;
+                                        if (barWindow.swipeDirection === 2 || barWindow.swipeDirection === 3) return 0;
+                                        return diagGeom.x;
+                                    }
+                                    return 0;
+                                }
+
+                                y: {
+                                    if (barWindow.activeTransitionType === 1) {
+                                        return barWindow.wipeIsVertical ? (parent.height - height) / 2 : 0;
+                                    }
+                                    if (barWindow.activeTransitionType === 2) {
+                                        return cy - height / 2;
+                                    }
+                                    if (barWindow.activeTransitionType === 3) {
+                                        if (barWindow.swipeDirection === 0 || barWindow.swipeDirection === 1) return 0;
+                                        if (barWindow.swipeDirection === 2) return 0;
+                                        if (barWindow.swipeDirection === 3) return parent.height - height;
+                                        return diagGeom.y;
+                                    }
+                                    return 0;
+                                }
+
+                                rotation: (barWindow.activeTransitionType === 3 && barWindow.swipeDirection >= 4) ? diagGeom.rot : 0
+                                radius: barWindow.activeTransitionType === 2 ? width / 2 : 0
+                            }
                         }
 
                         Image {

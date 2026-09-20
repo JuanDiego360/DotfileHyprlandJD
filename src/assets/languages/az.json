@@ -39,7 +39,10 @@
       "display_widgets": "Vidcetlər",
       "display_general": "Ümumi",
       "osd": "Ekran göstəricisi",
-      "dock": "Tətbiq rəfi"
+      "dock": "Tətbiq rəfi",
+      "bar_general": "Ümumi",
+      "bar_modules": "Modullar",
+      "bar_side_modules": "Yan modullar"
     },
     "launcher": {
       "position": {
@@ -257,14 +260,32 @@
         "hide_bar": {
           "title": "Düzəliş alətində zolağı gizlət",
           "desc": "Vidcetlərə düzəliş edərkən zolağı avtomatik gizlət"
-        }
+        },
+        "hide_presets": "Hazır şablonları gizlət",
+        "choose_preset": "Şablon seçin",
+        "presets": {
+          "title": "Vidcet şablonları"
+        },
+        "save_preset": {
+          "title": "Preseti yadda saxla"
+        },
+        "preset_name_placeholder": "Presetin adını daxil edin..."
       }
     },
     "bar": {
       "modules": {
         "vis": "Səs görüntüləyicisi (cava)",
         "actions": "Əməliyyatlar",
-        "workspaces": "İş sahələri",
+        "workspaces": {
+          "style": {
+            "name": {
+              "pills": "Həblər",
+              "numbers": "Nömrələr",
+              "pacman": "Pacman"
+            }
+          },
+          "name": "İş sahələri"
+        },
         "media": "Media",
         "tray": "Sistem nişanları sahəsi",
         "keyboard": "Klaviatura",
@@ -274,7 +295,16 @@
         "battery": "Batareya",
         "focus": "Diqqət",
         "sysmon": "Sistem izləyicisi",
-        "timedate": "Vaxt/tarix",
+        "timedate": {
+          "name": "Vaxt və tarix",
+          "style": {
+            "name": {
+              "classic": "Klassik",
+              "material": "Material",
+              "badge": "Nöqtəli matris"
+            }
+          }
+        },
         "info": "Video çəkilişi/vaxtölçən",
         "weather": "Hava"
       },
@@ -334,6 +364,12 @@
       "distinct_pills": {
         "title": "Vidcetlər üçün hissələrə bölünmüş və yığcam üslubu aktivləşdir",
         "desc": "Zolağın modullarına düzbucaqlı çərçivə əlavə edir və hissələrə bölünmüş görünüşə uyğun ölçülərini kiçildir"
+      },
+      "timedate": {
+        "show_date": {
+          "title": "Tarixi göstər",
+          "desc": "Saatın yanında tarix mətnini göstərin"
+        }
       }
     },
     "theme": {
@@ -586,6 +622,14 @@
       "cascade_scale": {
         "title": "Ən yaxın elementləri böyüt",
         "desc": "Qonşu nişanları pilləli şəkildə böyüt"
+      },
+      "on_top": {
+        "title": "Doku pəncərələrin üzərində yerləşdirin",
+        "desc": "Doku tətbiq pəncərələrinin üzərində görünən saxlayın"
+      },
+      "smart_autohide": {
+        "title": "Ağıllı avto-gizlətmə",
+        "desc": "Doku yalnız pəncərələr açıq olduqda gizlət, masaüstündə görünən saxla"
       }
     }
   },
@@ -617,7 +661,10 @@
   },
   "applauncher": {
     "search": "Axtar",
-    "placeholder": "Əmr üçün > ilə başlayın..."
+    "placeholder": "Əmr üçün > ilə başlayın...",
+    "tab_applications": "Tətbiqlər",
+    "tab_files": "Fayllar",
+    "placeholder_files": "Faylları axtarın və ya yol daxil edin..."
   },
   "calendar": {
     "loading": "Yüklənir...",
@@ -959,7 +1006,8 @@
       "click_to_add": "Vidcet əlavə etmək üçün aşağıdakı alətlər zolağında onun nişanına klikləyin",
       "done": "Hazırdır",
       "widget_singular": "vidcet",
-      "widgets_plural": "vidcet"
+      "widgets_plural": "vidcet",
+      "widgets_short": "v"
     },
     "types": {
       "clock": "Saat",
@@ -982,7 +1030,24 @@
       "rounded": "Yuvarlaqlaşdırılmış",
       "bars": "Zolaqlar",
       "continuous": "Fasiləsiz",
-      "default": "Standart"
+      "default": "Standart",
+      "material": "Material",
+      "materialAnalog": "Material analoq",
+      "lumen": "Lümen"
+    },
+    "presets": {
+      "minimal": {
+        "name": "Minimal",
+        "desc": "Minimal rəqəmsal saat və yığcam hava məlumatı olan sadə tərtibat."
+      },
+      "media_station": {
+        "name": "Media Stansiyası",
+        "desc": "Mərkəzləşdirilmiş audio vizualizator və dairəvi musiqi pleyeri olan media quraşdırması."
+      },
+      "dashboard": {
+        "name": "İdarəetmə Paneli",
+        "desc": "Rəqəmsal saat, sistem resursları və batareya vəziyyətini göstərən tam iş paneli."
+      }
     }
   },
   "cli": {

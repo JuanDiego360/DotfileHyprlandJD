@@ -6,6 +6,5 @@ import "../"
 IconButton {
     id: root
     buttonIcon: "󰆴"
-    accentColor: ThemeBackend.red
-    textColor: ThemeBackend.crust
+    textColor: ThemeBackend.red
 }

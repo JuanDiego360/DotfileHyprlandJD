@@ -1,3 +1,83 @@
+### 2.1.9
+
+- feat: add a file browser in the launcher to open files with the default application configured for it
+- fix: rework the way the switch options sizes change on the length of the text inside. Removed premature size change
+- feat: add a new Lumen material-analog clock widget variant
+- fix: restyle numbers 8, 5 and 9 in the material clock style
+- style: improve the numbers look for the clock material
+- feat: add material analog and material clock styles to widgets
+- style: make the switch option expand its width when the size doesn't fit
+- fix: make the wallpaper loading asynchronious to optimize the lockscreen
+- fix: make sure lock doesn't have a delay on startup due to screen variables being empty
+- fix: remove sidebar settings to keep it all on bar settings
+- fix: make autohide timeout not apply to smart-autohide on workspace changed hiding state
+- fix: remove the border for the input
+
+### 2.1.8
+
+- feat: add time-setting styling, move the time string setting into modules, merge the modules and sidemodules subtabs under the bar tab
+- fix: increase the ddc timeout for monitors. Fixes #305
+- style: add a border outline to the input.qml to improve visibility
+- feat: add a smart-hide feature for the dock, hide on active workspaces
+- fix: remove the border on the centered launcher
+- fix: resolve a binding loop of a workspacecount property
+- fix: launcher animation desynchronization
+- style: change the hover cursor for workspaceswidget to pointing hand cursor
+- fix: fix workspaces not working due to a hyprland lua error
+- fix: remove a reupdate animation for workspacewidget on changing to workspaces out of the visible workspacecount, make it smooth
+- fix: don't prevent qs manager from switching workspaces when the workspace count is low, and allow workspacewidgets to extend beyond the configured amount - the workspacecount is now purely visual
+
+### 2.1.7
+
+- feat: add module settings tab, introduce workspace widget styling
+- fix: don't pacman -Syyu on updates or reinstalls, only on migration or fresh installs
+- style: change the default iconbutton accentcolor
+- style: recolor the delete button for a more minimal look
+- fix: fix launcher selection computing its own position which resulted in data-desync
+- chore: update the lockfile
+- fix: force a fade animation if the transition animation is interrupted
+- fix: remove full screen expand button for all widgets except for the visualizer
+- feat: add a swipe and a diagonal swipe animation to the wallpaperengine
+- style: animation of the sidepanel to slide out from the sides
+- style: improve the search animation in the launcher after removing it
+- fix: a bug with launcher selected element being incorrectly changing the text color and improve animations for the launcher
+- style: remove opacity changes for the viniette in the wallpaper engine animations
+- style: improve the search animation in the launcher
+- feat: add a width limit for bar's focus widget to prevent overflowing
+- fix: fix the bug with the launcher items being offset wrongly during search, clipboard image attirbute fixes
+- refactor: remove logging in the widgetsync
+- fix: follow bigdatacloud's redirect when reverse-geocoding manual location (#288)
+- nix: update flake.lock
+- fix: improve scrolling animation for the launcher and the clipboard and make them smooth without wrong y-animation
+- style: move the dock applications list to the top
+- feat: add 4 more wallpaper changing animations
+- animations: improve the entrance animation for the networkpopup
+- animations: add tab entrance animation for the guidepopup
+- fix: fix an offset bug for widget presets and fix the media widget preset
+
+### 2.1.6
+
+- fix: make sure the bar doesn't stay moved to the side on-logout
+- feat: add widget presets, add custom widget presets, add 3 default presets
+- refactor: split the usage widget into 4 separate widgets and remove the network widget
+- style: make the border radius of the systemusagecards clamped
+- style: change the background color of the themeeditor to match the guidepopup
+- feat: make the settings window in main.qml freely draggable on the screen
+- fix: make sure config.qml prevents staggering writes but emits the settingsloaded signal correctly
+- fix: Dock elements having no animation when isSameSideAsBar was true
+- fix: unblock orbit view refreshes and handle locked-state/update sync issues
+- fix: prevent orbit repeater crash on bluetooth connect/disconnect. fixes #251 (#286)
+- fix: make config writes atomic and prevent file corruption
+- feat: add a dock setting that allows to place on top or below application windows
+- fix: make numlock, capslock state detection work on niri and sway. remove unnecessary timers
+- fix: dock animating through a whole screen on workspace change
+- docs: move a pull request template into another folder
+- style: make sure the lockbox around passwordinput is always seen on the lockscreen
+- style: offset the icon glyph in welcometab iconbutton in guidepopup by 1px to center it
+- fix: config breaking and now allowing writes for the configuration
+- fix: make sure sddm isn't reinstalled on updates
+- style: remove border for themes, move the + button for theme creation next to the search field, make sure theme names don't get truncated
+
 ### 2.1.5
 
 - feat: 2 new widgets, a battery widget and a system usage widget
