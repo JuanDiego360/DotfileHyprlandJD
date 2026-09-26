@@ -1,0 +1,1 @@
+/home/juandiego/.local/bin/capturar-pdf
