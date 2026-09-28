@@ -6,6 +6,7 @@ import QtQuick.Effects
 import QtQuick.Shapes
 import Quickshell
 import Quickshell.Io
+import "."
 import "../"
 
 Item {
