@@ -10,6 +10,9 @@ bindm = SUPER, mouse:273, resizewindow
 # ───────── Window Management ─────────
 bind = SUPER, Q, killactive
 bind = ALT, F4, killactive
+bind = SUPER, F, fullscreen, 1
+bind = ALT, Tab, cyclenext
+bind = ALT, Tab, bringactivetotop
 bind = SUPER ALT, code:64, exec, hyprctl --batch "dispatch togglefloating ; dispatch centerwindow ; dispatch resizeactive exact 500 350"
 bind = SUPER, H, layoutmsg, togglesplit
 
@@ -24,6 +27,12 @@ bind = SUPER SHIFT, left, movewindow, l
 bind = SUPER SHIFT, right, movewindow, r
 bind = SUPER SHIFT, up, movewindow, u
 bind = SUPER SHIFT, down, movewindow, d
+
+# Resize window in direction:
+binde = SUPER CTRL, left, resizeactive, -40 0
+binde = SUPER CTRL, right, resizeactive, 40 0
+binde = SUPER CTRL, up, resizeactive, 0 -40
+binde = SUPER CTRL, down, resizeactive, 0 40
 
 # ───────── Applications & Launchers ─────────
 bind = SUPER, RETURN, exec, wezterm
@@ -64,6 +73,8 @@ bindel = SUPER, L, exec, bash ~/.config/hypr/scripts/lock.sh
 # ───────── Custom End-4 Extras ─────────
 bind = SUPER SHIFT, S, exec, ~/.config/hypr/scripts/screenshot.sh
 bind = SUPER SHIFT, O, exec, ~/.config/hypr/scripts/screenshot.sh --ocr
+bind = SUPER ALT, R, exec, ~/.config/hypr/scripts/screen_record.sh
+bind = SUPER, D, exec, bash ~/.config/hypr/scripts/screen_draw.sh
 bind = SUPER SHIFT, G, exec, bash ~/.config/hypr/scripts/toggle-olive-shader.sh
 bind = SUPER ALT, G, exec, bash ~/.config/hypr/scripts/toggle-game-mode.sh
 

@@ -153,6 +153,27 @@ check_system_updates() {
         fi
     fi
 
+    # 5. Comprobar versión de Hyprland para alerta preventiva de migración a Lua (0.57+)
+    local hypr_alert=""
+    if ! grep -q -E "^IgnorePkg\s*=.*hyprland" /etc/pacman.conf 2>/dev/null; then
+        local hypr_line
+        hypr_line=$(printf "%s\n%s" "$pacman_list" "$aur_list" | grep -E '^(hyprland|hyprland-git|hyprland-nvidia|hyprland-nvidia-git) ' | head -n 1)
+        if [[ -n "$hypr_line" ]]; then
+            local new_hypr_ver installed_hypr_ver
+            new_hypr_ver=$(echo "$hypr_line" | awk -F'->' '{print $2}' | awk '{print $1}')
+            installed_hypr_ver=$(pacman -Q hyprland hyprland-git hyprland-nvidia 2>/dev/null | head -n 1 | awk '{print $2}')
+            if [[ -n "$new_hypr_ver" ]] && command -v vercmp &>/dev/null; then
+                if [ -n "$installed_hypr_ver" ] && [ "$(vercmp "$installed_hypr_ver" "0.57.0")" -lt 0 ] && [ "$(vercmp "$new_hypr_ver" "0.57.0")" -ge 0 ]; then
+                    hypr_alert="$new_hypr_ver"
+                fi
+            fi
+        fi
+    fi
+
+    if [[ -z "$hypr_alert" ]]; then
+        rm -f "$STATE_DIR"/hypr_notified_* 2>/dev/null
+    fi
+
     local total=$((pacman_count + aur_count + flatpak_count + dots_pending))
 
     # Guardar resumen de actualizaciones
@@ -162,12 +183,21 @@ check_system_updates() {
         echo "AUR=$aur_count"
         echo "FLATPAK=$flatpak_count"
         echo "DOTS=$dots_pending"
+        echo "HYPR_ALERT=$hypr_alert"
         echo "CHECKED_AT=$(date +'%Y-%m-%d %H:%M:%S')"
     } > "$DETAILS_FILE" 2>/dev/null
 
     if (( total > 0 )); then
         # Activar el icono en la barra superior
         touch "$PENDING_FILE"
+
+        # Si se detecta Hyprland >= 0.57, disparar notificación prioritaria crítica
+        if [[ -n "$hypr_alert" && ! -f "$STATE_DIR/hypr_notified_$hypr_alert" ]]; then
+            notify-send -t 0 -a 'Alerta Preventiva Hyprland' -u critical \
+                "🚨 ATENCIÓN: Hyprland $hypr_alert detectado" \
+                "Se detectó la actualización a Hyprland $hypr_alert que elimina el soporte .conf.\nNO actualices sin antes migrar tus dotfiles a formato Lua."
+            touch "$STATE_DIR/hypr_notified_$hypr_alert" 2>/dev/null
+        fi
 
         # Notificar solo si cambió la cantidad de actualizaciones
         local last_notified=""

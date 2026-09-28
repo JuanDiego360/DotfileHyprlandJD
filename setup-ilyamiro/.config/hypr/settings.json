@@ -3,7 +3,7 @@
   "openGuideAtStartup": true,
   "topbarHelpIcon": true,
   "wallpaperDir": "/home/juandiego/Pictures/Wallpapers",
-  "language": "latam",
+  "language": "latam,us",
   "kbOptions": "grp:alt_shift_toggle",
   "workspaceCount": 8,
   "monitors": [
@@ -67,6 +67,9 @@
     },
     {
       "command": "~/.config/hypr/scripts/update_notifier.sh"
+    },
+    {
+      "command": "bash -c 'sleep 1.5 && hyprctl dismissnotify -1'"
     }
   ]
 }

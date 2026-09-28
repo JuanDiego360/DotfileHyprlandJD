@@ -11,6 +11,96 @@ echo
 # Variables de entorno para compilación de paquetes Rust/Cargo desde AUR
 export CARGO_NET_GIT_FETCH_WITH_CLI=true
 
+# -----------------------------------------------------------------------------
+# 0. Verificación preventiva de compatibilidad de Hyprland (Transición a 0.57+)
+# -----------------------------------------------------------------------------
+echo "--> 0. Verificando compatibilidad de versiones de Hyprland..."
+hypr_update=""
+
+if grep -q -E "^IgnorePkg\s*=.*hyprland" /etc/pacman.conf 2>/dev/null; then
+    echo "       [PROTEGIDO] Hyprland está pausado en /etc/pacman.conf (IgnorePkg activo)."
+    echo "                   Las actualizaciones mayores no afectarán tu entorno."
+else
+    if command -v checkupdates &>/dev/null; then
+        hypr_update=$(checkupdates 2>/dev/null | grep -E '^(hyprland|hyprland-git|hyprland-nvidia|hyprland-nvidia-git) ' | head -n 1 || true)
+    fi
+
+    if [[ -z "$hypr_update" ]] && command -v yay &>/dev/null; then
+        hypr_update=$(yay -Qua 2>/dev/null | grep -E '^(hyprland|hyprland-git|hyprland-nvidia|hyprland-nvidia-git) ' | head -n 1 || true)
+    fi
+
+    if [[ -z "$hypr_update" ]]; then
+        hypr_update=$(pacman -Qu 2>/dev/null | grep -E '^(hyprland|hyprland-git|hyprland-nvidia|hyprland-nvidia-git) ' | head -n 1 || true)
+    fi
+
+    if [[ -n "$hypr_update" ]]; then
+        new_hypr_ver=$(echo "$hypr_update" | awk -F'->' '{print $2}' | awk '{print $1}')
+        installed_hypr_ver=$(pacman -Q hyprland hyprland-git hyprland-nvidia 2>/dev/null | head -n 1 | awk '{print $2}')
+        if [[ -n "$new_hypr_ver" ]] && command -v vercmp &>/dev/null; then
+            # Solo alertar durante el salto de transición si la versión actual aún es < 0.57
+            if [ -n "$installed_hypr_ver" ] && [ "$(vercmp "$installed_hypr_ver" "0.57.0")" -lt 0 ] && [ "$(vercmp "$new_hypr_ver" "0.57.0")" -ge 0 ]; then
+                echo
+                echo "════════════════════════════════════════════════════════════════════════"
+                echo "  🚨 ¡ALERTA PREVENTIVA CRÍTICA: HYPRLAND $new_hypr_ver DETECTADO! 🚨"
+                echo "════════════════════════════════════════════════════════════════════════"
+                echo "  Se ha detectado una versión de Hyprland >= 0.57 lista para instalar."
+                echo "  A partir de la versión 0.57, Hyprland ELIMINA el soporte de archivos .conf"
+                echo "  y pasa obligatoriamente al nuevo formato de configuración en Lua."
+                echo
+                echo "  ⚠️  PELIGRO: Si actualizas ahora sin tener migrados tus dotfiles,"
+                echo "  tu entorno gráfico NO podrá cargar tu configuración (atajos, barra, etc)."
+                echo "════════════════════════════════════════════════════════════════════════"
+                echo
+                echo "  [1] Cancelar la actualización (RECOMENDADO para proteger tu entorno)"
+                echo "  [2] Pausar Hyprland (IgnorePkg) y continuar con el resto del sistema"
+                echo "  [3] Continuar con la actualización completa (Bajo tu propia responsabilidad)"
+                echo
+                read -rp "Selecciona una opción [1/2/3] (Por defecto: 1): " hypr_choice
+                hypr_choice=${hypr_choice:-1}
+
+                case "$hypr_choice" in
+                    2)
+                        echo
+                        echo "--> Configurando IgnorePkg en /etc/pacman.conf para proteger Hyprland..."
+                        if grep -q -E "^IgnorePkg\s*=" /etc/pacman.conf; then
+                            if ! grep -q -E "^IgnorePkg\s*=.*hyprland" /etc/pacman.conf; then
+                                sudo sed -i -E 's/^(IgnorePkg\s*=.*)/\1 hyprland hyprland-git hyprland-nvidia hyprland-nvidia-git/' /etc/pacman.conf
+                            fi
+                        else
+                            if grep -q -E "^#IgnorePkg\s*=" /etc/pacman.conf; then
+                                sudo sed -i -E 's/^#IgnorePkg\s*=.*/IgnorePkg = hyprland hyprland-git hyprland-nvidia hyprland-nvidia-git/' /etc/pacman.conf
+                            else
+                                echo "IgnorePkg = hyprland hyprland-git hyprland-nvidia hyprland-nvidia-git" | sudo tee -a /etc/pacman.conf > /dev/null
+                            fi
+                        fi
+                        echo "✅ Hyprland ha sido pausado. Se actualizará el resto del sistema de forma segura."
+                        echo
+                        ;;
+                    3)
+                        echo
+                        echo "⚠️  Continuando con la actualización completa bajo tu propio riesgo..."
+                        echo
+                        ;;
+                    *)
+                        echo
+                        echo "❌ Actualización cancelada. Tus dotfiles y entorno permanecen a salvo."
+                        echo "   Cuando estés listo para migrar a Lua, podrás retomar la actualización."
+                        echo
+                        read -n 1 -s -r -p "Presiona cualquier tecla para salir..."
+                        echo
+                        exit 0
+                        ;;
+                esac
+            else
+                echo "       [OK] Hyprland $new_hypr_ver es compatible con la sintaxis .conf actual."
+            fi
+        fi
+    else
+        echo "       [OK] No hay actualizaciones pendientes que rompan compatibilidad."
+    fi
+fi
+echo
+
 # 1. Actualización exclusiva con la herramienta nativa de CachyOS (cachy-update)
 # Nota: cachy-update se encarga automáticamente de los repositorios optimizados, oficiales y de AUR (vía yay/paru)
 if ! command -v cachy-update &> /dev/null; then
