@@ -54,6 +54,7 @@ function getLayout(name, mx, my, mw, mh, userScale) {
         
         // --- Top Left Edge ---
         "music":     { w: s(700, scale), h: s(650, scale), rx: s(5, scale), ry: s(60, scale), comp: "music/MusicPopup.qml" },
+        "lyrics":    { w: s(720, scale), h: s(680, scale), rx: s(5, scale), ry: s(60, scale), comp: "music/LyricsPopup.qml" },
 
         "movies": {
             w: s(1370, scale),

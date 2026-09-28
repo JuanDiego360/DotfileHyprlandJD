@@ -71,6 +71,9 @@ Item {
     // ANTI-JITTER LOCK: Prevents background polling from reverting UI during processing
     property real lastEqUpdate: 0
 
+    // Tab mode for bottom container: "equalizer" or "lyrics"
+    property string activeBottomTab: "equalizer"
+
     // Decoupled Global Animation States
     property real catppuccinFlowOffset: 0
     NumberAnimation on catppuccinFlowOffset {
@@ -944,6 +947,21 @@ Item {
                                 onClicked: root.execCmd("playerctl next")
                                 Text { anchors.centerIn: parent; text: ""; color: parent.pressed ? root.text : root.overlay2; font.family: "Iosevka Nerd Font"; font.pixelSize: root.s(24) }
                             }
+                            MouseArea {
+                                width: root.s(30); height: root.s(30)
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: root.activeBottomTab = (root.activeBottomTab === "lyrics" ? "equalizer" : "lyrics")
+                                Text { 
+                                    anchors.centerIn: parent
+                                    text: "󰳰"
+                                    color: root.activeBottomTab === "lyrics" ? root.mauve : root.overlay2
+                                    font.family: "Iosevka Nerd Font"
+                                    font.pixelSize: root.s(22)
+                                    scale: parent.pressed ? 0.85 : 1.0
+                                    Behavior on color { ColorAnimation { duration: 150 } }
+                                    Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutBack } }
+                                }
+                            }
                         }
                     }
                 }
@@ -970,16 +988,71 @@ Item {
                     Layout.fillWidth: true
                     spacing: root.s(15)
 
-                    // Header Row
+                    // Header Row with Tabs (Equalizer / Lyrics)
                     RowLayout {
                         Layout.fillWidth: true
+                        spacing: root.s(10)
                         opacity: root.introEqHeader
                         transform: Translate { y: root.s(15) * (1 - root.introEqHeader) }
 
-                        Text { text: "Equalizer"; color: root.mauve; font.family: "JetBrains Mono"; font.pixelSize: root.s(16); font.bold: true; Layout.fillWidth: true }
-                        
+                        // Mode Switcher Pills
+                        RowLayout {
+                            spacing: root.s(8)
+
+                            Rectangle {
+                                width: eqTabTxt.implicitWidth + root.s(20)
+                                height: root.s(28)
+                                radius: root.s(8)
+                                color: root.activeBottomTab === "equalizer" ? root.mauve : root.surface1
+                                border.color: root.activeBottomTab === "equalizer" ? root.mauve : root.surface2
+                                border.width: 1
+
+                                Text {
+                                    id: eqTabTxt
+                                    anchors.centerIn: parent
+                                    text: "󰓃 Ecualizador"
+                                    font.family: "JetBrains Mono"
+                                    font.pixelSize: root.s(12)
+                                    font.bold: true
+                                    color: root.activeBottomTab === "equalizer" ? root.base : root.subtext0
+                                }
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: root.activeBottomTab = "equalizer"
+                                }
+                            }
+
+                            Rectangle {
+                                width: lyricsTabTxt.implicitWidth + root.s(20)
+                                height: root.s(28)
+                                radius: root.s(8)
+                                color: root.activeBottomTab === "lyrics" ? root.mauve : root.surface1
+                                border.color: root.activeBottomTab === "lyrics" ? root.mauve : root.surface2
+                                border.width: 1
+
+                                Text {
+                                    id: lyricsTabTxt
+                                    anchors.centerIn: parent
+                                    text: "󰳰 Letras"
+                                    font.family: "JetBrains Mono"
+                                    font.pixelSize: root.s(12)
+                                    font.bold: true
+                                    color: root.activeBottomTab === "lyrics" ? root.base : root.subtext0
+                                }
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: root.activeBottomTab = "lyrics"
+                                }
+                            }
+                        }
+
+                        Item { Layout.fillWidth: true }
+
                         // Redesigned Apply Button
                         Rectangle {
+                            visible: root.activeBottomTab === "equalizer"
                             Layout.preferredHeight: root.s(28)
                             Layout.preferredWidth: applyTxt.width + root.s(30)
                             radius: root.s(10)
@@ -1023,11 +1096,20 @@ Item {
                                 }
                             }
                         }
-                        Text { text: root.eqData.preset || "Flat"; color: root.subtext0; font.family: "JetBrains Mono"; font.pixelSize: root.s(14); font.bold: true; Layout.leftMargin: root.s(15) }
+                        Text { 
+                            visible: root.activeBottomTab === "equalizer"
+                            text: root.eqData.preset || "Flat"
+                            color: root.subtext0
+                            font.family: "JetBrains Mono"
+                            font.pixelSize: root.s(14)
+                            font.bold: true
+                            Layout.leftMargin: root.s(15) 
+                        }
                     }
 
                     // Eq Sliders Container with Canvas Lightning Overlay
                     Item {
+                        visible: root.activeBottomTab === "equalizer"
                         Layout.fillWidth: true
                         Layout.preferredHeight: root.s(180)
 
@@ -1407,6 +1489,7 @@ Item {
 
                     // Presets Grid
                     ColumnLayout {
+                        visible: root.activeBottomTab === "equalizer"
                         Layout.fillWidth: true
                         spacing: root.s(8)
                         
@@ -1429,6 +1512,15 @@ Item {
                                 delegate: PresetButton { name: modelData }
                             }
                         }
+                    }
+
+                    // Synced Lyrics View
+                    LyricsView {
+                        id: lyricsView
+                        visible: root.activeBottomTab === "lyrics"
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: root.s(240)
+                        musicData: root.musicData
                     }
                 }
             }
