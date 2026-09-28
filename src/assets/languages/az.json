@@ -405,7 +405,9 @@
       "places": {
         "home": "Ev qovluğu",
         "downloads": "Endirilənlər",
-        "pictures": "Şəkillər"
+        "pictures": "Şəkillər",
+        "music": "Musiqi",
+        "documents": "Sənədlər"
       }
     },
     "font_picker": {
@@ -631,6 +633,10 @@
         "title": "Ağıllı avto-gizlətmə",
         "desc": "Doku yalnız pəncərələr açıq olduqda gizlət, masaüstündə görünən saxla"
       }
+    },
+    "lyrics_picker": {
+      "title": "Mahnı mətni faylını seçin",
+      "no_lyrics_selected": "Mahnı mətni seçilməyib"
     }
   },
   "sysnotif": {
@@ -733,7 +739,10 @@
       "jazz": "Caz",
       "classic": "Klassik",
       "custom": "Xüsusi"
-    }
+    },
+    "searching_lyrics": "Sözlər axtarılır...",
+    "no_lyrics": "Sözlər tapılmadı",
+    "select_local_file": "Lokal fayl seçin"
   },
   "network": {
     "tabs": {
@@ -1033,7 +1042,8 @@
       "default": "Standart",
       "material": "Material",
       "materialAnalog": "Material analoq",
-      "lumen": "Lümen"
+      "lumen": "Lümen",
+      "lyrics": "Mahnı sözləri"
     },
     "presets": {
       "minimal": {

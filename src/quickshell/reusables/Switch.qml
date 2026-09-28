@@ -110,8 +110,6 @@ Item {
         anchors.fill: parent
         radius: root.cornerRadius
         color: root.baseColor
-        border.color: "#1affffff"
-        border.width: 1
         clip: true
         opacity: root.enabled ? 1.0 : 0.5
 

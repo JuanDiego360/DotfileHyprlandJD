@@ -407,7 +407,9 @@
       "places": {
         "home": "Início",
         "downloads": "Downloads",
-        "pictures": "Imagens"
+        "pictures": "Imagens",
+        "music": "Música",
+        "documents": "Documentos"
       }
     },
     "font_picker": {
@@ -637,6 +639,10 @@
         "title": "Ocultação automática inteligente",
         "desc": "Ocultar a dock apenas quando houver janelas abertas, mantendo-a visível na área de trabalho"
       }
+    },
+    "lyrics_picker": {
+      "title": "Selecionar arquivo de letras",
+      "no_lyrics_selected": "Nenhum arquivo de letras selecionado"
     }
   },
   "sysnotif": {
@@ -739,7 +745,10 @@
       "jazz": "Jazz",
       "classic": "Clássica",
       "custom": "Personalizado"
-    }
+    },
+    "searching_lyrics": "Procurando letra...",
+    "no_lyrics": "Nenhuma letra encontrada",
+    "select_local_file": "Selecionar um arquivo local"
   },
   "network": {
     "tabs": {
@@ -1039,7 +1048,8 @@
       "default": "Padrão",
       "material": "Material",
       "materialAnalog": "Material analógico",
-      "lumen": "Lúmen"
+      "lumen": "Lúmen",
+      "lyrics": "Letra"
     },
     "presets": {
       "minimal": {

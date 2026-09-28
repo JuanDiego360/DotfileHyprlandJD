@@ -407,7 +407,9 @@
       "places": {
         "home": "Thư mục cá nhân",
         "downloads": "Tải xuống",
-        "pictures": "Hình ảnh"
+        "pictures": "Hình ảnh",
+        "music": "Âm nhạc",
+        "documents": "Tài liệu"
       }
     },
     "font_picker": {
@@ -637,6 +639,10 @@
         "title": "Tự động ẩn thông minh",
         "desc": "Chỉ ẩn dock khi có cửa sổ mở, giữ hiển thị trên màn hình chính"
       }
+    },
+    "lyrics_picker": {
+      "title": "Chọn tệp lời bài hát",
+      "no_lyrics_selected": "Chưa chọn tệp lời bài hát"
     }
   },
   "sysnotif": {
@@ -739,7 +745,10 @@
       "jazz": "Jazz",
       "classic": "Cổ điển",
       "custom": "Tùy chỉnh"
-    }
+    },
+    "searching_lyrics": "Đang tìm lời bài hát...",
+    "no_lyrics": "Không tìm thấy lời bài hát",
+    "select_local_file": "Chọn tệp cục bộ"
   },
   "network": {
     "tabs": {
@@ -1039,7 +1048,8 @@
       "default": "Mặc định",
       "material": "Material",
       "materialAnalog": "Material kim",
-      "lumen": "Lumen"
+      "lumen": "Lumen",
+      "lyrics": "Lời bài hát"
     },
     "presets": {
       "minimal": {

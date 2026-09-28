@@ -408,7 +408,9 @@
       "places": {
         "home": "Persönlicher ordner",
         "downloads": "Downloads",
-        "pictures": "Bilder"
+        "pictures": "Bilder",
+        "music": "Musik",
+        "documents": "Dokumente"
       }
     },
     "font_picker": {
@@ -681,6 +683,10 @@
         "title": "Intelligentes automatisches Ausblenden",
         "desc": "Dock nur bei geöffneten Fenstern ausblenden, auf dem Desktop sichtbar lassen"
       }
+    },
+    "lyrics_picker": {
+      "title": "Songtext-Datei auswählen",
+      "no_lyrics_selected": "Keine Songtext-Datei ausgewählt"
     }
   },
   "sysnotif": {
@@ -783,7 +789,10 @@
       "jazz": "Jazz",
       "classic": "Klassik",
       "custom": "Benutzerdefiniert"
-    }
+    },
+    "searching_lyrics": "Suche Songtext...",
+    "no_lyrics": "Kein Songtext gefunden",
+    "select_local_file": "Lokale Datei auswählen"
   },
   "network": {
     "tabs": {
@@ -1083,7 +1092,8 @@
       "default": "Standard",
       "material": "Material",
       "materialAnalog": "Material analog",
-      "lumen": "Lumen"
+      "lumen": "Lumen",
+      "lyrics": "Songtext"
     },
     "presets": {
       "minimal": {

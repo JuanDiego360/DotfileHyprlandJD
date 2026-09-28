@@ -381,7 +381,9 @@
       "places": {
         "home": "Домашня тека",
         "downloads": "Завантаження",
-        "pictures": "Зображення"
+        "pictures": "Зображення",
+        "music": "Музика",
+        "documents": "Документи"
       }
     },
     "font_picker": {
@@ -650,6 +652,10 @@
         "title": "Поверх вікон",
         "desc": "Показувати док поверх вікон програм"
       }
+    },
+    "lyrics_picker": {
+      "title": "Вибір файлу тексту пісні",
+      "no_lyrics_selected": "Файл тексту не вибрано"
     }
   },
   "sysnotif": {
@@ -684,7 +690,6 @@
     "tab_applications": "Програми",
     "tab_files": "Файли",
     "placeholder_files": "Пошук файлів або шлях..."
-
   },
   "calendar": {
     "loading": "Завантаження...",
@@ -753,7 +758,10 @@
       "jazz": "Джаз",
       "classic": "Класика",
       "custom": "Користувацький"
-    }
+    },
+    "searching_lyrics": "Пошук тексту...",
+    "no_lyrics": "Текст не знайдено",
+    "select_local_file": "Вибрати локальний файл"
   },
   "network": {
     "tabs": {
@@ -1053,8 +1061,8 @@
       "default": "Типовий",
       "material": "Матеріал",
       "materialAnalog": "Матеріал Аналоговий",
-      "lumen": "Люмен"
- 
+      "lumen": "Люмен",
+      "lyrics": "Текст пісні"
     },
     "presets": {
       "minimal": {
@@ -1261,4 +1269,3 @@
     "full_date": "dddd, d MMMM"
   }
 }
-

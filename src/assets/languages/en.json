@@ -407,7 +407,9 @@
       "places": {
         "home": "Home",
         "downloads": "Downloads",
-        "pictures": "Pictures"
+        "pictures": "Pictures",
+        "music": "Music",
+        "documents": "Documents"
       }
     },
     "font_picker": {
@@ -637,6 +639,10 @@
         "title": "Smart auto-hide",
         "desc": "Auto-hide dock only when windows are open, keep visible on desktop"
       }
+    },
+    "lyrics_picker": {
+      "title": "Select lyrics file",
+      "no_lyrics_selected": "No lyrics selected"
     }
   },
   "sysnotif": {
@@ -739,7 +745,10 @@
       "jazz": "Jazz",
       "classic": "Classic",
       "custom": "Custom"
-    }
+    },
+    "searching_lyrics": "Searching lyrics...",
+    "no_lyrics": "No lyrics found",
+    "select_local_file": "Select a local file"
   },
   "network": {
     "tabs": {
@@ -1039,7 +1048,8 @@
       "default": "Default",
       "material": "Material",
       "materialAnalog": "Material Analog",
-      "lumen": "Lumen"
+      "lumen": "Lumen",
+      "lyrics": "Lyrics"
     },
     "presets": {
       "minimal": {

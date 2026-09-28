@@ -14,15 +14,98 @@ Item {
     property real maxAspect: 1.0
     property bool isRound: true
 
-    property bool showSeconds: false
+    property bool showSeconds: true
 
     property var currentTime: new Date()
+    property int lastSecond: (new Date()).getSeconds()
+    property real secondHeadAngle: lastSecond * 6
+    property real secondTailAngle: secondHeadAngle
+
+    function morphSecond(sec) {
+        if (!root.showSeconds) return;
+
+        if (morphAnim.running) {
+            morphAnim.stop();
+            root.secondHeadAngle = Math.round(((headAnim.to % 360) + 360) % 360);
+            root.secondTailAngle = root.secondHeadAngle;
+        }
+
+        var target = sec * 6;
+        var currentNorm = Math.round(((root.secondTailAngle % 360) + 360) % 360);
+        var diff = (target - currentNorm + 360) % 360;
+
+        if (diff === 0) {
+            return;
+        }
+
+        if (diff > 12) {
+            root.secondHeadAngle = target;
+            root.secondTailAngle = target;
+            return;
+        }
+
+        var startAngle = root.secondTailAngle;
+        var endAngle = startAngle + diff;
+
+        headAnim.from = startAngle;
+        headAnim.to = endAngle;
+        tailAnim.from = startAngle;
+        tailAnim.to = endAngle;
+
+        morphAnim.restart();
+    }
+
+    ParallelAnimation {
+        id: morphAnim
+
+        NumberAnimation {
+            id: headAnim
+            target: root
+            property: "secondHeadAngle"
+            duration: 320
+            easing.type: Easing.OutCubic
+        }
+
+        SequentialAnimation {
+            PauseAnimation { duration: 100 }
+            NumberAnimation {
+                id: tailAnim
+                target: root
+                property: "secondTailAngle"
+                duration: 320
+                easing.type: Easing.OutCubic
+            }
+        }
+
+        onFinished: {
+            root.secondHeadAngle = Math.round(((root.secondHeadAngle % 360) + 360) % 360);
+            root.secondTailAngle = root.secondHeadAngle;
+        }
+    }
 
     Timer {
-        interval: 1000
+        id: clockTimer
+        interval: Math.max(20, 1000 - (new Date()).getMilliseconds())
         running: true
         repeat: true
-        onTriggered: root.currentTime = new Date()
+        onTriggered: {
+            var now = new Date();
+            root.currentTime = now;
+            var sec = now.getSeconds();
+            if (sec !== root.lastSecond) {
+                root.lastSecond = sec;
+                root.morphSecond(sec);
+            }
+            interval = Math.max(20, 1000 - now.getMilliseconds());
+        }
+    }
+
+    Component.onCompleted: {
+        var now = new Date();
+        root.currentTime = now;
+        root.lastSecond = now.getSeconds();
+        root.secondHeadAngle = root.lastSecond * 6;
+        root.secondTailAngle = root.secondHeadAngle;
     }
 
     function resolveColor(token, fallback) {
@@ -90,16 +173,51 @@ Item {
             }
         }
 
-        Rectangle {
-            id: indicatorDot
-            anchors.top: parent.top
-            anchors.topMargin: parent.height * 0.075
-            anchors.horizontalCenter: parent.horizontalCenter
-            width: Math.min(parent.width, parent.height) * 0.085
-            height: width
-            radius: width / 2
-            color: root.indicatorColor
+        Canvas {
+            id: secondCanvas
+            anchors.fill: parent
+            visible: root.showSeconds
+            z: 3
             antialiasing: true
+
+            property real headAngle: root.secondHeadAngle
+            property real tailAngle: root.secondTailAngle
+            property color indicatorColor: root.indicatorColor
+
+            onHeadAngleChanged: requestPaint()
+            onTailAngleChanged: requestPaint()
+            onIndicatorColorChanged: requestPaint()
+            onWidthChanged: requestPaint()
+            onHeightChanged: requestPaint()
+
+            onPaint: {
+                var ctx = getContext("2d");
+                ctx.reset();
+                var cx = width / 2;
+                var cy = height / 2;
+                var size = Math.min(width, height);
+                var dotRadius = (size * 0.085) / 2;
+                var r = (size / 2) - (height * 0.075 + dotRadius);
+
+                var startRad = (tailAngle - 90) * Math.PI / 180;
+                var endRad = (headAngle - 90) * Math.PI / 180;
+
+                if (Math.abs(endRad - startRad) < 0.001) {
+                    var x = cx + r * Math.cos(startRad);
+                    var y = cy + r * Math.sin(startRad);
+                    ctx.beginPath();
+                    ctx.arc(x, y, dotRadius, 0, Math.PI * 2);
+                    ctx.fillStyle = indicatorColor;
+                    ctx.fill();
+                } else {
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, r, startRad, endRad, false);
+                    ctx.lineWidth = dotRadius * 2;
+                    ctx.lineCap = "round";
+                    ctx.strokeStyle = indicatorColor;
+                    ctx.stroke();
+                }
+            }
         }
 
         Item {
@@ -147,33 +265,6 @@ Item {
                 height: Math.min(root.width, root.height) * 0.36
                 radius: width / 2
                 color: root.minuteHandColor
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.bottom: parent.top
-                anchors.bottomMargin: -width / 2
-                antialiasing: true
-            }
-        }
-
-        Item {
-            id: secondPivot
-            visible: root.showSeconds
-            anchors.centerIn: parent
-            z: 3
-            rotation: root.currentTime.getSeconds() * 6
-
-            Behavior on rotation {
-                RotationAnimation {
-                    duration: 1000
-                    direction: RotationAnimation.Clockwise
-                    easing.type: Easing.Linear
-                }
-            }
-
-            Rectangle {
-                width: Math.min(root.width, root.height) * 0.02
-                height: Math.min(root.width, root.height) * 0.39
-                radius: width / 2
-                color: root.secondHandColor
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.bottom: parent.top
                 anchors.bottomMargin: -width / 2

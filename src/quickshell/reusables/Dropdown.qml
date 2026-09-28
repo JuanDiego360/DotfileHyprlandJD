@@ -26,6 +26,7 @@ Item {
     property color dropdownColor: "#1e1e2e"
     property color borderColor: "#45475a"
     property color textColor: "#cdd6f4"
+    property color iconColor: textColor
     property color activeTextColor: "#11111b"
     property color subTextColor: "#a6adc8"
 
@@ -541,13 +542,64 @@ Item {
                 }
             }
 
-            Text {
-                text: root.isOpen ? "󰅃" : "󰅀"
-                font.family: "Iosevka Nerd Font"
-                font.pixelSize: root.iconSize
-                color: root.textColor
-                verticalAlignment: Text.AlignVCenter
-                Behavior on rotation { NumberAnimation { duration: 200; easing.type: Easing.OutQuint } }
+            Item {
+                id: chevronWrapper
+                Layout.alignment: Qt.AlignVCenter
+                implicitWidth: root.iconSize
+                implicitHeight: root.iconSize
+                width: root.iconSize
+                height: root.iconSize
+
+                rotation: root.isOpen ? 90 : -90
+                Behavior on rotation { NumberAnimation { duration: 300; easing.type: Easing.OutBack } }
+
+                property real armThickness: Math.max(1.5, (root.iconSize / 0.38) * 0.048)
+                property real armLength: Math.max(5, (root.iconSize / 0.38) * 0.19)
+                property real dotSize: armThickness
+
+                Item {
+                    id: pivotNode
+                    x: (chevronWrapper.width - (chevronWrapper.armLength * 0.766)) / 2
+                    y: chevronWrapper.height / 2
+                    width: 0
+                    height: 0
+
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: chevronWrapper.dotSize
+                        height: chevronWrapper.dotSize
+                        radius: width / 2
+                        color: root.iconColor
+                        antialiasing: true
+                        Behavior on color { ColorAnimation { duration: 180 } }
+                    }
+
+                    Rectangle {
+                        x: 0
+                        y: -chevronWrapper.armThickness / 2
+                        width: chevronWrapper.armLength
+                        height: chevronWrapper.armThickness
+                        radius: height / 2
+                        transformOrigin: Item.Left
+                        rotation: 40
+                        color: root.iconColor
+                        antialiasing: true
+                        Behavior on color { ColorAnimation { duration: 180 } }
+                    }
+
+                    Rectangle {
+                        x: 0
+                        y: -chevronWrapper.armThickness / 2
+                        width: chevronWrapper.armLength
+                        height: chevronWrapper.armThickness
+                        radius: height / 2
+                        transformOrigin: Item.Left
+                        rotation: -40
+                        color: root.iconColor
+                        antialiasing: true
+                        Behavior on color { ColorAnimation { duration: 180 } }
+                    }
+                }
             }
         }
 
@@ -752,6 +804,7 @@ Item {
                 property real flashOpacity: 0.0
 
                 Rectangle {
+                    id: itemFlashAnimRect
                     anchors.fill: parent
                     radius: parent.radius
                     color: "#ffffff"

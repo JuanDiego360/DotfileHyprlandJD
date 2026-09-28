@@ -406,7 +406,9 @@
       "places": {
         "home": "Home",
         "downloads": "Download",
-        "pictures": "Immagini"
+        "pictures": "Immagini",
+        "music": "Musica",
+        "documents": "Documenti"
       }
     },
     "font_picker": {
@@ -636,6 +638,10 @@
         "title": "Nascondi automaticamente intelligente",
         "desc": "Nascondi il dock solo quando ci sono finestre aperte, mantienilo visibile sul desktop"
       }
+    },
+    "lyrics_picker": {
+      "title": "Seleziona file dei testi",
+      "no_lyrics_selected": "Nessun file di testo selezionato"
     }
   },
   "sysnotif": {
@@ -738,7 +744,10 @@
       "jazz": "Jazz",
       "classic": "Classica",
       "custom": "Personalizzato"
-    }
+    },
+    "searching_lyrics": "Ricerca testo...",
+    "no_lyrics": "Nessun testo trovato",
+    "select_local_file": "Seleziona un file locale"
   },
   "network": {
     "tabs": {
@@ -1038,7 +1047,8 @@
       "default": "Predefinito",
       "material": "Material",
       "materialAnalog": "Material analogico",
-      "lumen": "Lumen"
+      "lumen": "Lumen",
+      "lyrics": "Testo"
     },
     "presets": {
       "minimal": {

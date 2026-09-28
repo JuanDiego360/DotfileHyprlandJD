@@ -407,7 +407,9 @@
       "places": {
         "home": "홈",
         "downloads": "다운로드",
-        "pictures": "사진"
+        "pictures": "사진",
+        "music": "음악",
+        "documents": "문서"
       }
     },
     "font_picker": {
@@ -637,6 +639,10 @@
         "title": "스마트 자동 숨기기",
         "desc": "창이 열려 있을 때만 독을 숨기고 바탕화면에서는 항상 표시"
       }
+    },
+    "lyrics_picker": {
+      "title": "가사 파일 선택",
+      "no_lyrics_selected": "선택된 가사 없음"
     }
   },
   "sysnotif": {
@@ -739,7 +745,10 @@
       "jazz": "재즈",
       "classic": "클래식",
       "custom": "사용자 지정"
-    }
+    },
+    "searching_lyrics": "가사 검색 중...",
+    "no_lyrics": "가사를 찾을 수 없음",
+    "select_local_file": "로컬 파일 선택"
   },
   "network": {
     "tabs": {
@@ -1039,7 +1048,8 @@
       "default": "기본",
       "material": "머티리얼",
       "materialAnalog": "머티리얼 아날로그",
-      "lumen": "루멘"
+      "lumen": "루멘",
+      "lyrics": "가사"
     },
     "presets": {
       "minimal": {

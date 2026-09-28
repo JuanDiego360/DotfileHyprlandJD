@@ -88,9 +88,9 @@ QtObject {
                 "digital":        { file: "faces/ClockFaceDigital.qml",        icon: "1", label: I18n.t("widgets.variants.digital") },
                 "analog":         { file: "faces/ClockFaceAnalog.qml",         icon: "2", label: I18n.t("widgets.variants.analog") },
                 "minimal":        { file: "faces/ClockFaceMinimal.qml",        icon: "3", label: I18n.t("widgets.variants.minimal") },
-                "material":          { file: "faces/ClockFaceMaterial.qml",          icon: "4", label: I18n.t("widgets.variants.material") },
+                "material":       { file: "faces/ClockFaceMaterial.qml",       icon: "4", label: I18n.t("widgets.variants.material") },
                 "materialAnalog": { file: "faces/ClockFaceMaterialAnalog.qml", icon: "5", label: I18n.t("widgets.variants.materialAnalog") },
-                "lumen": { file: "faces/ClockFaceMaterialLumen.qml", icon: "6", label: I18n.t("widgets.variants.lumen") }
+                "lumen":          { file: "faces/ClockFaceMaterialLumen.qml",  icon: "6", label: I18n.t("widgets.variants.lumen") }
             }
         },
         "music": {
@@ -100,8 +100,9 @@ QtObject {
             defaultHeight: 120,
             defaultVariant: "full",
             variants: {
-                "full": { file: "faces/MusicFace.qml", icon: "1", label: I18n.t("widgets.variants.full") },
-                "round": { file: "faces/MusicFaceRound.qml", icon: "2", label: I18n.t("widgets.variants.round") }
+                "full":   { file: "faces/MusicFace.qml",       icon: "1", label: I18n.t("widgets.variants.full") },
+                "round":  { file: "faces/MusicFaceRound.qml",  icon: "2", label: I18n.t("widgets.variants.round") },
+                "lyrics": { file: "faces/MusicFaceLyrics.qml", icon: "3", label: I18n.t("widgets.variants.lyrics") }
             }
         },
         "weather": {
@@ -113,8 +114,8 @@ QtObject {
             defaultVariant: "compact",
             variants: {
                 "compact": { file: "faces/WeatherFaceCompact.qml", icon: "1", label: I18n.t("widgets.variants.compact") },
-                "full": { file: "faces/WeatherFaceFull.qml", icon: "2", label: I18n.t("widgets.variants.full") },
-                "round": { file: "faces/WeatherFaceRound.qml", icon: "3", label: I18n.t("widgets.variants.round") }
+                "full":    { file: "faces/WeatherFaceFull.qml",    icon: "2", label: I18n.t("widgets.variants.full") },
+                "round":   { file: "faces/WeatherFaceRound.qml",   icon: "3", label: I18n.t("widgets.variants.round") }
             }
         },
         "image": {
@@ -126,9 +127,9 @@ QtObject {
             defaultVariant: "rect",
             requiresFilePicker: true,
             variants: {
-                "rect": { file: "faces/ImageFaceRect.qml", icon: "1", label: I18n.t("widgets.variants.rect") },
+                "rect":    { file: "faces/ImageFaceRect.qml",    icon: "1", label: I18n.t("widgets.variants.rect") },
                 "rounded": { file: "faces/ImageFaceRounded.qml", icon: "2", label: I18n.t("widgets.variants.rounded") },
-                "round": { file: "faces/ImageFaceRound.qml", icon: "3", label: I18n.t("widgets.variants.round") }
+                "round":   { file: "faces/ImageFaceRound.qml",   icon: "3", label: I18n.t("widgets.variants.round") }
             },
             additionalSettings: [
                 {

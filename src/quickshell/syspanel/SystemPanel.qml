@@ -754,7 +754,7 @@ Item {
                             function updateState() {
                                 let anyEnabled = false;
                                 if (typeof BlueLight !== "undefined" && typeof BlueLight.isAnyEnabled === "function") {
-                                anyEnabled = BlueLight.isAnyEnabled();
+                                    anyEnabled = BlueLight.isAnyEnabled();
                                 } else if (typeof Config !== "undefined") {
                                     let ds = Config.getSetting("display", {"monitors": {}});
                                     let mons = (ds && ds.monitors) ? ds.monitors : {};
@@ -1060,6 +1060,7 @@ Item {
                                         var cp2y = fillY + Math.cos(wavePhase + Math.PI) * waveAmp;
                                         ctx.bezierCurveTo(width * 0.33, cp2y, width * 0.66, cp1y, width, fillY);
                                         ctx.lineTo(width, height);
+                                        ctx.lineTo(0, height);
                                         ctx.lineTo(0, height);
                                     } else {
                                         ctx.lineTo(width, 0);
@@ -1372,12 +1373,12 @@ Item {
                             options: {
                                 if (root.isDesktop) {
                                     return PowerProfiles.hasPerformanceProfile
-                                        ? ["󰓅 " + I18n.t("syspanel.profiles.performance"), "󰗑 " + I18n.t("syspanel.profiles.balanced"), "󰌪 " + I18n.t("syspanel.profiles.power_saver")]
-                                        : ["󰗑 " + I18n.t("syspanel.profiles.balanced"), "󰌪 " + I18n.t("syspanel.profiles.power_saver")];
+                                        ? ["󰌪 " + I18n.t("syspanel.profiles.power_saver"), "󰗑 " + I18n.t("syspanel.profiles.balanced"), "󰓅 " + I18n.t("syspanel.profiles.performance")]
+                                        : ["󰌪 " + I18n.t("syspanel.profiles.power_saver"), "󰗑 " + I18n.t("syspanel.profiles.balanced")];
                                 } else {
                                     return PowerProfiles.hasPerformanceProfile
-                                        ? ["󰓅", "󰗑", "󰌪"]
-                                        : ["󰗑", "󰌪"];
+                                        ? ["󰌪", "󰗑", "󰓅"]
+                                        : ["󰌪", "󰗑"];
                                 }
                             }
                             accentColor: root.profileColor
@@ -1386,23 +1387,23 @@ Item {
                             activeTextColor: ThemeBackend.crust
                             currentIndex: {
                                 if (PowerProfiles.hasPerformanceProfile) {
-                                    if (root.powerProfile === "performance") return 0;
+                                    if (root.powerProfile === "power-saver") return 0;
                                     if (root.powerProfile === "balanced") return 1;
                                     return 2;
                                 } else {
-                                    if (root.powerProfile === "balanced") return 0;
+                                    if (root.powerProfile === "power-saver") return 0;
                                     return 1;
                                 }
                             }
 
                             onValueChanged: (idx, val) => {
                                 if (PowerProfiles.hasPerformanceProfile) {
-                                    if (idx === 0) PowerProfiles.profile = PowerProfile.Performance;
+                                    if (idx === 0) PowerProfiles.profile = PowerProfile.PowerSaver;
                                     else if (idx === 1) PowerProfiles.profile = PowerProfile.Balanced;
-                                    else PowerProfiles.profile = PowerProfile.PowerSaver;
+                                    else PowerProfiles.profile = PowerProfile.Performance;
                                 } else {
-                                    if (idx === 0) PowerProfiles.profile = PowerProfile.Balanced;
-                                    else PowerProfiles.profile = PowerProfile.PowerSaver;
+                                    if (idx === 0) PowerProfiles.profile = PowerProfile.PowerSaver;
+                                    else PowerProfiles.profile = PowerProfile.Balanced;
                                 }
                             }
                         }

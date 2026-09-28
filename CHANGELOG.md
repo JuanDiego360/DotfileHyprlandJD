@@ -1,3 +1,22 @@
+### 2.1.10
+
+- fix: switch the power performance profile position in the systempanel with the power saver profile for a more logical positioning from left to right
+- feat: add support for local lrc files for a lyrics widget
+- feat: add a new lyrics widget
+- chore: update flake.lock
+- fix: add all of the new missing setting fields into the settings-options.nix
+- style: improve the blur effect on the lockscreen and decrease the dimming
+- fix: remove the stutter of the second circle on the  clock widget material analog style
+- style: change the dropdown glyph animation with the one similar to the flipicon animation
+- feat: make the clock face material analog widget have a second morphing indicator circle
+- style: remove the border for switch
+- style: change the settings iconbutton for a flipicon for expandable actions, restyle the coloring of input fields, remove the icon for custom idle actions, increase the width of the custom action name input field
+- style: remove the border for numberselector
+- fix: wrap the osd tab settings text so long translations don't overflow (#310)
+- added the Ukrainian language option (#315)
+- chore: update flake.lock
+- fix: make batteryface inner wave fill correctly follow the themebackend border radius
+
 ### 2.1.9
 
 - feat: add a file browser in the launcher to open files with the default application configured for it
