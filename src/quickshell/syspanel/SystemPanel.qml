@@ -89,6 +89,22 @@ Item {
     property bool wifiRadioEnabled: Networking.wifiEnabled
     property bool btRadioEnabled: Boolean(Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled)
 
+    Connections {
+        target: Bluetooth
+        ignoreUnknownSignals: true
+        function onDefaultAdapterChanged() {
+            root.btRadioEnabled = Boolean(Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled);
+        }
+    }
+
+    Connections {
+        target: Bluetooth.defaultAdapter || null
+        ignoreUnknownSignals: true
+        function onEnabledChanged() {
+            root.btRadioEnabled = Boolean(Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled);
+        }
+    }
+
     property bool isDraggingVol: false
     property bool isDraggingBri: false
     property bool usesDdcBrightness: false
@@ -324,7 +340,7 @@ Item {
             spacing: root.s(16)
 
             Text {
-                font.family: "Iosevka Nerd Font"
+                font.family: ThemeBackend.iconFont
                 font.pixelSize: root.s(32)
                 color: bRoot.iconColor
                 text: root.isCharging ? "󰂄" : (root.batCapacity > 20 ? "󰁹" : "󰂃")
@@ -388,6 +404,9 @@ Item {
         property bool isActive: false
         property string iconText: ""
         property color activeColor: ThemeBackend.blue
+        readonly property bool isHovered: qaMa.containsMouse
+        property real customFontSize: 0
+        property string customFontFamily: ""
 
         signal leftClicked()
         signal rightClicked()
@@ -406,8 +425,9 @@ Item {
 
         Text {
             anchors.centerIn: parent
-            font.family: "Iosevka Nerd Font"
-            font.pixelSize: root.s(22)
+            font.family: qaBtn.customFontFamily !== "" ? qaBtn.customFontFamily : ThemeBackend.iconFont
+            font.pixelSize: qaBtn.customFontSize > 0 ? qaBtn.customFontSize : root.s(18)
+            font.weight: qaBtn.customFontSize > 0 ? Font.Bold : Font.Normal
             color: qaBtn.isActive ? ThemeBackend.crust : (qaMa.containsMouse ? ThemeBackend.text : ThemeBackend.subtext0)
             text: qaBtn.iconText
             Behavior on color {
@@ -485,7 +505,7 @@ Item {
                             Text {
                                 anchors.centerIn: parent
                                 text: ""
-                                font.family: "Iosevka Nerd Font"
+                                font.family: ThemeBackend.iconFont
                                 font.pixelSize: root.s(18)
                                 color: ThemeBackend.text
                                 visible: SystemInfo.avatarPath === ""
@@ -569,7 +589,6 @@ Item {
                             IconButton {
                                 Layout.alignment: Qt.AlignVCenter
                                 size: root.s(26)
-                                iconOffsetX: -1
                                 cornerRadius: root.s(8)
                                 buttonIcon: root.sysMuted || root.sysVolume === 0 ? "󰖁" : (root.sysVolume > 50 ? "󰕾" : "󰖀")
                                 iconFontSize: root.s(15)
@@ -660,7 +679,6 @@ Item {
                                 Layout.alignment: Qt.AlignVCenter
                                 size: root.s(26)
                                 cornerRadius: root.s(8)
-                                iconOffsetX: -3
                                 buttonIcon: root.sysBrightness > 66 ? "󰃠" : (root.sysBrightness > 33 ? "󰃟" : "󰃞")
                                 iconFontSize: root.s(15)
                                 accentColor: ThemeBackend.surface1
@@ -828,19 +846,164 @@ Item {
 
                         QuickActionBtn {
                             id: coffeeBtn
-                            iconText: "󰅶"
                             activeColor: Qt.tint(ThemeBackend.peach, "#5c3016")
 
+                            readonly property string stateFilePath: Caching.runDir + "/caffeine_state.json"
+                            property double coffeeStartTime: 0
+                            property double coffeeEndTime: 0
+                            property int remainingSeconds: 0
+
+                            readonly property string remainingTimeString: {
+                                let secs = remainingSeconds;
+                                if (secs <= 0) return "< 1m";
+                                let h = Math.floor(secs / 3600);
+                                let m = Math.floor((secs % 3600) / 60);
+                                if (h > 0) {
+                                    return h + "h " + (m < 10 ? "0" + m : m) + "m";
+                                }
+                                return Math.max(1, m) + "m";
+                            }
+
+                            iconText: (isActive && isHovered) ? remainingTimeString : "󰅶"
+                            customFontSize: (isActive && isHovered) ? root.s(12) : 0
+                            customFontFamily: (isActive && isHovered) ? ThemeBackend.fontFamily : ""
+
+                            function updateRemaining() {
+                                if (!isActive || coffeeEndTime <= 0) {
+                                    remainingSeconds = 0;
+                                    return;
+                                }
+                                let now = Date.now();
+                                let diff = Math.round((coffeeEndTime - now) / 1000);
+                                if (diff <= 0) {
+                                    remainingSeconds = 0;
+                                    disableCaffeine();
+                                } else {
+                                    remainingSeconds = diff;
+                                }
+                            }
+
+                            function saveState() {
+                                let data = {
+                                    "enabled": isActive,
+                                    "startTime": coffeeStartTime,
+                                    "enabledAt": coffeeStartTime > 0 ? new Date(coffeeStartTime).toISOString() : "",
+                                    "endTime": coffeeEndTime,
+                                    "durationSeconds": (coffeeEndTime > coffeeStartTime) ? Math.round((coffeeEndTime - coffeeStartTime) / 1000) : 0
+                                };
+                                let jsonStr = JSON.stringify(data);
+                                Quickshell.execDetached(["sh", "-c", "mkdir -p '" + Caching.runDir + "' && echo '" + jsonStr + "' > '" + stateFilePath + "'"]);
+                            }
+
+                            function syncConfig(enabled) {
+                                if (typeof Config === "undefined") return;
+                                let idleObj = Object.assign({}, Config.getSetting("idle", {}));
+                                idleObj.manualInhibit = enabled;
+                                idleObj.caffeineStartTime = enabled ? coffeeStartTime : 0;
+                                idleObj.caffeineEndTime = enabled ? coffeeEndTime : 0;
+                                Config.setSetting("idle", idleObj);
+                            }
+
+                            function enableCaffeine(durationMs) {
+                                let now = Date.now();
+                                coffeeStartTime = now;
+                                coffeeEndTime = now + durationMs;
+                                isActive = true;
+                                updateRemaining();
+                                saveState();
+                                syncConfig(true);
+                            }
+
+                            function increaseCaffeine(addMs) {
+                                let now = Date.now();
+                                if (!isActive || coffeeEndTime <= now) {
+                                    enableCaffeine(addMs);
+                                } else {
+                                    coffeeEndTime += addMs;
+                                    updateRemaining();
+                                    saveState();
+                                    syncConfig(true);
+                                }
+                            }
+
+                            function disableCaffeine() {
+                                isActive = false;
+                                coffeeStartTime = 0;
+                                coffeeEndTime = 0;
+                                remainingSeconds = 0;
+                                saveState();
+                                syncConfig(false);
+                            }
+
+                            function applyLoadedState(rawText) {
+                                if (!rawText || rawText.trim() === "") return;
+                                try {
+                                    let data = JSON.parse(rawText.trim());
+                                    if (data && data.enabled && data.endTime) {
+                                        let now = Date.now();
+                                        if (now < data.endTime) {
+                                            coffeeStartTime = data.startTime || now;
+                                            coffeeEndTime = data.endTime;
+                                            isActive = true;
+                                            updateRemaining();
+                                            syncConfig(true);
+                                            return;
+                                        }
+                                    }
+                                } catch (e) {}
+
+                                if (isActive) {
+                                    disableCaffeine();
+                                }
+                            }
+
                             function updateState() {
-                                let idleObj = Config.getSetting("idle", {"manualInhibit": false});
-                                isActive = Boolean(idleObj && idleObj.manualInhibit);
+                                let now = Date.now();
+                                if (typeof Config !== "undefined") {
+                                    let idleObj = Config.getSetting("idle", {"manualInhibit": false});
+                                    if (idleObj && idleObj.manualInhibit && idleObj.caffeineEndTime && idleObj.caffeineEndTime > now) {
+                                        coffeeStartTime = idleObj.caffeineStartTime || now;
+                                        coffeeEndTime = idleObj.caffeineEndTime;
+                                        isActive = true;
+                                        updateRemaining();
+                                    } else if (idleObj && !idleObj.manualInhibit) {
+                                        isActive = false;
+                                        coffeeEndTime = 0;
+                                        coffeeStartTime = 0;
+                                        remainingSeconds = 0;
+                                    }
+                                }
+                                coffeeStateReader.running = true;
+                            }
+
+                            Process {
+                                id: coffeeStateReader
+                                command: ["sh", "-c", "cat '" + coffeeBtn.stateFilePath + "' 2>/dev/null || true"]
+                                running: false
+                                stdout: StdioCollector {
+                                    onStreamFinished: {
+                                        coffeeBtn.applyLoadedState(this.text.trim());
+                                    }
+                                }
+                            }
+
+                            Timer {
+                                id: coffeeTicker
+                                interval: root.visible ? 1000 : 15000
+                                repeat: true
+                                running: coffeeBtn.isActive
+                                triggeredOnStart: true
+                                onTriggered: {
+                                    coffeeBtn.updateRemaining();
+                                }
                             }
 
                             Component.onCompleted: updateState()
 
                             Connections {
-                                target: Config
-                                enabled: root.visible
+                                target: typeof Config !== "undefined" ? Config : null
+                                enabled: true
+                                ignoreUnknownSignals: true
                                 function onSettingsLoaded() {
                                     coffeeBtn.updateState();
                                 }
@@ -848,15 +1011,16 @@ Item {
 
                             onLeftClicked: {
                                 Sounds.playSfx("system/quick_click.wav");
-                                isActive = !isActive;
-                                let idleObj = Object.assign({}, Config.getSetting("idle", {}));
-                                idleObj.manualInhibit = isActive;
-                                Config.setSetting("idle", idleObj);
+                                if (isActive) {
+                                    disableCaffeine();
+                                } else {
+                                    enableCaffeine(3600 * 1000);
+                                }
                             }
 
                             onRightClicked: {
-                                closeSequence.start();
-                                Quickshell.execDetached(["bash", Caching.serpantinumDir + "/scripts/qs_manager.sh", "toggle", "guide", "idle"]);
+                                Sounds.playSfx("system/quick_click.wav");
+                                increaseCaffeine(3600 * 1000);
                             }
                         }
 
@@ -1095,8 +1259,8 @@ Item {
 
                             Text {
                                 anchors.centerIn: parent
-                                font.family: "Iosevka Nerd Font"
-                                font.pixelSize: root.s(24)
+                                font.family: ThemeBackend.iconFont
+                                font.pixelSize: root.s(19)
                                 color: isDisabled ? ThemeBackend.surface2 : (actionMa.containsMouse ? ThemeBackend.text : ThemeBackend.subtext0)
                                 text: icon
                                 Behavior on color {
@@ -1113,8 +1277,8 @@ Item {
                                 Text {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     y: (actionCapsule.height / 2) - (height / 2) - (actionCapsule.height - parent.height)
-                                    font.family: "Iosevka Nerd Font"
-                                    font.pixelSize: root.s(24)
+                                    font.family: ThemeBackend.iconFont
+                                    font.pixelSize: root.s(19)
                                     color: ThemeBackend.crust
                                     text: icon
                                 }

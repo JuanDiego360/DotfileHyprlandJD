@@ -2,138 +2,326 @@
 
 source "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/caching.sh"
 
-RUN_DIR="${QS_RUN_FOCUSTIME:-${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/serpantinum/focustime}"
-mkdir -p "$RUN_DIR"
+RUN_DIR="${QS_RUN_FOCUSTIME:-${XDG_RUNTIME_DIR:-/run/user/${UID:-$(id -u)}}/serpantinum/focustime}"
+mkdir -p "$RUN_DIR" 2>/dev/null
 
+PID_FILE="$RUN_DIR/current_focus.pid"
 LOG_FILE="$RUN_DIR/focus_events.jsonl"
 STATE_FILE="$RUN_DIR/focus_state.json"
-touch "$LOG_FILE" "$STATE_FILE"
+: >> "$LOG_FILE"
+: >> "$STATE_FILE"
 
-for pid in $(pgrep -f "$(basename "$0")"); do
-    if [ "$pid" != "$$" ] && [ "$pid" != "$PPID" ]; then
-        kill -9 "$pid" 2>/dev/null
+# Prevent tmpfs unbounded memory growth by trimming existing log file to last 200 lines
+if [ -f "$LOG_FILE" ]; then
+    tail -n 200 "$LOG_FILE" > "$LOG_FILE.tmp" 2>/dev/null && mv "$LOG_FILE.tmp" "$LOG_FILE"
+fi
+log_append_count=0
+
+# Clean termination of old instance via PID file instead of heavy proc-scanning
+if [ -f "$PID_FILE" ]; then
+    old_pid=$(cat "$PID_FILE" 2>/dev/null)
+    if [ -n "$old_pid" ] && [ "$old_pid" != "$$" ] && kill -0 "$old_pid" 2>/dev/null; then
+        kill -TERM "$old_pid" 2>/dev/null
+        for _ in 1 2 3 4 5; do
+            kill -0 "$old_pid" 2>/dev/null || break
+            sleep 0.01 2>/dev/null || :
+        done
+        kill -9 "$old_pid" 2>/dev/null || :
     fi
-done
+fi
+echo "$$" > "$PID_FILE"
 
 cleanup() {
     trap - EXIT SIGTERM SIGINT
+    rm -f "$PID_FILE" 2>/dev/null
     pkill -P $$ 2>/dev/null
     exit 0
 }
 trap cleanup EXIT SIGTERM SIGINT
 
-detect_compositor() {
-    if [ -n "$NIRI_SOCKET" ] || pgrep -x niri >/dev/null 2>&1; then
-        echo "niri"
-    elif [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ] || pgrep -x Hyprland >/dev/null 2>&1; then
-        echo "hyprland"
-    else
-        echo "unknown"
-    fi
-}
+# Fast compositor detection: prioritize environment variables to avoid proc scans
+if [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]; then
+    COMPOSITOR="hyprland"
+elif [ -n "$NIRI_SOCKET" ]; then
+    COMPOSITOR="niri"
+elif [ -n "$SWAYSOCK" ]; then
+    COMPOSITOR="sway"
+elif command -v hyprctl >/dev/null 2>&1 && pgrep -x Hyprland >/dev/null 2>&1; then
+    COMPOSITOR="hyprland"
+elif command -v niri >/dev/null 2>&1 && pgrep -x niri >/dev/null 2>&1; then
+    COMPOSITOR="niri"
+elif command -v swaymsg >/dev/null 2>&1 && pgrep -x sway >/dev/null 2>&1; then
+    COMPOSITOR="sway"
+else
+    COMPOSITOR="unknown"
+fi
 
-COMPOSITOR=$(detect_compositor)
-
-is_locked() {
-    pgrep -x hyprlock >/dev/null 2>&1 || pgrep -x swaylock >/dev/null 2>&1 || pgrep -x gtklock >/dev/null 2>&1 || pgrep -x waylock >/dev/null 2>&1
-}
+cls=""
+title=""
+active_addr=""
+active_niri_id=""
+active_sway_id=""
 
 get_active_window_hyprland() {
-    local data cls title cls_lower title_lower
-    data=$(timeout 2 hyprctl activewindow -j 2>/dev/null)
+    local data raw cls_lower title_lower
+    data=$(timeout 0.4 hyprctl activewindow -j 2>/dev/null)
     if [ -z "$data" ] || [ "$data" = "{}" ]; then
-        echo "Desktop|Desktop"
+        active_addr=""
+        cls="Desktop"
+        title="Desktop"
         return
     fi
-    IFS='|' read -r cls title < <(echo "$data" | jq -r '(.initialClass // .class // "Unknown") as $c | "\($c)|\(.initialTitle // .title // $c)"')
+    raw=$(jq -r '(.initialClass // .class // "Unknown") as $c | "\(.address // "")|\($c)|\(.initialTitle // .title // $c)"' <<< "$data" 2>/dev/null)
+    IFS='|' read -r active_addr cls title <<< "$raw"
+    cls="${cls:-Desktop}"
+    title="${title:-Desktop}"
     cls_lower="${cls,,}"
     title_lower="${title,,}"
     if [[ "$cls_lower" == *quickshell* ]] || [[ "$title_lower" == *qs-master* ]] || [[ "$cls_lower" == *qs-master* ]]; then
-        echo "Quickshell|Quickshell"
-        return
+        cls="Quickshell"
+        title="Quickshell"
     fi
-    echo "${cls}|${title}"
 }
 
 get_active_window_niri() {
-    local data cls title cls_lower title_lower
-    data=$(timeout 2 niri msg -j focused-window 2>/dev/null)
+    local data raw cls_lower title_lower
+    data=$(timeout 0.4 niri msg -j focused-window 2>/dev/null)
     if [ -z "$data" ] || [ "$data" = "null" ] || [ "$data" = "{}" ]; then
-        echo "Desktop|Desktop"
+        active_niri_id=""
+        cls="Desktop"
+        title="Desktop"
         return
     fi
-    IFS='|' read -r cls title < <(echo "$data" | jq -r '(.app_id // "Unknown") as $c | "\($c)|\(.title // $c)"')
+    raw=$(jq -r '(.app_id // "Unknown") as $c | "\(.id // "")|\($c)|\(.title // $c)"' <<< "$data" 2>/dev/null)
+    IFS='|' read -r active_niri_id cls title <<< "$raw"
+    cls="${cls:-Desktop}"
+    title="${title:-Desktop}"
     cls_lower="${cls,,}"
     title_lower="${title,,}"
     if [[ "$cls_lower" == *quickshell* ]] || [[ "$title_lower" == *qs-master* ]] || [[ "$cls_lower" == *qs-master* ]]; then
-        echo "Quickshell|Quickshell"
+        cls="Quickshell"
+        title="Quickshell"
+    fi
+}
+
+get_active_window_sway() {
+    local data raw cls_lower title_lower
+    data=$(timeout 0.4 swaymsg -t get_tree 2>/dev/null)
+    if [ -z "$data" ]; then
+        active_sway_id=""
+        cls="Desktop"
+        title="Desktop"
         return
     fi
-    echo "${cls}|${title}"
+    raw=$(jq -r '.. | select(.focused? == true and (.type? == "con" or .type? == "floating_con")) | "\(.id // "")|\(.app_id // .window_properties?.class // "Unknown")|\(.name // "Unknown")"' <<< "$data" 2>/dev/null)
+    if [ -z "$raw" ]; then
+        active_sway_id=""
+        cls="Desktop"
+        title="Desktop"
+        return
+    fi
+    IFS='|' read -r active_sway_id cls title <<< "$raw"
+    cls="${cls:-Desktop}"
+    title="${title:-Desktop}"
+    cls_lower="${cls,,}"
+    title_lower="${title,,}"
+    if [[ "$cls_lower" == *quickshell* ]] || [[ "$title_lower" == *qs-master* ]] || [[ "$cls_lower" == *qs-master* ]]; then
+        cls="Quickshell"
+        title="Quickshell"
+    fi
 }
 
 get_active_window() {
-    if [ "$COMPOSITOR" = "niri" ]; then
-        get_active_window_niri
-    else
-        get_active_window_hyprland
-    fi
+    case "$COMPOSITOR" in
+        niri) get_active_window_niri ;;
+        sway) get_active_window_sway ;;
+        *)    get_active_window_hyprland ;;
+    esac
 }
 
 last_cls=""
 last_title=""
 
 emit_state() {
-    local cls="$1" title="$2" ts json_payload
+    local target_cls="$1" target_title="$2" ts esc_cls esc_title json_payload
 
-    if is_locked || [ "$cls" = "hyprlock" ] || [ "$cls" = "swaylock" ] || [ "$cls" = "gtklock" ] || [ "$cls" = "waylock" ]; then
-        cls="Locked"
-        title="Locked"
-    fi
-
-    if [ "$cls" = "$last_cls" ] && [ "$title" = "$last_title" ]; then
+    if [ "$target_cls" = "$last_cls" ] && [ "$target_title" = "$last_title" ]; then
         return
     fi
-    last_cls="$cls"
-    last_title="$title"
+    last_cls="$target_cls"
+    last_title="$target_title"
 
-    ts=$(date +%s)
-    json_payload=$(jq -nc --arg cls "$cls" --arg title "$title" --argjson ts "$ts" \
-        '{timestamp: $ts, app_class: $cls, app_title: $title}')
+    printf -v ts '%(%s)T' -1
 
-    echo "$json_payload" >> "$LOG_FILE"
-    echo "$json_payload" > "$STATE_FILE.tmp"
-    mv "$STATE_FILE.tmp" "$STATE_FILE"
+    esc_cls="${target_cls//\\/\\\\}"
+    esc_cls="${esc_cls//\"/\\\"}"
+    esc_cls="${esc_cls//$'\n'/\\n}"
+    esc_cls="${esc_cls//$'\r'/\\r}"
+    esc_cls="${esc_cls//$'\t'/\\t}"
+
+    esc_title="${target_title//\\/\\\\}"
+    esc_title="${esc_title//\"/\\\"}"
+    esc_title="${esc_title//$'\n'/\\n}"
+    esc_title="${esc_title//$'\r'/\\r}"
+    esc_title="${esc_title//$'\t'/\\t}"
+
+    json_payload="{\"timestamp\":$ts,\"app_class\":\"$esc_cls\",\"app_title\":\"$esc_title\"}"
+
+    # Direct stdout output for instant IPC delivery to Quickshell Process listener
+    printf '%s\n' "$json_payload"
+
+    # In-place write preserving file inode to prevent inotify watcher disconnection
+    printf '%s\n' "$json_payload" > "$STATE_FILE"
+    printf '%s\n' "$json_payload" >> "$LOG_FILE"
+
+    log_append_count=$((log_append_count + 1))
+    if [ "$log_append_count" -ge 100 ]; then
+        log_append_count=0
+        if [ -f "$LOG_FILE" ]; then
+            tail -n 200 "$LOG_FILE" > "$LOG_FILE.tmp" 2>/dev/null && mv "$LOG_FILE.tmp" "$LOG_FILE"
+        fi
+    fi
 }
 
 listen_events() {
     if [ "$COMPOSITOR" = "niri" ]; then
-        niri msg --json event-stream 2>/dev/null | grep --line-buffered -E '"(WindowFocusChanged|WindowOpenedOrChanged|WindowClosed|WorkspaceActivated)"'
+        niri msg --json event-stream 2>/dev/null
+    elif [ "$COMPOSITOR" = "sway" ]; then
+        swaymsg -t subscribe -m '["window", "workspace"]' 2>/dev/null
     else
-        socat -u UNIX-CONNECT:"$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock" - 2>/dev/null
+        local sock="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/hypr/${HYPRLAND_INSTANCE_SIGNATURE}/.socket2.sock"
+        if [ ! -S "$sock" ]; then
+            sock="/tmp/hypr/${HYPRLAND_INSTANCE_SIGNATURE}/.socket2.sock"
+        fi
+        socat -u UNIX-CONNECT:"$sock" - 2>/dev/null
     fi
 }
 
-IFS='|' read -r cur_cls cur_title < <(get_active_window)
-emit_state "$cur_cls" "$cur_title"
+get_active_window
+emit_state "$cls" "$title"
 
 while true; do
     while read -r line; do
         case "$COMPOSITOR" in
             niri)
-                while read -t 0.05 -r extra_line; do
-                    continue
-                done
-                IFS='|' read -r cls title < <(get_active_window)
-                emit_state "$cls" "$title"
+                case "$line" in
+                    *'"WindowFocusChanged"'*|*'"WindowClosed"'*|*'"WorkspaceActivated"'*|*'"WindowOpenedOrChanged"'*)
+                        target_id=""
+                        has_focus_event=false
+                        is_window_changed=false
+                        closed=false
+                        is_workspace=false
+
+                        _parse_niri_line() {
+                            local l="$1"
+                            [[ "$l" == *'"WindowClosed"'* ]] && closed=true
+                            [[ "$l" == *'"WorkspaceActivated"'* ]] && is_workspace=true
+                            if [[ "$l" =~ \"WindowFocusChanged\":\{\"id\":([0-9]+)\} ]]; then
+                                target_id="${BASH_REMATCH[1]}"
+                                has_focus_event=true
+                            elif [[ "$l" == *'"WindowFocusChanged":{"id":null}'* ]]; then
+                                target_id="null"
+                                has_focus_event=true
+                            elif [[ "$l" == *'"WindowOpenedOrChanged"'* ]]; then
+                                if [[ "$l" =~ \"is_focused\":\ *true ]]; then
+                                    if [[ "$l" =~ \"window\":\{\"id\":([0-9]+) ]] || [[ "$l" =~ \"id\":([0-9]+) ]]; then
+                                        target_id="${BASH_REMATCH[1]}"
+                                        has_focus_event=true
+                                        is_window_changed=true
+                                    fi
+                                fi
+                            fi
+                        }
+
+                        _parse_niri_line "$line"
+                        while read -t 0.02 -r extra_line; do
+                            _parse_niri_line "$extra_line"
+                        done
+
+                        # If it was an unfocused WindowOpenedOrChanged with no other relevant events, ignore
+                        if [ "$closed" = false ] && [ "$has_focus_event" = false ] && [ "$is_workspace" = false ]; then
+                            continue
+                        fi
+
+                        # If it was a pure focus event to the currently active window, skip
+                        if [ "$closed" = false ] && [ "$has_focus_event" = true ] && [ "$is_window_changed" = false ]; then
+                            if [ "$target_id" = "$active_niri_id" ] || { [ "$target_id" = "null" ] && [ -z "$active_niri_id" ]; }; then
+                                continue
+                            fi
+                        fi
+                        get_active_window
+                        emit_state "$cls" "$title"
+                        ;;
+                esac
+                ;;
+            sway)
+                case "$line" in
+                    *'"change"'*)
+                        target_id=""
+                        has_focus_event=false
+                        is_window_changed=false
+                        closed=false
+                        is_workspace=false
+
+                        _parse_sway_line() {
+                            local l="$1"
+                            if [[ "$l" =~ \"change\":\ *\"close\" ]]; then
+                                closed=true
+                            elif [[ "$l" =~ \"change\":\ *\"focus\" ]] && [[ "$l" =~ \"current\": ]]; then
+                                is_workspace=true
+                            elif [[ "$l" =~ \"change\":\ *\"focus\" ]] && [[ "$l" =~ \"container\": ]]; then
+                                if [[ "$l" =~ \"container\":\{[^{}]*\"id\":\ *([0-9]+) ]] || [[ "$l" =~ \"id\":\ *([0-9]+) ]]; then
+                                    target_id="${BASH_REMATCH[1]}"
+                                fi
+                                has_focus_event=true
+                            elif [[ "$l" =~ \"change\":\ *\"title\" ]]; then
+                                if [[ "$l" =~ \"focused\":\ *true ]]; then
+                                    if [[ "$l" =~ \"container\":\{[^{}]*\"id\":\ *([0-9]+) ]] || [[ "$l" =~ \"id\":\ *([0-9]+) ]]; then
+                                        target_id="${BASH_REMATCH[1]}"
+                                    fi
+                                    has_focus_event=true
+                                    is_window_changed=true
+                                fi
+                            fi
+                        }
+
+                        _parse_sway_line "$line"
+                        while read -t 0.02 -r extra_line; do
+                            _parse_sway_line "$extra_line"
+                        done
+
+                        # If it was an unfocused title/window event with no other relevant events, ignore
+                        if [ "$closed" = false ] && [ "$has_focus_event" = false ] && [ "$is_workspace" = false ]; then
+                            continue
+                        fi
+
+                        # If it was a pure focus event to the currently active window, skip
+                        if [ "$closed" = false ] && [ "$has_focus_event" = true ] && [ "$is_window_changed" = false ]; then
+                            if [ -n "$target_id" ] && [ "$target_id" = "$active_sway_id" ]; then
+                                continue
+                            fi
+                        fi
+                        get_active_window
+                        emit_state "$cls" "$title"
+                        ;;
+                esac
                 ;;
             *)
                 case "$line" in
-                    activewindow*|closewindow*)
-                        while read -t 0.05 -r extra_line; do
-                            continue
+                    activewindowv2*|closewindow*)
+                        target="$line"
+                        closed=false
+                        [[ "$line" == closewindow* ]] && closed=true
+                        while read -t 0.02 -r extra_line; do
+                            case "$extra_line" in
+                                activewindowv2*) target="$extra_line" ;;
+                                closewindow*) closed=true ;;
+                            esac
                         done
-                        IFS='|' read -r cls title < <(get_active_window)
+                        if [ "$closed" = false ] && [ "${target#activewindowv2>>}" = "${active_addr#0x}" ]; then
+                            continue
+                        fi
+                        get_active_window
                         emit_state "$cls" "$title"
                         ;;
                 esac

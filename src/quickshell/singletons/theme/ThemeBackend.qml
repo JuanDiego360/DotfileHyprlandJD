@@ -51,6 +51,18 @@ Item {
     property var bundledNames: []
     property string activeFontPath: ""
 
+    FontLoader {
+        id: iconFontLoader
+        source: (typeof Caching !== "undefined" && Caching.serpantinumDir && Caching.serpantinumDir !== "")
+            ? ("file://" + Caching.serpantinumDir + "/assets/fonts/SymbolsNerdFontMono-Regular.ttf")
+            : ""
+    }
+
+    readonly property string iconFont: (iconFontLoader.status === FontLoader.Ready && iconFontLoader.name !== "")
+        ? iconFontLoader.name
+        : (root.fontFamily !== "" ? root.fontFamily : "sans-serif")
+    readonly property bool iconFontReady: iconFontLoader.status === FontLoader.Ready
+
     onFontFamilyChanged: {
         root.updateActiveFontLoader();
     }
@@ -136,6 +148,8 @@ Item {
                     let idx = line.indexOf('|');
                     if (idx !== -1) {
                         let fName = line.substring(0, idx).trim();
+                        if (fName.toLowerCase().indexOf("symbols nerd font") !== -1) continue;
+
                         let fPath = line.substring(idx + 1).trim();
                         let key = fName.toLowerCase();
 

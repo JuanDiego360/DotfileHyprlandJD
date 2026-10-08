@@ -133,6 +133,7 @@ stdenv.mkDerivation (finalAttrs: {
     runHook preInstall
     mkdir -p "$out/bin" "$out/share/${finalAttrs.pname}"
     cp -r src/. "$out/share/${finalAttrs.pname}/"
+    rm -f "$out/share/${finalAttrs.pname}/version.txt"
     cp -r config "$out/share/${finalAttrs.pname}/config"
     cp version.txt "$out/share/${finalAttrs.pname}/version.txt"
     find "$out/share/${finalAttrs.pname}" -type f \( -name "*.sh" -o -name "*.py" \) -exec chmod +x {} +

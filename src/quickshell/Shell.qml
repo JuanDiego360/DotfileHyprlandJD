@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import "widgets"
 
 ShellRoot {
     readonly property bool performanceMode: !!(Config.getSetting("general", {}).performance)
@@ -16,6 +17,7 @@ ShellRoot {
     Main {}
     Bar {}
     Lock {}
+    WidgetRedactor {}
 
     Launcher {}
     Clipboard {}    
@@ -50,6 +52,10 @@ ShellRoot {
     }
 
     Component.onCompleted: {
+        Qt.application.organization = "serpantinum";
+        Qt.application.domain = "serpantinum.org";
+        Qt.application.name = "serpantinum";
         FirstLaunch.checkFirstLaunch();
+        SysNotif.checkBattery();
     }
 }

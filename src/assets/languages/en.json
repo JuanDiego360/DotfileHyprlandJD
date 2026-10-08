@@ -148,23 +148,24 @@
       },
       "dim": {
         "title": "Dim screen",
-        "desc": "Time before dimming output"
+        "desc": "Reduce screen brightness before locking"
       },
       "dpms": {
         "title": "Display off (DPMS)",
-        "desc": "Time before turning screen completely off"
+        "desc": "Turn off monitor display signal"
       },
       "lock": {
         "title": "Lock session",
-        "desc": "Time before demanding password"
+        "desc": "Lock the session after a period of inactivity"
       },
       "suspend": {
         "title": "System suspend",
-        "desc": "Time before putting machine to sleep"
+        "desc": "Suspend the system to sleep mode"
       },
       "hooks": {
         "title": "Hooks (shell commands)"
-      }
+      },
+      "custom_action_desc": "Custom timeout action and command"
     },
     "welcome": {
       "by_author": "by @{author}",
@@ -271,7 +272,8 @@
         "save_preset": {
           "title": "Save Preset"
         },
-        "preset_name_placeholder": "Enter preset name..."
+        "preset_name_placeholder": "Enter preset name...",
+        "screen_desc": "Configure and edit desktop widgets"
       }
     },
     "bar": {
@@ -325,7 +327,15 @@
       "workspaces": {
         "title": "Choose an amount of workspaces to display",
         "disc": "Note: this doesn't affect the actual amount of workspaces in the compositor",
-        "desc": "Number of workspaces to display"
+        "desc": "Number of workspaces to display",
+        "hide_empty": {
+          "title": "Hide empty workspaces",
+          "desc": "Show only occupied workspaces and the active one"
+        },
+        "style": {
+          "title": "Style",
+          "desc": "Choose the visual style for workspace indicators"
+        }
       },
       "opacity": {
         "title": "Bar opacity",
@@ -371,6 +381,75 @@
         "show_date": {
           "title": "Show Date",
           "desc": "Display the date text alongside the clock"
+        },
+        "style": {
+          "title": "Style",
+          "desc": "Choose the visual style for the clock and date display"
+        }
+      },
+      "vis": {
+        "bars": {
+          "title": "Amount of Bars",
+          "desc": "Number of frequency bars to display"
+        },
+        "alignment": {
+          "title": "Alignment",
+          "desc": "Center the visualizer or align to top or bottom"
+        },
+        "align": {
+          "center": "Center",
+          "top": "Top",
+          "bottom": "Bottom",
+          "left": "Left",
+          "right": "Right"
+        },
+        "continuous": {
+          "title": "Continuous Wave",
+          "desc": "Render a smooth fluid wave instead of discrete bars"
+        }
+      },
+      "sysmon": {
+        "style": {
+          "title": "Circle Style",
+          "desc": "Visual appearance of the progress rings",
+          "wave": "Wave",
+          "circle": "Circle"
+        },
+        "cpu": {
+          "title": "CPU Usage",
+          "desc": "Display processor utilization ring"
+        },
+        "ram": {
+          "title": "Memory Usage",
+          "desc": "Display memory (RAM) utilization ring"
+        },
+        "temp": {
+          "title": "Temperature",
+          "desc": "Display system temperature ring"
+        },
+        "disk": {
+          "title": "Disk Usage",
+          "desc": "Display storage disk utilization ring"
+        }
+      },
+      "bat": {
+        "show_percent": {
+          "title": "Show Percentage",
+          "desc": "Display the numeric battery charge percentage"
+        },
+        "show_icon": {
+          "title": "Show Icon",
+          "desc": "Display the battery icon or graphic indicator"
+        },
+        "style": {
+          "title": "Battery Style",
+          "desc": "Choose the visual appearance of the battery indicator",
+          "name": {
+            "classic": "Classic",
+            "minimal": "Minimal"
+          },
+          "classic": "Pill with gradient wave fill",
+          "minimal": "iOS/Android capsule with cap"
         }
       }
     },
@@ -395,7 +474,8 @@
         "desc": "Directory to search for wallpapers",
         "select_dir": "Select directory...",
         "select_wallpaper": "Select wallpaper",
-        "no_wallpaper_selected": "No wallpaper selected"
+        "no_wallpaper_selected": "No wallpaper selected",
+        "select": "Wallpaper"
       }
     },
     "file_picker": {
@@ -643,6 +723,12 @@
     "lyrics_picker": {
       "title": "Select lyrics file",
       "no_lyrics_selected": "No lyrics selected"
+    },
+    "settings": "Settings",
+    "search": {
+      "placeholder": "Search settings...",
+      "prompt": "Type to search settings...",
+      "no_results": "No settings found"
     }
   },
   "sysnotif": {
@@ -676,7 +762,9 @@
     "placeholder": "Start with > for a command...",
     "tab_applications": "Applications",
     "tab_files": "Files",
-    "placeholder_files": "Search files or enter path..."
+    "placeholder_files": "Search files or enter path...",
+    "tab_emojis": "Emojis",
+    "placeholder_emojis": "Search emojis by name or keyword..."
   },
   "calendar": {
     "loading": "Loading...",
@@ -748,7 +836,8 @@
     },
     "searching_lyrics": "Searching lyrics...",
     "no_lyrics": "No lyrics found",
-    "select_local_file": "Select a local file"
+    "select_local_file": "Select a local file",
+    "lyrics": "Lyrics"
   },
   "network": {
     "tabs": {
@@ -1032,7 +1121,9 @@
       "visualizer": "Visualizer",
       "user": "User",
       "usage": "Usage",
-      "battery": "Battery"
+      "battery": "Battery",
+      "github": "Github",
+      "time": "Time"
     },
     "variants": {
       "digital": "Digital",
@@ -1049,7 +1140,8 @@
       "material": "Material",
       "materialAnalog": "Material Analog",
       "lumen": "Lumen",
-      "lyrics": "Lyrics"
+      "lyrics": "Lyrics",
+      "simpleLyrics": "Simple Lyrics"
     },
     "presets": {
       "minimal": {
@@ -1061,6 +1153,26 @@
       "dashboard": {
         "name": "Dashboard"
       }
+    },
+    "github": {
+      "set_user": "Set user",
+      "error": "Error",
+      "commit": "commit",
+      "commits": "commits",
+      "no_day_selected": "No day selected",
+      "fetching": "Fetching GitHub contributions...",
+      "fetch_error": "Could not fetch user @{user}",
+      "enter_username": "Enter a GitHub username",
+      "no_contributions": "No contributions found"
+    },
+    "settings": {
+      "lyricsLines": "Lines",
+      "lyricsAlignment": "Alignment"
+    },
+    "align": {
+      "left": "Left",
+      "center": "Center",
+      "right": "Right"
     }
   },
   "cli": {

@@ -148,23 +148,24 @@
       },
       "dim": {
         "title": "Oscura schermo",
-        "desc": "Tempo prima di ridurre la luminosità dello schermo"
+        "desc": "Riduci la luminosità dello schermo prima del blocco"
       },
       "dpms": {
         "title": "Spegnimento schermo (DPMS)",
-        "desc": "Tempo prima che lo schermo si spenga completamente"
+        "desc": "Spegni il segnale dello schermo del monitor"
       },
       "lock": {
         "title": "Blocca sessione",
-        "desc": "Tempo prima di richiedere la password"
+        "desc": "Blocca la sessione dopo un periodo di inattività"
       },
       "suspend": {
         "title": "Sospensione sistema",
-        "desc": "Tempo prima di sospendere il dispositivo"
+        "desc": "Sospendi il sistema in modalità sospensione"
       },
       "hooks": {
         "title": "Azioni automatiche (comandi shell)"
-      }
+      },
+      "custom_action_desc": "Azione e comando personalizzati per timeout"
     },
     "welcome": {
       "by_author": "fatto da @{author}",
@@ -271,7 +272,8 @@
         "save_preset": {
           "title": "Salva preset"
         },
-        "preset_name_placeholder": "Inserisci il nome del preset..."
+        "preset_name_placeholder": "Inserisci il nome del preset...",
+        "screen_desc": "Configura e modifica i widget del desktop"
       }
     },
     "bar": {
@@ -324,7 +326,15 @@
       },
       "workspaces": {
         "title": "Scegli il numero di spazi di lavoro da visualizzare",
-        "desc": "Numero di spazi di lavoro da visualizzare"
+        "desc": "Numero di spazi di lavoro da visualizzare",
+        "hide_empty": {
+          "title": "Nascondi spazi di lavoro vuoti",
+          "desc": "Mostra solo gli spazi di lavoro occupati e quello attivo"
+        },
+        "style": {
+          "title": "Stile",
+          "desc": "Scegli lo stile visivo per gli indicatori degli spazi di lavoro"
+        }
       },
       "opacity": {
         "title": "Opacità barra",
@@ -370,6 +380,75 @@
         "show_date": {
           "title": "Mostra data",
           "desc": "Mostra il testo della data accanto all'orologio"
+        },
+        "style": {
+          "title": "Stile",
+          "desc": "Scegli lo stile visivo per l'orologio e la data"
+        }
+      },
+      "vis": {
+        "bars": {
+          "title": "Numero di barre",
+          "desc": "Numero di barre di frequenza da visualizzare"
+        },
+        "alignment": {
+          "title": "Allineamento",
+          "desc": "Centra il visualizzatore o allinealo in alto o in basso"
+        },
+        "align": {
+          "center": "Al centro",
+          "top": "In alto",
+          "bottom": "In basso",
+          "left": "A sinistra",
+          "right": "A destra"
+        },
+        "continuous": {
+          "title": "Onda continua",
+          "desc": "Mostra un onda fluida invece di barre discrete"
+        }
+      },
+      "sysmon": {
+        "style": {
+          "title": "Stile del cerchio",
+          "desc": "Aspetto visivo degli anelli di avanzamento",
+          "wave": "Onda",
+          "circle": "Cerchio"
+        },
+        "cpu": {
+          "title": "Uso CPU",
+          "desc": "Mostra l'anello di utilizzo del processore"
+        },
+        "ram": {
+          "title": "Uso memoria",
+          "desc": "Mostra l'anello di utilizzo della RAM"
+        },
+        "temp": {
+          "title": "Temperatura",
+          "desc": "Mostra l'anello della temperatura di sistema"
+        },
+        "disk": {
+          "title": "Uso disco",
+          "desc": "Mostra l'anello di utilizzo dello spazio disco"
+        }
+      },
+      "bat": {
+        "show_percent": {
+          "title": "Mostra percentuale",
+          "desc": "Mostra la percentuale numerica di carica della batteria"
+        },
+        "show_icon": {
+          "title": "Mostra icona",
+          "desc": "Mostra l'icona della batteria o l'indicatore grafico"
+        },
+        "style": {
+          "title": "Stile batteria",
+          "desc": "Scegli l'aspetto visivo dell'indicatore della batteria",
+          "name": {
+            "classic": "Classico",
+            "minimal": "Minimale"
+          },
+          "classic": "Pillola con onda a gradiente",
+          "minimal": "Capsula in stile iOS/Android con cappuccio"
         }
       }
     },
@@ -394,7 +473,8 @@
         "desc": "Cartella in cui cercare gli sfondi",
         "select_dir": "Seleziona cartella...",
         "select_wallpaper": "Seleziona sfondo",
-        "no_wallpaper_selected": "Nessuno sfondo selezionato"
+        "no_wallpaper_selected": "Nessuno sfondo selezionato",
+        "select": "Sfondo"
       }
     },
     "file_picker": {
@@ -642,6 +722,12 @@
     "lyrics_picker": {
       "title": "Seleziona file dei testi",
       "no_lyrics_selected": "Nessun file di testo selezionato"
+    },
+    "settings": "Impostazioni",
+    "search": {
+      "placeholder": "Cerca impostazioni...",
+      "prompt": "Digita per cercare impostazioni...",
+      "no_results": "Nessuna impostazione trovata"
     }
   },
   "sysnotif": {
@@ -675,7 +761,9 @@
     "placeholder": "Inizia con > per un comando...",
     "tab_applications": "Applicazioni",
     "tab_files": "File",
-    "placeholder_files": "Cerca file o inserisci percorso..."
+    "placeholder_files": "Cerca file o inserisci percorso...",
+    "tab_emojis": "Emoji",
+    "placeholder_emojis": "Cerca emoji o inserisci parola chiave..."
   },
   "calendar": {
     "loading": "Caricamento...",
@@ -747,7 +835,8 @@
     },
     "searching_lyrics": "Ricerca testo...",
     "no_lyrics": "Nessun testo trovato",
-    "select_local_file": "Seleziona un file locale"
+    "select_local_file": "Seleziona un file locale",
+    "lyrics": "Testo"
   },
   "network": {
     "tabs": {
@@ -1031,7 +1120,9 @@
       "visualizer": "Visualizzatore",
       "user": "Utente",
       "usage": "Utilizzo",
-      "battery": "Batteria"
+      "battery": "Batteria",
+      "github": "Github",
+      "time": "Ora"
     },
     "variants": {
       "digital": "Digitale",
@@ -1048,7 +1139,8 @@
       "material": "Material",
       "materialAnalog": "Material analogico",
       "lumen": "Lumen",
-      "lyrics": "Testo"
+      "lyrics": "Testo",
+      "simpleLyrics": "Testo semplice"
     },
     "presets": {
       "minimal": {
@@ -1063,6 +1155,26 @@
         "name": "Cruscotto",
         "desc": "Monitor di sistema completo con orologio digitale, utilizzo hardware e stato della batteria."
       }
+    },
+    "github": {
+      "set_user": "Imposta utente",
+      "error": "Errore",
+      "commit": "commit",
+      "commits": "commit",
+      "no_day_selected": "Nessun giorno selezionato",
+      "fetching": "Recupero dei contributi GitHub...",
+      "fetch_error": "Impossibile recuperare l'utente @{user}",
+      "enter_username": "Inserisci un nome utente GitHub",
+      "no_contributions": "Nessun contributo trovato"
+    },
+    "settings": {
+      "lyricsLines": "Righe",
+      "lyricsAlignment": "Allineamento"
+    },
+    "align": {
+      "left": "Sinistra",
+      "center": "Centro",
+      "right": "Destra"
     }
   },
   "cli": {

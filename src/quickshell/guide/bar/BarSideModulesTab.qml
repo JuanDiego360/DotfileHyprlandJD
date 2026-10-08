@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import Quickshell
 import "../../"
+import "../../bar"
 import "../../reusables"
 
 Item {
@@ -40,6 +41,15 @@ Item {
         return 8;
     }
 
+    property bool hideEmptyWorkspaces: {
+        let ss = Config.getSetting("sideBar", {});
+        if (ss && ss.hideEmptyWorkspaces !== undefined) return Boolean(ss.hideEmptyWorkspaces);
+        let bs = Config.getSetting("bar", {});
+        if (bs && bs.sideHideEmptyWorkspaces !== undefined) return Boolean(bs.sideHideEmptyWorkspaces);
+        if (bs && bs.hideEmptyWorkspaces !== undefined) return Boolean(bs.hideEmptyWorkspaces);
+        return false;
+    }
+
     property string timeStyle: {
         let ss = Config.getSetting("sideBar", {});
         if (ss && ss.timeStyle) return ss.timeStyle;
@@ -69,53 +79,8 @@ Item {
         return "HH:mm:ss";
     }
 
-    readonly property var workspaceStyles: [
-        {
-            "id": "pills",
-            "name": I18n.t("guide.bar.modules.workspaces.style.name.pills", "Pills"),
-            "desc": I18n.t("guide.bar.modules.workspaces.style.pills", "Minimal pill indicators"),
-            "icon": "󰮯",
-            "faceFile": "workspaces/faces/SidePillsFace.qml"
-        },
-        {
-            "id": "numbers",
-            "name": I18n.t("guide.bar.modules.workspaces.style.name.numbers", "Numbers"),
-            "desc": I18n.t("guide.bar.modules.workspaces.style.numbers", "Numbered indices"),
-            "icon": "󰎦",
-            "faceFile": "workspaces/faces/SideNumbersFace.qml"
-        },
-        {
-            "id": "pacman",
-            "name": I18n.t("guide.bar.modules.workspaces.style.name.pacman", "Pacman"),
-            "desc": I18n.t("guide.bar.modules.workspaces.style.pacman", "Animated arcade dots"),
-            "icon": "󰮯",
-            "faceFile": "workspaces/faces/SidePacmanFace.qml"
-        }
-    ]
-
-    readonly property var timeStyles: [
-        {
-            "id": "classic",
-            "name": I18n.t("guide.bar.modules.timedate.style.name.classic", "Classic"),
-            "desc": I18n.t("guide.bar.modules.timedate.style.classic", "Clean stacked time and date"),
-            "icon": "󰥔",
-            "faceFile": "timedate/faces/SideClassicFace.qml"
-        },
-        {
-            "id": "material",
-            "name": I18n.t("guide.bar.modules.timedate.style.name.material", "Material"),
-            "desc": I18n.t("guide.bar.modules.timedate.style.material", "Diagonal bold accent numbers"),
-            "icon": "󰸗",
-            "faceFile": "timedate/faces/SideMaterialFace.qml"
-        },
-        {
-            "id": "badge",
-            "name": I18n.t("guide.bar.modules.timedate.style.name.badge", "Badge"),
-            "desc": I18n.t("guide.bar.modules.timedate.style.badge", "Pill-capsule segmented cards"),
-            "icon": "󰃰",
-            "faceFile": "timedate/faces/SideBadgeFace.qml"
-        }
-    ]
+    readonly property var workspaceStyles: BarModuleRegistry.variantList("workspaces")
+    readonly property var timeStyles: BarModuleRegistry.variantList("timedate")
 
     readonly property var previewWidget: ({
         "s": function(v) { return rootObj ? rootObj.s(v) : v; },
@@ -145,10 +110,11 @@ Item {
         property bool moduleActive: true
     }
 
-    function getFaceUrl(file) {
-        if (!file) return "";
-        let path = file.indexOf("/") !== -1 ? file : ("workspaces/faces/" + file);
-        return Qt.resolvedUrl("../../bar/sidemodules/" + path);
+    function getFaceUrl(moduleId, variantId) {
+        if (!moduleId) return "";
+        let modId = (variantId !== undefined) ? moduleId : "workspaces";
+        let vId = (variantId !== undefined) ? variantId : moduleId;
+        return BarModuleRegistry.variantFaceFile(modId, vId, true);
     }
 
     function syncSettings() {
@@ -172,6 +138,16 @@ Item {
             barSideModulesRoot.workspaceCount = bs.workspaceCount;
         } else {
             barSideModulesRoot.workspaceCount = 8;
+        }
+
+        if (ss && ss.hideEmptyWorkspaces !== undefined) {
+            barSideModulesRoot.hideEmptyWorkspaces = Boolean(ss.hideEmptyWorkspaces);
+        } else if (bs && bs.sideHideEmptyWorkspaces !== undefined) {
+            barSideModulesRoot.hideEmptyWorkspaces = Boolean(bs.sideHideEmptyWorkspaces);
+        } else if (bs && bs.hideEmptyWorkspaces !== undefined) {
+            barSideModulesRoot.hideEmptyWorkspaces = Boolean(bs.hideEmptyWorkspaces);
+        } else {
+            barSideModulesRoot.hideEmptyWorkspaces = false;
         }
 
         if (ss && ss.timeStyle) {
@@ -226,6 +202,16 @@ Item {
         Config.setSetting("sideBar", currentSide);
         let currentBar = Config.getSetting("bar", {});
         currentBar.sideWorkspaceCount = count;
+        Config.setSetting("bar", currentBar);
+    }
+
+    function setHideEmptyWorkspaces(val) {
+        barSideModulesRoot.hideEmptyWorkspaces = val;
+        let currentSide = Config.getSetting("sideBar", {});
+        currentSide.hideEmptyWorkspaces = val;
+        Config.setSetting("sideBar", currentSide);
+        let currentBar = Config.getSetting("bar", {});
+        currentBar.sideHideEmptyWorkspaces = val;
         Config.setSetting("bar", currentBar);
     }
 
@@ -411,7 +397,57 @@ Item {
                         }
                     }
 
-                    GridLayout {
+                                        RowLayout {
+                        Layout.fillWidth: true
+                        spacing: rootObj.s(12)
+
+                        IconButton {
+                            enabled: false
+                            size: rootObj.s(32)
+                            Layout.preferredWidth: rootObj.s(32)
+                            Layout.preferredHeight: rootObj.s(32)
+                            Layout.alignment: Qt.AlignVCenter
+                            cornerRadius: ThemeBackend.borderRadius
+                            buttonIcon: "󰈈"
+                            iconFontSize: rootObj.s(16)
+                            accentColor: ThemeBackend.surface0
+                            textColor: "#ffffff"
+                        }
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            Layout.alignment: Qt.AlignVCenter
+                            spacing: rootObj.s(2)
+                            Text {
+                                Layout.fillWidth: true
+                                text: I18n.t("guide.bar.workspaces.hide_empty.title", "Hide empty workspaces")
+                                font.family: ThemeBackend.fontFamily
+                                font.pixelSize: rootObj.s(13)
+                                color: ThemeBackend.text
+                            }
+                            Text {
+                                Layout.fillWidth: true
+                                text: I18n.t("guide.bar.workspaces.hide_empty.desc", "Show only occupied workspaces and the active one")
+                                font.family: ThemeBackend.fontFamily
+                                font.pixelSize: rootObj.s(11)
+                                color: ThemeBackend.subtext0
+                            }
+                        }
+
+                        Toggle {
+                            Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                            checked: barSideModulesRoot.hideEmptyWorkspaces
+                            accentColor: ThemeBackend.mauve
+                            baseColor: ThemeBackend.surface1
+                            handleColor: ThemeBackend.crust
+                            handleOffColor: ThemeBackend.text
+                            onToggled: function(c) {
+                                barSideModulesRoot.setHideEmptyWorkspaces(c);
+                            }
+                        }
+                    }
+
+GridLayout {
                         id: stylesGrid
                         Layout.fillWidth: true
                         columns: Math.max(1, Math.min(3, Math.floor(workspacesCardLayout.width / rootObj.s(160))))
@@ -513,7 +549,7 @@ Item {
                                                 height: item ? item.implicitHeight : 0
                                                 scale: Math.min(1.0, Math.min((previewBox.width - rootObj.s(16)) / Math.max(1, width), (previewBox.height - rootObj.s(16)) / Math.max(1, height)))
                                                 asynchronous: false
-                                                source: barSideModulesRoot.getFaceUrl(modelData.faceFile)
+                                                source: barSideModulesRoot.getFaceUrl("workspaces", modelData.id)
 
                                                 onLoaded: {
                                                     if (item) {
@@ -864,7 +900,7 @@ Item {
                                                 height: item ? item.implicitHeight : 0
                                                 scale: Math.min(1.0, Math.min((timePreviewBox.width - rootObj.s(16)) / Math.max(1, width), (timePreviewBox.height - rootObj.s(16)) / Math.max(1, height)))
                                                 asynchronous: false
-                                                source: barSideModulesRoot.getFaceUrl(modelData.faceFile)
+                                                source: barSideModulesRoot.getFaceUrl("timedate", modelData.id)
 
                                                 onLoaded: {
                                                     if (item) {

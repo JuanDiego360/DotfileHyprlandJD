@@ -72,23 +72,40 @@ def find_kbd_devices():
         devs = glob.glob("/dev/input/event*")
     return devs
 
-fds = {}
-for path in find_kbd_devices():
+def scan_devices():
+    res = {}
+    for path in find_kbd_devices():
+        try:
+            fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK)
+            res[fd] = path
+        except Exception:
+            pass
+    return res
+
+def remove_fd(fd):
+    fds.pop(fd, None)
     try:
-        fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK)
-        fds[fd] = path
+        os.close(fd)
     except Exception:
         pass
+
+fds = scan_devices()
 
 if fds:
     while True:
         try:
+            if not fds:
+                time.sleep(1)
+                fds = scan_devices()
+                if not fds:
+                    continue
             rlist, _, _ = select.select(list(fds.keys()), [], [])
             for fd in rlist:
                 while True:
                     try:
                         buf = os.read(fd, event_size)
                         if not buf or len(buf) < event_size:
+                            remove_fd(fd)
                             break
                         _, _, ev_type, ev_code, ev_val = struct.unpack(event_fmt, buf)
                         if ev_type == 17:
@@ -107,42 +124,60 @@ if fds:
                     except (BlockingIOError, InterruptedError):
                         break
                     except Exception:
+                        remove_fd(fd)
                         break
         except Exception:
+            dead = []
+            for fd in list(fds.keys()):
+                try:
+                    select.select([fd], [], [], 0)
+                except Exception:
+                    dead.append(fd)
+            for fd in dead:
+                remove_fd(fd)
             time.sleep(1)
 else:
-    caps_paths = glob.glob("/sys/class/leds/*capslock*/brightness")
-    num_paths = glob.glob("/sys/class/leds/*numlock*/brightness")
+    def open_leds(pattern, old):
+        for fd in old:
+            try:
+                os.close(fd)
+            except Exception:
+                pass
+        res = []
+        for path in glob.glob(pattern):
+            try:
+                res.append(os.open(path, os.O_RDONLY))
+            except Exception:
+                pass
+        return res
+
+    def any_on(fds):
+        for fd in fds:
+            try:
+                if int(os.pread(fd, 16, 0).strip() or 0) > 0:
+                    return 1
+            except Exception:
+                pass
+        return 0
+
+    caps_glob = "/sys/class/leds/*capslock*/brightness"
+    num_glob = "/sys/class/leds/*numlock*/brightness"
+    caps_fds = open_leds(caps_glob, [])
+    num_fds = open_leds(num_glob, [])
     count = 0
     while True:
         time.sleep(0.08)
         count += 1
         if count >= 60:
             count = 0
-            caps_paths = glob.glob("/sys/class/leds/*capslock*/brightness")
-            num_paths = glob.glob("/sys/class/leds/*numlock*/brightness")
-        c = 0
-        for p in caps_paths:
-            try:
-                with open(p, "r") as f:
-                    if int(f.read().strip() or 0) > 0:
-                        c = 1
-                        break
-            except Exception:
-                pass
+            caps_fds = open_leds(caps_glob, caps_fds)
+            num_fds = open_leds(num_glob, num_fds)
+        c = any_on(caps_fds)
         if c != last_caps:
             last_caps = c
             sys.stdout.write(f"capslock {c}\n")
             sys.stdout.flush()
-        n = 0
-        for p in num_paths:
-            try:
-                with open(p, "r") as f:
-                    if int(f.read().strip() or 0) > 0:
-                        n = 1
-                        break
-            except Exception:
-                pass
+        n = any_on(num_fds)
         if n != last_num:
             last_num = n
             sys.stdout.write(f"numlock {n}\n")
