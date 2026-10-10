@@ -1,0 +1,44 @@
+-- config/settings.lua — generado
+hl.config({
+  general = {
+    border_size          = {{BORDER_SIZE}},
+    gaps_in              = {{GAPS_IN}},
+    gaps_out             = {{GAPS_OUT}},
+    float_gaps           = {{FLOAT_GAPS}},
+    resize_on_border     = {{RESIZE_ON_BORDER}},
+    extend_border_grab_area = {{EXTEND_BORDER_GRAB_AREA}},
+  },
+  decoration = {
+    rounding        = {{ROUNDING}},
+    active_opacity  = {{ACTIVE_OPACITY}},
+    inactive_opacity= {{INACTIVE_OPACITY}},
+    blur = {
+      enabled        = {{BLUR_ENABLED}},
+      size           = {{BLUR_SIZE}},
+      passes         = {{BLUR_PASSES}},
+      new_optimizations = {{BLUR_NEW_OPT}},
+    },
+    shadow = { enabled = {{SHADOW_ENABLED}} },
+  },
+  input = {
+    kb_layout  = "{{KB_LAYOUT}}",
+    kb_options = "{{KB_OPTIONS}}",
+    accel_profile = "{{ACCEL_PROFILE}}",
+    touchpad = {
+      natural_scroll       = {{TOUCHPAD_NATURAL}},
+      disable_while_typing = {{TOUCHPAD_DWT}},
+    },
+  },
+  misc = {
+    focus_on_activate        = {{FOCUS_ON_ACTIVATE}},
+    font_family              = "{{FONT_FAMILY}}",
+    disable_hyprland_logo    = {{DISABLE_HL_LOGO}},
+    disable_splash_rendering = {{DISABLE_SPLASH}},
+  },
+})
+
+-- Animations (estilo End-4 / ilyamiro)
+{{ANIMATIONS}}
+
+-- Device rules (tablet, etc.)
+{{DEVICES}}

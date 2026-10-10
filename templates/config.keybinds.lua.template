@@ -1,0 +1,5 @@
+-- config/keybinds.lua — generado
+local mainMod  = _G.mainMod  or "SUPER"
+local terminal = _G.terminal or "kitty"
+
+{{KEYBINDS}}

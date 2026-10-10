@@ -1,0 +1,4 @@
+-- config/autostart.lua — generado
+hl.on("hyprland.start", function()
+{{AUTOSTART_LINES}}
+end)

@@ -1,0 +1,12 @@
+-- hyprland.lua — Entry point generado por settings_watcher_dual.sh
+-- NO EDITAR A MANO: regenerado desde settings.json + default_settings.json
+--
+-- {{GENERATED_AT}} · Hyprland {{HL_VERSION}} · target={{TARGET}}
+
+require("config.variables")
+require("config.env")
+require("config.autostart")
+require("config.monitors")
+require("config.settings")
+require("config.keybinds")
+require("config.rules")

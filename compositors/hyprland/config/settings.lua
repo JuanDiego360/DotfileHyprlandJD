@@ -1,15 +1,17 @@
 hl.config({
   general = {
-    border_size = 0,
+    border_size = 2,
     gaps_in = 4,
-    gaps_out = 6,
+    gaps_out = 4,
     float_gaps = 6,
     resize_on_border = true,
     extend_border_grab_area = 30,
+    col_active_border = "rgba(88d6bbee)",
+    col_inactive_border = "rgba(00513faa)",
   },
 
   decoration = {
-    rounding = 12,
+    rounding = 4,
     active_opacity = 1.0,
     inactive_opacity = 1.0,
     blur = {
@@ -24,24 +26,36 @@ hl.config({
   },
 
   input = {
-    kb_layout = "us",
+    kb_layout = "latam,us",
     kb_options = "grp:alt_shift_toggle",
-    accel_profile = "flat",
+    numlock_by_default = true,
     touchpad = {
       natural_scroll = true,
-      disable_while_typing = false,
     },
   },
 
+  cursor = {
+    no_warps = true,
+  },
+
   misc = {
-    focus_on_activate = false,
     font_family = "JetBrains Mono",
     disable_hyprland_logo = true,
     disable_splash_rendering = true,
+    force_default_wallpaper = 0,
+  },
+
+  ecosystem = {
+    no_update_news = true,
+    no_donation_nag = true,
+  },
+
+  dwindle = {
+    preserve_split = true,
   },
 })
 
-hl.curve("myBezier", { type = "bezier", points = { {0.05, 0.9}, {0.1, 1.05} } })
+hl.curve("myBezier", { type = "bezier", points = { { 0.05, 0.9 }, { 0.1, 1.05 } } })
 
 hl.animation({ leaf = "windows", enabled = true, speed = 5, bezier = "myBezier", style = "popin 80%" })
 hl.animation({ leaf = "windowsOut", enabled = true, speed = 5, bezier = "myBezier", style = "popin 80%" })
