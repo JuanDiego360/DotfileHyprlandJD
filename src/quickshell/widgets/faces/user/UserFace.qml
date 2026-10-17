@@ -19,9 +19,15 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: ThemeBackend.surface0
+        color: Qt.alpha(ThemeBackend.surface0, ThemeBackend.elementOpacity)
         radius: ThemeBackend.clampedBorderRadius
         clip: true
+
+        WallpaperBlur {
+            z: -1
+            anchors.fill: parent
+            radius: parent.radius
+        }
 
         ColumnLayout {
             anchors.fill: parent
@@ -69,6 +75,7 @@ Item {
                         buttonText: SystemInfo.username !== "" ? SystemInfo.username : "User"
                         textFontSize: Scaler.s(12)
                         accentColor: ThemeBackend.surface1
+                        bgOpacity: ThemeBackend.elementOpacity
                         textColor: ThemeBackend.text
                         onClicked: Quickshell.execDetached(["bash", "-c", Caching.serpantinumDir + "/scripts/qs_manager.sh toggle guide"])
                     }
@@ -84,6 +91,7 @@ Item {
                         buttonText: "Lock"
                         textFontSize: Scaler.s(12)
                         accentColor: ThemeBackend.surface1
+                        bgOpacity: ThemeBackend.elementOpacity
                         textColor: ThemeBackend.mauve
 
                         onClicked: {
@@ -121,7 +129,7 @@ Item {
                         property string cmd: modelData.cmd
                         property string icon: modelData.icon
 
-                        color: actionMa.containsMouse ? (ThemeBackend.surface2 !== undefined ? ThemeBackend.surface2 : Qt.lighter(ThemeBackend.surface1, 1.12)) : ThemeBackend.surface1
+                        color: Qt.alpha(actionMa.containsMouse ? (ThemeBackend.surface2 !== undefined ? ThemeBackend.surface2 : Qt.lighter(ThemeBackend.surface1, 1.12)) : ThemeBackend.surface1, ThemeBackend.elementOpacity)
                         Behavior on color {
                             ColorAnimation { duration: 200 }
                         }
@@ -131,12 +139,10 @@ Item {
                             NumberAnimation { duration: 400; easing.type: Easing.OutQuart }
                         }
 
-                        Canvas {
+                        FluidWave {
                             id: actionWaveCanvas
                             anchors.fill: parent
                             visible: actionCapsule.fillLevel > 0.001
-                            renderTarget: Canvas.Image
-                            renderStrategy: Canvas.Immediate
 
                             property real wavePhase: 0.0
                             NumberAnimation on wavePhase {
@@ -147,56 +153,13 @@ Item {
                                 duration: 800
                             }
 
-                            onWavePhaseChanged: requestPaint()
-
-                            Connections {
-                                target: actionCapsule
-                                function onFillLevelChanged() { actionWaveCanvas.requestPaint() }
-                                function onRadiusChanged() { actionWaveCanvas.requestPaint() }
-                            }
-
-                            onPaint: {
-                                var ctx = getContext("2d");
-                                ctx.clearRect(0, 0, width, height);
-                                if (actionCapsule.fillLevel <= 0.001) return;
-
-                                var r = Math.min(actionCapsule.radius, Math.min(width, height) / 2);
-                                var fillY = height * (1.0 - actionCapsule.fillLevel);
-
-                                ctx.save();
-                                ctx.beginPath();
-                                ctx.moveTo(r, 0);
-                                ctx.lineTo(width - r, 0);
-                                ctx.arcTo(width, 0, width, r, r);
-                                ctx.lineTo(width, height - r);
-                                ctx.arcTo(width, height, width - r, height, r);
-                                ctx.lineTo(r, height);
-                                ctx.arcTo(0, height, 0, height - r, r);
-                                ctx.lineTo(0, r);
-                                ctx.arcTo(0, 0, r, 0, r);
-                                ctx.closePath();
-                                ctx.clip();
-
-                                ctx.beginPath();
-                                ctx.moveTo(0, fillY);
-                                if (actionCapsule.fillLevel < 0.99) {
-                                    var waveAmp = Scaler.s(8) * Math.sin(actionCapsule.fillLevel * Math.PI);
-                                    var cp1y = fillY + Math.sin(wavePhase) * waveAmp;
-                                    var cp2y = fillY + Math.cos(wavePhase + Math.PI) * waveAmp;
-                                    ctx.bezierCurveTo(width * 0.33, cp2y, width * 0.66, cp1y, width, fillY);
-                                    ctx.lineTo(width, height);
-                                    ctx.lineTo(0, height);
-                                } else {
-                                    ctx.lineTo(width, 0);
-                                    ctx.lineTo(width, height);
-                                    ctx.lineTo(0, height);
-                                }
-                                ctx.closePath();
-
-                                ctx.fillStyle = actionCapsule.fillColor.toString();
-                                ctx.fill();
-                                ctx.restore();
-                            }
+                            radius: actionCapsule.radius
+                            fillLevel: actionCapsule.fillLevel
+                            waveAmp: actionCapsule.fillLevel < 0.99 ? (Scaler.s(8) * Math.sin(actionCapsule.fillLevel * Math.PI)) : 0
+                            phase: wavePhase
+                            vertical: 1.0
+                            color1: actionCapsule.fillColor
+                            color2: actionCapsule.fillColor
                         }
 
                         Rectangle {

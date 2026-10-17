@@ -427,7 +427,7 @@ Item {
     Process {
         id: screenDetector
         running: false
-        command: ["bash", "-c", "hyprctl monitors all -j 2>/dev/null || hyprctl monitors -j 2>/dev/null || niri msg -j outputs 2>/dev/null || swaymsg -t get_outputs -r 2>/dev/null || echo '[]'"]
+        command: ["bash", "-c", "{ [ -n \"$MANGO_INSTANCE_SIGNATURE\" ] && mmsg get all-monitors 2>/dev/null | jq -c '.monitors' 2>/dev/null; } || hyprctl monitors all -j 2>/dev/null || hyprctl monitors -j 2>/dev/null || niri msg -j outputs 2>/dev/null || swaymsg -t get_outputs -r 2>/dev/null || echo '[]'"]
         stdout: StdioCollector {
             onStreamFinished: {
                 let out = this.text;
@@ -523,18 +523,28 @@ Item {
         }
     }
 
+    Timer {
+        id: screenDetectorDebounceTimer
+        interval: 220
+        repeat: false
+        onTriggered: screenDetector.running = true
+    }
+
     Component.onCompleted: {
         syncSettings();
         reloadPresets();
-        screenDetector.running = true;
+        if (visible) {
+            screenDetectorDebounceTimer.restart();
+        }
     }
 
     onVisibleChanged: {
         if (visible) {
             syncSettings();
             reloadPresets();
-            screenDetector.running = true;
+            screenDetectorDebounceTimer.restart();
         } else {
+            screenDetectorDebounceTimer.stop();
             savePresetPopup.close();
         }
     }
@@ -715,9 +725,17 @@ Item {
                     Layout.fillWidth: true
                     clip: true
                     radius: ThemeBackend.borderRadius
-                    color: Qt.alpha(ThemeBackend.surface0, 0.4)
+                    color: widgetCardGlass1.active ? "transparent" : Qt.alpha(ThemeBackend.surface0, 0.4)
+
+                    GlassFill {
+                        id: widgetCardGlass1
+                        anchors.fill: parent
+                        radius: parent.radius
+                        tintColor: Qt.alpha(ThemeBackend.surface0, 0.4)
+                        tintAmount: 0.25
+                    }
                     border.color: Qt.alpha(ThemeBackend.surface1, 0.4)
-                    border.width: 1
+                    border.width: ThemeBackend.liquidGlass ? 0 : 1
 
                     property string monName: modelData.name
                     property var widgetsList: (displayWidgetsRoot.monitorWidgetsMap && displayWidgetsRoot.monitorWidgetsMap[monName]) ? displayWidgetsRoot.monitorWidgetsMap[monName] : []
@@ -850,8 +868,20 @@ Item {
                                             radius: ThemeBackend.borderRadius
                                             clip: true
 
-                                            color: presetMouse.pressed ? Qt.darker(presetCard.accentColor, 1.28) : (presetHover.hovered ? Qt.darker(presetCard.accentColor, 1.14) : presetCard.accentColor)
+                                            color: presetGlass.active ? "transparent" : (presetMouse.pressed ? Qt.darker(presetCard.accentColor, 1.28) : (presetHover.hovered ? Qt.darker(presetCard.accentColor, 1.14) : presetCard.accentColor))
                                             Behavior on color { ColorAnimation { duration: 180 } }
+
+                                            GlassFill {
+                                                id: presetGlass
+                                                anchors.fill: parent
+                                                radius: parent.radius
+                                                tintColor: presetCard.accentColor
+                                                tintAmount: presetMouse.pressed ? 0.55 : (presetHover.hovered ? 0.42 : 0.3)
+                                                press: presetMouse.pressed ? 1 : (presetHover.hovered ? 0.25 : 0)
+                                                pulse: Math.min(1, presetCard.flashOpacity * 2.5)
+                                                Behavior on press { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
+                                                Behavior on tintAmount { NumberAnimation { duration: 180 } }
+                                            }
                                             Behavior on opacity { NumberAnimation { duration: 180 } }
 
                                             scale: (presetMouse.pressed ? 0.985 : (presetHover.hovered ? 1.015 : 1.0)) * presetCard.popScale
@@ -866,6 +896,7 @@ Item {
                                                 radius: ThemeBackend.borderRadius
                                                 color: "#ffffff"
                                                 opacity: presetCard.flashOpacity
+                                                visible: !presetGlass.active
                                                 PropertyAnimation on opacity { id: flashAnim; to: 0; duration: 350; easing.type: Easing.OutExpo }
                                             }
 
@@ -1021,7 +1052,15 @@ Item {
                                                                         anchors.fill: parent
                                                                         visible: widgetFaceLoader.status === Loader.Error
                                                                         radius: ThemeBackend.borderRadius
-                                                                        color: Qt.alpha(ThemeBackend.surface0, 0.72)
+                                                                        color: gf1.active ? "transparent" : Qt.alpha(ThemeBackend.surface0, 0.72)
+
+                                                                        GlassFill {
+                                                                            id: gf1
+                                                                            anchors.fill: parent
+                                                                            radius: parent.radius
+                                                                            tintColor: Qt.alpha(ThemeBackend.surface0, 0.72)
+                                                                            tintAmount: 0.25
+                                                                        }
                                                                         border.width: 1
                                                                         border.color: Qt.alpha(ThemeBackend.mauve, 0.65)
 
@@ -1157,9 +1196,17 @@ Item {
                                     width: widgetsGrid.colWidth
                                     height: rootObj.s(48)
                                     radius: ThemeBackend.borderRadius
-                                    color: Qt.alpha(ThemeBackend.surface1, 0.3)
+                                    color: widgetCardGlass2.active ? "transparent" : Qt.alpha(ThemeBackend.surface1, 0.3)
+
+                                    GlassFill {
+                                        id: widgetCardGlass2
+                                        anchors.fill: parent
+                                        radius: parent.radius
+                                        tintColor: Qt.alpha(ThemeBackend.surface1, 0.3)
+                                        tintAmount: 0.25
+                                    }
                                     border.color: Qt.alpha(ThemeBackend.surface2, 0.35)
-                                    border.width: 1
+                                    border.width: ThemeBackend.liquidGlass ? 0 : 1
 
                                     property string wType: modelData.wType || modelData.type || "time"
                                     property var typeInfo: (typeof WidgetRegistry !== "undefined" && WidgetRegistry.types && WidgetRegistry.types[wType]) ? WidgetRegistry.types[wType] : null
@@ -1172,7 +1219,6 @@ Item {
 
                                         IconButton {
                                             size: rootObj.s(32)
-                                            iconOffsetX: (widgetItemCard.typeInfo && widgetItemCard.typeInfo.iconOffsetX !== undefined) ? rootObj.s(widgetItemCard.typeInfo.iconOffsetX) : 0
                                             cornerRadius: ThemeBackend.borderRadius
                                             buttonIcon: (widgetItemCard.typeInfo && widgetItemCard.typeInfo.icon) ? widgetItemCard.typeInfo.icon : "󰕰"
                                             iconFontSize: rootObj.s(16)

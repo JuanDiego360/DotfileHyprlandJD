@@ -148,7 +148,7 @@ Item {
     Process {
         id: kbFetcher
         running: true
-        command: ["bash", Caching.qsDir + "/../scripts/kb_locks.sh", "get"]
+        command: ["bash", Caching.qsDir + "/watchers/kb_locks.sh", "get"]
         stdout: StdioCollector {
             onStreamFinished: {
                 let out = this.text.trim().split(/\s+/);

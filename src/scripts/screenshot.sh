@@ -5,6 +5,9 @@ FULL_MODE=false
 RECORD_MODE=false
 SCAN_QR_MODE=false
 GEOMETRY=""
+SOURCE_IMG=""
+CROP_RECT=""
+LOGICAL_SIZE=""
 DESK_VOL="1.0"
 DESK_MUTE="false"
 MIC_VOL="1.0"
@@ -20,6 +23,9 @@ while [[ "$#" -gt 0 ]]; do
         --record) RECORD_MODE=true; shift ;;
         --scan-qr) SCAN_QR_MODE=true; shift ;;
         --geometry) GEOMETRY="$2"; shift 2 ;;
+        --source) SOURCE_IMG="$2"; shift 2 ;;
+        --crop) CROP_RECT="$2"; shift 2 ;;
+        --logical-size) LOGICAL_SIZE="$2"; shift 2 ;;
         --desk-vol) DESK_VOL="$2"; shift 2 ;;
         --desk-mute) DESK_MUTE="$2"; shift 2 ;;
         --mic-vol) MIC_VOL="$2"; shift 2 ;;
@@ -30,6 +36,14 @@ while [[ "$#" -gt 0 ]]; do
         *) shift ;;
     esac
 done
+
+is_zero_volume() {
+    [[ "$1" =~ ^-?[0-9]*\.?[0-9]+$ ]] && awk -v v="$1" 'BEGIN { exit !(v + 0 <= 0) }'
+}
+if [ "$VIDEO_BACKEND" = "wf-recorder" ]; then
+    is_zero_volume "$DESK_VOL" && DESK_MUTE="true"
+    is_zero_volume "$MIC_VOL" && MIC_MUTE="true"
+fi
 
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
 SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
@@ -110,12 +124,56 @@ if [ -f "$CACHE_DIR/rec_pid" ]; then
             notif_body="$(t "screenshot.notifications.recording_error_body")"
             notify-send -a "$notif_app" "$notif_title" "$notif_body"
         fi
+        if [ -f "$CACHE_DIR/rec_modules" ]; then
+            while read -r mod_id; do
+                [ -n "$mod_id" ] && pactl unload-module "$mod_id" 2>/dev/null
+            done < "$CACHE_DIR/rec_modules"
+            rm -f "$CACHE_DIR/rec_modules"
+        fi
         rm -f "$CACHE_DIR/processing.lock" "$CACHE_DIR/rec_pid" "$CACHE_DIR/final_file" "$CACHE_DIR/rec_start_epoch"
         exit 0
     else
+        if [ -f "$CACHE_DIR/rec_modules" ]; then
+            while read -r mod_id; do
+                [ -n "$mod_id" ] && pactl unload-module "$mod_id" 2>/dev/null
+            done < "$CACHE_DIR/rec_modules"
+            rm -f "$CACHE_DIR/rec_modules"
+        fi
         rm -f "$CACHE_DIR/processing.lock" "$CACHE_DIR/rec_pid" "$CACHE_DIR/final_file" "$CACHE_DIR/rec_start_epoch"
     fi
 fi
+
+crop_source() {
+    local dst="$1" magick_bin img_w img_h x y w h lw lh
+    [ -s "$SOURCE_IMG" ] && [ -n "$CROP_RECT" ] && [ -n "$LOGICAL_SIZE" ] || return 1
+    if command -v magick &>/dev/null; then magick_bin="magick"
+    elif command -v convert &>/dev/null; then magick_bin="convert"
+    else return 1; fi
+    read -r img_w img_h < <($magick_bin identify -format '%w %h' "$SOURCE_IMG" 2>/dev/null)
+    [ -n "$img_w" ] && [ -n "$img_h" ] || return 1
+    IFS=', x' read -r x y w h <<< "$CROP_RECT"
+    IFS='x' read -r lw lh <<< "$LOGICAL_SIZE"
+    local rect
+    rect=$(awk -v x="$x" -v y="$y" -v w="$w" -v h="$h" -v lw="$lw" -v lh="$lh" -v iw="$img_w" -v ih="$img_h" 'BEGIN {
+        if (lw <= 0 || lh <= 0) exit 1
+        sx = iw / lw; sy = ih / lh
+        x0 = int(x * sx + 0.5); y0 = int(y * sy + 0.5)
+        x1 = int((x + w) * sx + 0.5); y1 = int((y + h) * sy + 0.5)
+        if (x0 < 0) x0 = 0; if (y0 < 0) y0 = 0
+        if (x1 > iw) x1 = iw; if (y1 > ih) y1 = ih
+        if (x1 - x0 < 1 || y1 - y0 < 1) exit 1
+        printf "%dx%d+%d+%d", x1 - x0, y1 - y0, x0, y0
+    }') || return 1
+    $magick_bin "$SOURCE_IMG" -crop "$rect" +repage "$dst" 2>/dev/null && [ -s "$dst" ]
+}
+
+capture_region() {
+    local dst="$1"
+    if crop_source "$dst"; then
+        return 0
+    fi
+    grim -l 0 -g "$GEOMETRY" "$dst"
+}
 
 get_active_monitor() {
     local mon=""
@@ -133,6 +191,9 @@ get_active_monitor() {
     fi
     if [ -z "$mon" ] && command -v swaymsg &>/dev/null; then
         mon=$(swaymsg -t get_outputs 2>/dev/null | jq -r '.[] | select(.focused == true) | .name' 2>/dev/null)
+    fi
+    if [ -z "$mon" ] && [ -n "${MANGO_INSTANCE_SIGNATURE:-}" ] && command -v mmsg &>/dev/null; then
+        mon=$(mmsg get cursorpos 2>/dev/null | jq -r '.monitor // empty' 2>/dev/null)
     fi
     if [ -z "$mon" ] || [ "$mon" = "null" ]; then
         if [ -f "$SCRIPT_DIR/monitors_detect.sh" ]; then
@@ -189,7 +250,7 @@ if [ "$SCAN_QR_MODE" = true ]; then
     rm -f "$RES_FILE" "$DEBUG_LOG"
     
     TMP_IMG="$QS_RUN_SCREENSHOT/qr_temp_$$.png"
-    grim -l 0 -g "$GEOMETRY" "$TMP_IMG"
+    capture_region "$TMP_IMG"
     
     export XML_OUT=$(zbarimg --xml -q "$TMP_IMG" 2>>"$DEBUG_LOG")
     if [ -n "$XML_OUT" ]; then
@@ -258,7 +319,39 @@ if [ "$FULL_MODE" = true ] || [ -n "$GEOMETRY" ]; then
             elif [ -n "$TARGET_MON" ]; then
                 WF_ARGS+=(-o "$TARGET_MON")
             fi
-            if [ "$DESK_MUTE" != "true" ]; then
+
+            REC_MODS=()
+            if [ "$DESK_MUTE" != "true" ] && [ "$MIC_MUTE" != "true" ]; then
+                DESK_SINK=$(pactl get-default-sink 2>/dev/null)
+                DESK_SOURCE="${DESK_SINK:+$DESK_SINK.monitor}"
+                if [ -z "$DESK_SOURCE" ]; then
+                    DESK_SOURCE="default_output"
+                fi
+
+                if [ -n "$MIC_DEVICE" ] && [ "$MIC_DEVICE" != "null" ]; then
+                    MIC_SOURCE="$MIC_DEVICE"
+                else
+                    MIC_SOURCE=$(pactl get-default-source 2>/dev/null)
+                fi
+                if [ -z "$MIC_SOURCE" ]; then
+                    MIC_SOURCE="default_input"
+                fi
+
+                NULL_SINK="qs_rec_mix_$$"
+                M_NULL=$(pactl load-module module-null-sink sink_name="$NULL_SINK" sink_properties=device.description="$NULL_SINK" 2>/dev/null)
+                if [ -n "$M_NULL" ]; then
+                    REC_MODS+=("$M_NULL")
+                    DESK_PA_VOL=$(awk -v v="$DESK_VOL" 'BEGIN { printf "%d", (v > 0 ? v : 1.0) * 65536 }')
+                    MIC_PA_VOL=$(awk -v v="$MIC_VOL" 'BEGIN { printf "%d", (v > 0 ? v : 1.0) * 65536 }')
+                    M_LOOP1=$(pactl load-module module-loopback source="$DESK_SOURCE" sink="$NULL_SINK" volume="$DESK_PA_VOL" 2>/dev/null)
+                    [ -n "$M_LOOP1" ] && REC_MODS+=("$M_LOOP1")
+                    M_LOOP2=$(pactl load-module module-loopback source="$MIC_SOURCE" sink="$NULL_SINK" volume="$MIC_PA_VOL" 2>/dev/null)
+                    [ -n "$M_LOOP2" ] && REC_MODS+=("$M_LOOP2")
+                    WF_ARGS+=(--audio="${NULL_SINK}.monitor")
+                else
+                    WF_ARGS+=(--audio)
+                fi
+            elif [ "$DESK_MUTE" != "true" ]; then
                 DESK_SINK=$(pactl get-default-sink 2>/dev/null)
                 if [ -n "$DESK_SINK" ]; then
                     WF_ARGS+=(--audio="${DESK_SINK}.monitor")
@@ -277,30 +370,46 @@ if [ "$FULL_MODE" = true ] || [ -n "$GEOMETRY" ]; then
                     WF_ARGS+=(--audio)
                 fi
             fi
+
+            if [ ${#REC_MODS[@]} -gt 0 ]; then
+                printf "%s\n" "${REC_MODS[@]}" > "$CACHE_DIR/rec_modules"
+            fi
+
             wf-recorder "${WF_ARGS[@]}" > /dev/null 2>&1 &
             REC_PID=$!
         else
             GSR_ARGS=(-w "${TARGET_MON:-screen}" -c "mp4" -f "60" -ac "aac")
+            DESK_DEV=""
+            MIC_DEV=""
+
             if [ "$DESK_MUTE" != "true" ]; then
                 DESK_SINK=$(pactl get-default-sink 2>/dev/null)
                 if [ -n "$DESK_SINK" ]; then
-                    GSR_ARGS+=(-a "${DESK_SINK}.monitor")
+                    DESK_DEV="${DESK_SINK}.monitor"
                 else
-                    GSR_ARGS+=(-a "default_output")
+                    DESK_DEV="default_output"
                 fi
             fi
+
             if [ "$MIC_MUTE" != "true" ]; then
                 if [ -n "$MIC_DEVICE" ] && [ "$MIC_DEVICE" != "null" ]; then
                     MIC_DEV="$MIC_DEVICE"
                 else
                     MIC_DEV=$(pactl get-default-source 2>/dev/null)
                 fi
-                if [ -n "$MIC_DEV" ]; then
-                    GSR_ARGS+=(-a "$MIC_DEV")
-                else
-                    GSR_ARGS+=(-a "default_input")
+                if [ -z "$MIC_DEV" ]; then
+                    MIC_DEV="default_input"
                 fi
             fi
+
+            if [ -n "$DESK_DEV" ] && [ -n "$MIC_DEV" ]; then
+                GSR_ARGS+=(-a "${DESK_DEV}|${MIC_DEV}")
+            elif [ -n "$DESK_DEV" ]; then
+                GSR_ARGS+=(-a "$DESK_DEV")
+            elif [ -n "$MIC_DEV" ]; then
+                GSR_ARGS+=(-a "$MIC_DEV")
+            fi
+
             gpu-screen-recorder "${GSR_ARGS[@]}" -o "$VID_FILENAME" > /dev/null 2>&1 &
             REC_PID=$!
         fi
@@ -316,7 +425,7 @@ if [ "$FULL_MODE" = true ] || [ -n "$GEOMETRY" ]; then
 
     TMP_SCREENSHOT="/tmp/instant_snap_$$.png"
     if [ -n "$GEOMETRY" ]; then
-        grim -l 0 -g "$GEOMETRY" "$TMP_SCREENSHOT"
+        capture_region "$TMP_SCREENSHOT"
     elif [ -n "$TARGET_MON" ]; then
         grim -o "$TARGET_MON" -l 0 "$TMP_SCREENSHOT" 2>/dev/null || grim -l 0 "$TMP_SCREENSHOT"
     else
@@ -329,6 +438,7 @@ if [ "$FULL_MODE" = true ] || [ -n "$GEOMETRY" ]; then
         cp "$TMP_SCREENSHOT" "$FILENAME"
     fi
     rm -f "$TMP_SCREENSHOT"
+    [ -n "$SOURCE_IMG" ] && rm -f "$SOURCE_IMG"
 
     if [ -s "$FILENAME" ]; then
         wl-copy --type image/png < "$FILENAME"

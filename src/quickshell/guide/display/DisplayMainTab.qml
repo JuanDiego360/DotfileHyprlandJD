@@ -33,6 +33,7 @@ Item {
         let de = (SystemInfo.desktopEnv || "").toLowerCase();
         if (de.indexOf("niri") !== -1) return "niri";
         if (de.indexOf("sway") !== -1) return "sway";
+        if (de.indexOf("mango") !== -1) return "mango";
         return "hyprland";
     }
 
@@ -267,7 +268,9 @@ Item {
                 ? "niri msg -j outputs 2>/dev/null"
                 : (displayTabRoot.compositor === "sway"
                     ? "swaymsg -t get_outputs -r 2>/dev/null"
-                    : "hyprctl monitors all -j 2>/dev/null || hyprctl monitors -j 2>/dev/null")
+                    : (displayTabRoot.compositor === "mango"
+                        ? "mmsg get all-monitors 2>/dev/null | jq -c '.monitors' 2>/dev/null"
+                        : "hyprctl monitors all -j 2>/dev/null || hyprctl monitors -j 2>/dev/null"))
         ]
         stdout: StdioCollector {
             onStreamFinished: {
@@ -296,6 +299,19 @@ Item {
                                 scale: sc,
                                 active: !isOff
                             });
+                        }
+                    } else if (displayTabRoot.compositor === "mango") {
+                        if (Array.isArray(data)) {
+                            for (let i = 0; i < data.length; i++) {
+                                let item = data[i];
+                                mList.push({
+                                    name: item.name || "",
+                                    dimensions: (item.width || 0) + "x" + (item.height || 0),
+                                    framerate: "60",
+                                    scale: item.scale !== undefined ? item.scale : 1.0,
+                                    active: item.active !== false
+                                });
+                            }
                         }
                     } else if (displayTabRoot.compositor === "sway") {
                         if (Array.isArray(data)) {
@@ -385,6 +401,8 @@ Item {
             Quickshell.execDetached(["bash", "-c", enabled ? "niri msg output " + monName + " on" : "niri msg output " + monName + " off"]);
         } else if (displayTabRoot.compositor === "sway") {
             Quickshell.execDetached(["bash", "-c", "swaymsg output " + monName + (enabled ? " enable" : " disable")]);
+        } else if (displayTabRoot.compositor === "mango") {
+            Quickshell.execDetached(["mmsg", "dispatch", (enabled ? "wakeup_monitor," : "sleep_monitor,") + monName]);
         } else {
             let mon = displayTabRoot.monitorsList.find(m => m.name === monName);
             let modeStr = mon ? (mon.dimensions + "@" + mon.framerate) : "preferred";
@@ -413,7 +431,7 @@ Item {
             Quickshell.execDetached(["bash", "-c", "niri msg output " + monName + " scale " + scaleVal.toString()]);
         } else if (displayTabRoot.compositor === "sway") {
             Quickshell.execDetached(["bash", "-c", "swaymsg output " + monName + " scale " + scaleVal.toString()]);
-        } else {
+        } else if (displayTabRoot.compositor !== "mango") {
             let mon = displayTabRoot.monitorsList.find(m => m.name === monName);
             let modeStr = mon ? (mon.dimensions + "@" + mon.framerate) : "preferred";
             let luaCmd = 'hl.monitor({ output = "' + monName + '", mode = "' + modeStr + '", position = "auto", scale = ' + scaleVal.toString() + ' })';
@@ -466,15 +484,26 @@ Item {
         }
     }
 
+    Timer {
+        id: reloadMonitorsDebounceTimer
+        interval: 220
+        repeat: false
+        onTriggered: displayTabRoot.reloadMonitors()
+    }
+
     Component.onCompleted: {
         displayTabRoot.refreshDisplaySettings();
-        displayTabRoot.reloadMonitors();
+        if (visible) {
+            reloadMonitorsDebounceTimer.restart();
+        }
     }
 
     onVisibleChanged: {
         if (visible) {
             displayTabRoot.refreshDisplaySettings();
-            displayTabRoot.reloadMonitors();
+            reloadMonitorsDebounceTimer.restart();
+        } else {
+            reloadMonitorsDebounceTimer.stop();
         }
     }
 
@@ -563,17 +592,26 @@ Item {
                     radius: ThemeBackend.borderRadius
 
                     property string monName: modelData.name
-                    property var monSettings: (displayTabRoot.displaySettings && displayTabRoot.displaySettings.monitors && displayTabRoot.displaySettings.monitors[monName]) ? displayTabRoot.displaySettings.monitors[monName] : ({})
+                    property var monSettings: (displayTabRoot && displayTabRoot.displaySettings && displayTabRoot.displaySettings.monitors && displayTabRoot.displaySettings.monitors[monName]) ? displayTabRoot.displaySettings.monitors[monName] : ({})
 
-                    property bool monitorPowered: monSettings.powerEnabled !== undefined ? monSettings.powerEnabled : (modelData.active !== undefined ? modelData.active : true)
-                    property bool filterEnabled: monSettings.enabled !== undefined ? monSettings.enabled : false
-                    property bool filterAuto: monSettings.auto !== undefined ? monSettings.auto : false
-                    property real currentTemp: monSettings.temperature !== undefined ? monSettings.temperature : 50
+                    property bool monitorPowered: monSettings && monSettings.powerEnabled !== undefined ? monSettings.powerEnabled : (modelData && modelData.active !== undefined ? modelData.active : true)
+                    property bool filterEnabled: monSettings && monSettings.enabled !== undefined ? monSettings.enabled : false
+                    property bool filterAuto: monSettings && monSettings.auto !== undefined ? monSettings.auto : false
+                    property real currentTemp: monSettings && monSettings.temperature !== undefined ? monSettings.temperature : 50
                     property real currentScale: modelData.scale !== undefined ? modelData.scale : 1.0
 
-                    color: monitorPowered ? Qt.alpha(ThemeBackend.surface0, 0.4) : Qt.darker(Qt.alpha(ThemeBackend.surface0, 0.4), 1.1)
+                    readonly property color cardTint: monitorPowered ? Qt.alpha(ThemeBackend.surface0, 0.4) : Qt.darker(Qt.alpha(ThemeBackend.surface0, 0.4), 1.1)
+                    color: monDelegateGlass.active ? "transparent" : cardTint
                     border.color: monitorPowered ? Qt.alpha(ThemeBackend.surface1, 0.4) : Qt.darker(Qt.alpha(ThemeBackend.surface1, 0.4), 1.1)
-                    border.width: 1
+                    border.width: ThemeBackend.liquidGlass ? 0 : 1
+
+                    GlassFill {
+                        id: monDelegateGlass
+                        anchors.fill: parent
+                        radius: parent.radius
+                        tintColor: monDelegate.cardTint
+                        tintAmount: 0.25
+                    }
 
                     property real targetHeight: boxLayout.implicitHeight + rootObj.s(24)
                     property bool appeared: false
@@ -603,6 +641,7 @@ Item {
                     }
 
                     onMonSettingsChanged: {
+                        if (!monSettings) return;
                         if (monSettings.powerEnabled !== undefined) {
                             monitorPowered = monSettings.powerEnabled;
                         }
@@ -799,6 +838,7 @@ Item {
                         }
 
                         SettingsRow {
+                            visible: displayTabRoot.compositor !== "mango"
                             rootObj: displayTabRoot.rootObj
                             baseColor: Qt.alpha(ThemeBackend.surface1, 0.35)
                             icon: "󰍍"

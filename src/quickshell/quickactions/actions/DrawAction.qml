@@ -67,7 +67,8 @@ Item {
     property color solidBgColor: ThemeBackend.mantle
     property color themeBaseColor: ThemeBackend.base
     
-    property color panelBgColor: Qt.rgba(themeBaseColor.r, themeBaseColor.g, themeBaseColor.b, 0.85)
+    property color panelBgColor: Qt.rgba(themeBaseColor.r, themeBaseColor.g, themeBaseColor.b, ThemeBackend.glassActive ? ThemeBackend.elementOpacity : 0.85)
+    property color popupBgColor: Qt.rgba(themeBaseColor.r, themeBaseColor.g, themeBaseColor.b, ThemeBackend.glassActive ? ThemeBackend.elementOpacity : 0.98)
     property color panelBorderColor: Qt.rgba(baseTextColor.r, baseTextColor.g, baseTextColor.b, 0.15)
 
     property real minZoom: 0.1
@@ -168,6 +169,57 @@ Item {
         if (orientedRoot.children.length > 0) {
             drawCanvas._replayPending = true;
             drawCanvas.requestPaint();
+        }
+    }
+
+    function exportDrawing(targetPath, callback) {
+        if (typeof drawCanvas.grabToImage === "function") {
+            var initiated = drawCanvas.grabToImage(function(result) {
+                var success = false;
+                try {
+                    success = result.saveToFile(targetPath);
+                } catch (e) {
+                    success = false;
+                }
+                if (!success && typeof drawCanvas.save === "function") {
+                    try {
+                        success = drawCanvas.save(targetPath, Qt.size(drawCanvas.width, drawCanvas.height));
+                    } catch (e) {}
+                    if (!success) {
+                        try {
+                            success = drawCanvas.save(targetPath);
+                        } catch (e) {}
+                    }
+                }
+                if (callback) callback(success);
+            });
+            if (!initiated) {
+                var fallbackSuccess = false;
+                if (typeof drawCanvas.save === "function") {
+                    try {
+                        fallbackSuccess = drawCanvas.save(targetPath, Qt.size(drawCanvas.width, drawCanvas.height));
+                    } catch (e) {}
+                    if (!fallbackSuccess) {
+                        try {
+                            fallbackSuccess = drawCanvas.save(targetPath);
+                        } catch (e) {}
+                    }
+                }
+                if (callback) callback(fallbackSuccess);
+            }
+        } else if (typeof drawCanvas.save === "function") {
+            var res = false;
+            try {
+                res = drawCanvas.save(targetPath, Qt.size(drawCanvas.width, drawCanvas.height));
+            } catch (e) {}
+            if (!res) {
+                try {
+                    res = drawCanvas.save(targetPath);
+                } catch (e) {}
+            }
+            if (callback) callback(res);
+        } else {
+            if (callback) callback(false);
         }
     }
 
@@ -501,6 +553,12 @@ Item {
                 border.width: 1
                 border.color: root.panelBorderColor
 
+                WallpaperBlur {
+                    z: -1
+                    anchors.fill: parent
+                    radius: parent.radius
+                }
+
                 Row {
                     id: zoomRow
                     anchors.centerIn: parent
@@ -559,9 +617,15 @@ Item {
                 textColor: root.baseTextColor
                 onClicked: {
                     var outDir = root.picturesDir !== "" ? root.picturesDir : "/tmp";
+                    Quickshell.execDetached(["mkdir", "-p", outDir]);
                     var outPath = outDir + "/drawing_" + Date.now() + ".png";
-                    drawCanvas.save(outPath);
-                    Quickshell.execDetached(["notify-send", "-a", "DrawAction", "Drawing saved", outPath]);
+                    root.exportDrawing(outPath, function(success) {
+                        if (success) {
+                            Quickshell.execDetached(["notify-send", "-a", I18n.t("quickactions.draw.notification.app_name") || "DrawAction", I18n.t("quickactions.draw.notification.saved_title") || "Drawing saved", outPath]);
+                        } else {
+                            Quickshell.execDetached(["notify-send", "-a", I18n.t("quickactions.draw.notification.app_name") || "DrawAction", I18n.t("quickactions.draw.notification.failed_title") || "Export failed", I18n.t("quickactions.draw.notification.failed_body") || "Could not save drawing"]);
+                        }
+                    });
                 }
             }
 
@@ -575,8 +639,14 @@ Item {
                 textColor: root.baseTextColor
                 onClicked: {
                     var tempPath = Caching.getRunDir("quickactions") + "/drawing_clip.png";
-                    drawCanvas.save(tempPath);
-                    Quickshell.execDetached(["sh", "-c", "wl-copy < " + tempPath]);
+                    root.exportDrawing(tempPath, function(success) {
+                        if (success) {
+                            Quickshell.execDetached(["sh", "-c", "if command -v wl-copy >/dev/null 2>&1; then wl-copy --type image/png < '" + tempPath + "'; fi"]);
+                            Quickshell.execDetached(["notify-send", "-a", I18n.t("quickactions.draw.notification.app_name") || "DrawAction", I18n.t("quickactions.draw.notification.copied_title") || "Drawing copied", I18n.t("quickactions.draw.notification.copied_body") || "Drawing copied to clipboard"]);
+                        } else {
+                            Quickshell.execDetached(["notify-send", "-a", I18n.t("quickactions.draw.notification.app_name") || "DrawAction", I18n.t("quickactions.draw.notification.failed_title") || "Export failed", I18n.t("quickactions.draw.notification.failed_body") || "Could not save drawing"]);
+                        }
+                    });
                 }
             }
         }
@@ -587,9 +657,15 @@ Item {
             width: s(260)
             height: s(64)
             radius: ThemeBackend.borderRadius
-            color: Qt.rgba(ThemeBackend.base.r, ThemeBackend.base.g, ThemeBackend.base.b, 0.98)
+            color: root.popupBgColor
             border.width: 1
             border.color: root.panelBorderColor
+
+            WallpaperBlur {
+                z: -1
+                anchors.fill: parent
+                radius: parent.radius
+            }
             
             anchors.bottom: toolbar.top
             anchors.bottomMargin: s(12)
@@ -720,9 +796,15 @@ Item {
             width: s(320)
             height: s(400)
             radius: ThemeBackend.borderRadius
-            color: Qt.rgba(ThemeBackend.base.r, ThemeBackend.base.g, ThemeBackend.base.b, 0.98)
+            color: root.popupBgColor
             border.width: 1
             border.color: root.panelBorderColor
+
+            WallpaperBlur {
+                z: -1
+                anchors.fill: parent
+                radius: parent.radius
+            }
             
             anchors.bottom: toolbar.top
             anchors.bottomMargin: s(12)
@@ -837,13 +919,19 @@ Item {
                 RowLayout {
                     width: parent.width
                     spacing: s(10)
+                    layoutDirection: I18n.layoutDirection
 
                     Text {
-                        text: root.colorPalettes[root.activePaletteIndex] ? root.colorPalettes[root.activePaletteIndex].name : "Palette"
+                        text: {
+                            let pName = root.colorPalettes[root.activePaletteIndex] ? root.colorPalettes[root.activePaletteIndex].name : "";
+                            if (pName === "Default") return I18n.t("quickactions.draw.palette_default", "Default");
+                            return pName || I18n.t("quickactions.draw.palette", "Palette");
+                        }
                         color: root.baseTextColor
                         font.pixelSize: s(14)
                         font.bold: true
                         Layout.fillWidth: true
+                        horizontalAlignment: I18n.textAlignment
                     }
                     
                     IconButton {
@@ -861,6 +949,7 @@ Item {
                     columns: 8
                     spacing: s(12)
                     anchors.horizontalCenter: parent.horizontalCenter
+                    layoutDirection: I18n.layoutDirection
 
                     Repeater {
                         model: root.colorPalettes[root.activePaletteIndex] ? root.colorPalettes[root.activePaletteIndex].colors : []
@@ -891,9 +980,10 @@ Item {
                 Row {
                     spacing: s(10)
                     anchors.horizontalCenter: parent.horizontalCenter
+                    layoutDirection: I18n.layoutDirection
                     
                     Text { 
-                        text: "Hex"
+                        text: I18n.t("quickactions.draw.hex", "Hex")
                         color: Qt.rgba(root.baseTextColor.r, root.baseTextColor.g, root.baseTextColor.b, 0.6)
                         anchors.verticalCenter: parent.verticalCenter
                         font.pixelSize: s(13)
@@ -943,6 +1033,12 @@ Item {
             color: root.panelBgColor
             border.width: 1
             border.color: root.panelBorderColor
+
+            WallpaperBlur {
+                z: -1
+                anchors.fill: parent
+                radius: parent.radius
+            }
 
             Row {
                 id: toolRow

@@ -49,6 +49,8 @@ La primera vez que actives el perfil de `ilyamiro`, compila las plantillas del w
 bash ~/.config/hypr/scripts/settings_watcher.sh --compile
 ```
 
+For configuration, see the [configuration guide](https://serpantinum.dev/configure).
+
 ---
 
 ## 🔄 Respaldos y Actualizaciones Automáticas

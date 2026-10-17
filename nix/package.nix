@@ -12,6 +12,7 @@
 , brightnessctl
 , ddcutil
 , cava
+, calf
 , cliphist
 , easyeffects
 , fastfetch
@@ -57,7 +58,7 @@
 let
   pname = "serpantinum";
   version = lib.strings.trim (builtins.readFile ../version.txt);
-  pythonEnv = python3.withPackages (ps: [ ps.websockets ]);
+  pythonEnv = python3.withPackages (ps: [ ps.websockets ps.jeepney ]);
   pathDeps = [
     acpi
     alsa-utils
@@ -66,6 +67,7 @@ let
     brightnessctl
     ddcutil
     cava
+    calf
     cliphist
     easyeffects
     fastfetch

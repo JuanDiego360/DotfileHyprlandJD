@@ -92,6 +92,10 @@ Variants {
                 let dummy = configRevision;
                 return (typeof Config !== "undefined" && Config.rawSettings && Config.rawSettings.bar && Config.rawSettings.bar.distinctPills !== undefined) ? Config.rawSettings.bar.distinctPills : false;
             }
+            property bool centerByEdges: {
+                let dummy = configRevision;
+                return (typeof Config !== "undefined" && Config.rawSettings && Config.rawSettings.bar && Config.rawSettings.bar.centerByEdges !== undefined) ? Config.rawSettings.bar.centerByEdges : true;
+            }
 
             property bool barConfigReady: {
                 let dummy = configRevision;
@@ -108,10 +112,7 @@ Variants {
                 let dummy = configRevision;
                 return (typeof Config !== "undefined" && Config.rawSettings && Config.rawSettings.bar && Config.rawSettings.bar.autohideTimeout !== undefined) ? Config.rawSettings.bar.autohideTimeout : 1000;
             }
-            property real barOpacity: {
-                let dummy = configRevision;
-                return (typeof Config !== "undefined" && Config.rawSettings && Config.rawSettings.bar && Config.rawSettings.bar.opacity !== undefined) ? (Config.rawSettings.bar.opacity / 100.0) : 1.0;
-            }
+            property real barOpacity: ThemeBackend.elementOpacity
 
             HoverHandler {
                 id: barHover
@@ -173,26 +174,6 @@ Variants {
                         target.toggleUpdate();
                     }
                 }
-                function getWidgetGeometry(widgetName: string): void {
-                    let target = null;
-                    if (barWindow.isVertical) target = verticalWrapper.getWidget(widgetName);
-                    else target = contentWrapper.getWidget(widgetName);
-
-                    if (target && target.width > 0) {
-                        let pos = target.mapToItem(null, 0, 0);
-
-                        let absoluteX = pos.x + barWindow.margins.left;
-                        let absoluteY = pos.y + barWindow.margins.top;
-
-                        let geo = {
-                            startX: Math.round(absoluteX),
-                            startY: Math.round(absoluteY),
-                            endX: Math.round(absoluteX + target.width),
-                            endY: Math.round(absoluteY + target.height)
-                        };
-                        Quickshell.execDetached(["bash", "-c", "echo '" + JSON.stringify(geo) + "' > " + Caching.runDir + "/tutorial_target.json"]);
-                    }
-                }
             }
 
             required property var modelData
@@ -209,17 +190,21 @@ Variants {
                 return (typeof Config !== "undefined" && Config.rawSettings && Config.rawSettings.bar && Config.rawSettings.bar.width !== undefined) ? Config.rawSettings.bar.width : 100;
             }
             property real edgePadding: (autohide && !isFill) ? s(4) : 0
-            property real effectiveBarWidth: Math.round(isVertical ? barWindow.width : (isFill ? barWindow.width : ((barWindow.width - (autohide ? edgePadding * 2 : 0)) * (barWidthPercent / 100.0))))
-            property real horizontalOffset: Math.round(isVertical ? 0 : (isFill ? 0 : ((barWindow.width - effectiveBarWidth) / 2)))
+            property real effectiveBarWidth: Math.round(isVertical ? barWindow.width : ((barWindow.width - (autohide ? edgePadding * 2 : 0)) * (barWidthPercent / 100.0)))
+            property real horizontalOffset: Math.round(isVertical ? 0 : ((barWindow.width - effectiveBarWidth) / 2))
 
-            property real effectiveBarHeight: Math.round(!isVertical ? barWindow.height : (isFill ? barWindow.height : ((barWindow.height - (autohide ? edgePadding * 2 : 0)) * (barWidthPercent / 100.0))))
-            property real verticalOffset: Math.round(!isVertical ? 0 : (isFill ? 0 : ((barWindow.height - effectiveBarHeight) / 2)))
+            property real effectiveBarHeight: Math.round(!isVertical ? barWindow.height : ((barWindow.height - (autohide ? edgePadding * 2 : 0)) * (barWidthPercent / 100.0)))
+            property real verticalOffset: Math.round(!isVertical ? 0 : ((barWindow.height - effectiveBarHeight) / 2))
 
             property real currentBarMinX: (contentWrapper && contentWrapper.dynamicMaxX > contentWrapper.dynamicMinX) ? contentWrapper.dynamicMinX : horizontalOffset
             property real currentBarMaxX: (contentWrapper && contentWrapper.dynamicMaxX > contentWrapper.dynamicMinX) ? contentWrapper.dynamicMaxX : (horizontalOffset + effectiveBarWidth)
 
             property real currentBarMinY: (verticalWrapper && verticalWrapper.dynamicMaxY > verticalWrapper.dynamicMinY) ? verticalWrapper.dynamicMinY : verticalOffset
             property real currentBarMaxY: (verticalWrapper && verticalWrapper.dynamicMaxY > verticalWrapper.dynamicMinY) ? verticalWrapper.dynamicMaxY : (verticalOffset + effectiveBarHeight)
+
+            property bool fillAttached: isFill && (isVertical
+                ? (currentBarMinY > 0.5 || currentBarMaxY < barWindow.height - 0.5)
+                : (currentBarMinX > 0.5 || currentBarMaxX < barWindow.width - 0.5))
 
             Timer {
                 id: positionChangeTimer
@@ -240,7 +225,22 @@ Variants {
                 return Math.round(Scaler.s(val));
             }
 
-            property int barHeight: s(40)
+            readonly property real baseThickness: 40
+            readonly property real minThickness: 28
+            readonly property real maxThickness: 48
+            property real thicknessSetting: {
+                let dummy = configRevision;
+                let v = (typeof Config !== "undefined" && Config.rawSettings && Config.rawSettings.bar && Config.rawSettings.bar.height !== undefined) ? Number(Config.rawSettings.bar.height) : baseThickness;
+                if (isNaN(v)) v = baseThickness;
+                return Math.max(minThickness, Math.min(maxThickness, v));
+            }
+            property real contentRatio: thicknessSetting / baseThickness
+
+            function cs(val) {
+                return Math.round(Scaler.s(val) * contentRatio);
+            }
+
+            property int barHeight: s(thicknessSetting)
             property real cornerRadius: s(12)
 
             property real baseOffsetY: {
@@ -276,22 +276,22 @@ Variants {
 
             mask: Region {
                 Region {
-                    x: barWindow.isVertical ? (barWindow.barPosition === "right" ? (barWindow.width - barWindow.activeMaskWidth) : 0) : (isFill ? 0 : barWindow.currentBarMinX)
-                    y: barWindow.isVertical ? (isFill ? 0 : barWindow.currentBarMinY) : (barWindow.barPosition === "bottom" ? barWindow.baseOffsetY : 0)
-                    width: barWindow.isVertical ? barWindow.activeMaskWidth : (isFill ? barWindow.width : (barWindow.currentBarMaxX - barWindow.currentBarMinX))
-                    height: barWindow.isVertical ? (isFill ? barWindow.height : (barWindow.currentBarMaxY - barWindow.currentBarMinY)) : (isFill ? barWindow.barHeight : barWindow.activeMaskHeight)
+                    x: barWindow.isVertical ? (barWindow.barPosition === "right" ? (barWindow.width - barWindow.activeMaskWidth) : 0) : barWindow.currentBarMinX
+                    y: barWindow.isVertical ? barWindow.currentBarMinY : (barWindow.barPosition === "bottom" ? barWindow.baseOffsetY : 0)
+                    width: barWindow.isVertical ? barWindow.activeMaskWidth : (barWindow.currentBarMaxX - barWindow.currentBarMinX)
+                    height: barWindow.isVertical ? (barWindow.currentBarMaxY - barWindow.currentBarMinY) : (isFill ? barWindow.barHeight : barWindow.activeMaskHeight)
                 }
                 Region {
                     x: barWindow.isVertical ? (barWindow.barPosition === "right" ? (barWindow.width - barWindow.barHeight - barWindow.cornerRadius) : barWindow.barHeight) : 0
                     y: barWindow.isVertical ? 0 : (barWindow.barPosition === "bottom" ? (barWindow.baseOffsetY - barWindow.cornerRadius) : (barWindow.baseOffsetY + barWindow.barHeight))
-                    width: (!barWindow.isVertical && barWindow.isFill) ? barWindow.cornerRadius : (barWindow.isVertical && barWindow.isFill ? barWindow.cornerRadius : 0)
-                    height: (!barWindow.isVertical && barWindow.isFill) ? barWindow.cornerRadius : (barWindow.isVertical && barWindow.isFill ? barWindow.cornerRadius : 0)
+                    width: (barWindow.isFill && !barWindow.fillAttached) ? barWindow.cornerRadius : 0
+                    height: (barWindow.isFill && !barWindow.fillAttached) ? barWindow.cornerRadius : 0
                 }
                 Region {
                     x: barWindow.isVertical ? (barWindow.barPosition === "right" ? (barWindow.width - barWindow.barHeight - barWindow.cornerRadius) : barWindow.barHeight) : (barWindow.width - barWindow.cornerRadius)
                     y: barWindow.isVertical ? (barWindow.height - barWindow.cornerRadius) : (barWindow.barPosition === "bottom" ? (barWindow.baseOffsetY - barWindow.cornerRadius) : (barWindow.baseOffsetY + barWindow.barHeight))
-                    width: (!barWindow.isVertical && barWindow.isFill) ? barWindow.cornerRadius : (barWindow.isVertical && barWindow.isFill ? barWindow.cornerRadius : 0)
-                    height: (!barWindow.isVertical && barWindow.isFill) ? barWindow.cornerRadius : (barWindow.isVertical && barWindow.isFill ? barWindow.cornerRadius : 0)
+                    width: (barWindow.isFill && !barWindow.fillAttached) ? barWindow.cornerRadius : 0
+                    height: (barWindow.isFill && !barWindow.fillAttached) ? barWindow.cornerRadius : 0
                 }
             }
 

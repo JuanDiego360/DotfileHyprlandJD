@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import "../"
+import "../reusables"
 
 Variants {
     model: Quickshell.screens
@@ -17,16 +18,57 @@ Variants {
 
             WlrLayershell.namespace: "qs-floating-overlay"
             WlrLayershell.layer: WlrLayer.Overlay
+            WlrLayershell.keyboardFocus: shouldHaveKeyboardFocus ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
             exclusionMode: ExclusionMode.Ignore
             color: "transparent"
 
-            focusable: isSidebarVisible && (!isPinned || (typeof mainHoverTracker !== "undefined" && mainHoverTracker.hovered))
+            readonly property bool shouldHaveKeyboardFocus: isSidebarVisible && (isExpanded || hasInputFocus)
+
+            readonly property bool hasInputFocus: {
+                let loader = (typeof moduleRepeater !== "undefined" && activeIndex >= 0 && activeIndex < moduleRepeater.count)
+                    ? moduleRepeater.itemAt(activeIndex)
+                    : null;
+                let mod = (loader && loader.status === Loader.Ready && loader.item) ? loader.item : null;
+                if (mod && mod.hasInputFocus !== undefined) {
+                    return Boolean(mod.hasInputFocus);
+                }
+                return false;
+            }
+
+            onHasInputFocusChanged: {
+                if (hasInputFocus) {
+                    hideTimer.stop();
+                    floatingWidget.useGraceTimer = false;
+                }
+            }
+
+            function grabKeyboardFocus() {
+                if (!shouldHaveKeyboardFocus) return;
+                if (typeof floatingWidget.requestActivate === "function") {
+                    floatingWidget.requestActivate();
+                }
+                if (!hasInputFocus) {
+                    focusTracker.forceActiveFocus();
+                }
+            }
 
             anchors {
                 top: true; bottom: true; left: true; right: true
             }
+
+            onShouldHaveKeyboardFocusChanged: {
+                if (shouldHaveKeyboardFocus) {
+                    grabKeyboardFocus();
+                    Qt.callLater(grabKeyboardFocus);
+                }
+            }
+
             onIsSidebarVisibleChanged: {
-                if (isSidebarVisible) SysData.prewarm();
+                if (isSidebarVisible) {
+                    SysData.prewarm();
+                    grabKeyboardFocus();
+                    Qt.callLater(grabKeyboardFocus);
+                }
             }
 
             property int configRevision: 0
@@ -216,13 +258,39 @@ Variants {
                 }
             }
 
+            function cycleTab(direction) {
+                let step = activeEdge === "top" ? -direction : direction;
+                activeIndex = (activeIndex + step + tabCount) % tabCount;
+                kickTimer();
+            }
+
             Item {
                 id: focusTracker
                 focus: true
-                onActiveFocusChanged: {
-                    if (!activeFocus && !floatingWidget.isPinned) {
-                        floatingWidget.isExpanded = false;
-                        hideTimer.restart();
+                Keys.onTabPressed: event => {
+                    if (!floatingWidget.hasInputFocus && !floatingWidget.childIntercepts("Tab")) {
+                        floatingWidget.cycleTab(1);
+                        event.accepted = true;
+                    }
+                }
+                Keys.onBacktabPressed: event => {
+                    if (!floatingWidget.hasInputFocus && !floatingWidget.childIntercepts("Backtab")) {
+                        floatingWidget.cycleTab(-1);
+                        event.accepted = true;
+                    }
+                }
+                Keys.onPressed: event => {
+                    if (event.accepted) return;
+                    if (event.key === Qt.Key_Tab) {
+                        if (!floatingWidget.hasInputFocus && !floatingWidget.childIntercepts("Tab")) {
+                            floatingWidget.cycleTab(1);
+                            event.accepted = true;
+                        }
+                    } else if (event.key === Qt.Key_Backtab) {
+                        if (!floatingWidget.hasInputFocus && !floatingWidget.childIntercepts("Backtab")) {
+                            floatingWidget.cycleTab(-1);
+                            event.accepted = true;
+                        }
                     }
                 }
             }
@@ -239,10 +307,41 @@ Variants {
             property var tabModules: [
                 "actions/DrawAction.qml",
                 "actions/SystemUsage.qml",
-                "actions/Timer.qml"
+                "actions/Timer.qml",
+                "actions/Notes.qml"
             ]
 
             property int tabCount: Math.max(1, tabModules.length)
+
+            function getTabInfo(index) {
+                let mod = (index >= 0 && index < tabModules.length) ? tabModules[index] : "";
+                if (mod.indexOf("Draw") !== -1) {
+                    return { name: I18n.t("quickactions.tabs.draw"), icon: "󰽉" };
+                } else if (mod.indexOf("SystemUsage") !== -1) {
+                    return { name: I18n.t("quickactions.tabs.system"), icon: "󰍛" };
+                } else if (mod.indexOf("Timer") !== -1) {
+                    return { name: I18n.t("quickactions.tabs.timer"), icon: "󰔛" };
+                } else if (mod.indexOf("Notes") !== -1) {
+                    return { name: I18n.t("quickactions.tabs.notes"), icon: "󰈙" };
+                }
+                return { name: I18n.t("quickactions.tabs.tab"), icon: "󰍜" };
+            }
+
+            function getTabName(index) {
+                return getTabInfo(index).name;
+            }
+
+            function getTabIcon(index) {
+                return getTabInfo(index).icon;
+            }
+
+            TextMetrics {
+                id: activeTabMetrics
+                font.family: ThemeBackend.fontFamily
+                font.pixelSize: floatingWidget.s(10)
+                font.weight: Font.Bold
+                text: floatingWidget.getTabName(floatingWidget.activeIndex)
+            }
 
             Connections {
                 target: FloatingController
@@ -295,7 +394,11 @@ Variants {
                     let loader = moduleRepeater.itemAt(activeIndex);
                     if (loader && loader.status === Loader.Ready && loader.item) {
                         if (loader.item.interceptedShortcuts !== undefined) {
-                            return loader.item.interceptedShortcuts.includes(sequenceStr);
+                            if (loader.item.interceptedShortcuts.includes(sequenceStr)) return true;
+                            if ((sequenceStr === "Backtab" || sequenceStr === "Shift+Tab") &&
+                                (loader.item.interceptedShortcuts.includes("Backtab") || loader.item.interceptedShortcuts.includes("Shift+Tab"))) {
+                                return true;
+                            }
                         }
                     }
                 }
@@ -303,7 +406,7 @@ Variants {
             }
 
             function kickTimer() {
-                if (!isPinned) {
+                if (!isPinned && !floatingWidget.hasInputFocus) {
                     if ((typeof mainHoverTracker !== "undefined" && mainHoverTracker.hovered) ||
                         (typeof sidebarDragArea !== "undefined" && (sidebarDragArea.containsMouse || sidebarDragArea.pressed)) ||
                         (typeof gridMouseArea !== "undefined" && (gridMouseArea.containsMouse || gridMouseArea.pressed)) ||
@@ -317,23 +420,36 @@ Variants {
                 }
             }
 
-            Shortcut { enabled: floatingWidget.isSidebarVisible && !floatingWidget.childIntercepts("Tab"); sequence: "Tab"; onActivated: { floatingWidget.activeIndex = (floatingWidget.activeIndex + 1) % floatingWidget.tabCount; floatingWidget.kickTimer(); } }
-            Shortcut { enabled: floatingWidget.isSidebarVisible && !floatingWidget.childIntercepts("Shift+Tab"); sequence: "Shift+Tab"; onActivated: { floatingWidget.activeIndex = (floatingWidget.activeIndex + (floatingWidget.tabCount - 1)) % floatingWidget.tabCount; floatingWidget.kickTimer(); } }
-            Shortcut { enabled: floatingWidget.isSidebarVisible && !floatingWidget.childIntercepts("Return"); sequence: "Return"; onActivated: { floatingWidget.isExpanded = !floatingWidget.isExpanded; floatingWidget.kickTimer(); } }
-            Shortcut { enabled: floatingWidget.isSidebarVisible && !floatingWidget.childIntercepts("Enter"); sequence: "Enter"; onActivated: { floatingWidget.isExpanded = !floatingWidget.isExpanded; floatingWidget.kickTimer(); } }
+            Shortcut { enabled: floatingWidget.isSidebarVisible && !floatingWidget.hasInputFocus && !floatingWidget.childIntercepts("Tab"); sequence: "Tab"; onActivated: floatingWidget.cycleTab(1) }
+            Shortcut {
+                enabled: floatingWidget.isSidebarVisible && !floatingWidget.hasInputFocus && !floatingWidget.childIntercepts("Backtab")
+                sequence: "Backtab"
+                onActivated: floatingWidget.cycleTab(-1)
+                onActivatedAmbiguously: floatingWidget.cycleTab(-1)
+            }
+            Shortcut { enabled: floatingWidget.isSidebarVisible && !floatingWidget.hasInputFocus && !floatingWidget.childIntercepts("Return"); sequence: "Return"; onActivated: { floatingWidget.isExpanded = !floatingWidget.isExpanded; floatingWidget.kickTimer(); } }
+            Shortcut { enabled: floatingWidget.isSidebarVisible && !floatingWidget.hasInputFocus && !floatingWidget.childIntercepts("Enter"); sequence: "Enter"; onActivated: { floatingWidget.isExpanded = !floatingWidget.isExpanded; floatingWidget.kickTimer(); } }
 
             Shortcut {
-                enabled: floatingWidget.isSidebarVisible && (floatingWidget.activeEdge === "bottom" || floatingWidget.activeEdge === "top") && !floatingWidget.childIntercepts("Left")
+                enabled: floatingWidget.isSidebarVisible && !floatingWidget.hasInputFocus && (floatingWidget.activeEdge === "bottom" || floatingWidget.activeEdge === "top") && !floatingWidget.childIntercepts("Left")
                 sequence: "Left"
-                onActivated: { floatingWidget.activeIndex = Math.max(0, floatingWidget.activeIndex - 1); floatingWidget.kickTimer(); }
+                onActivated: {
+                    let step = floatingWidget.activeEdge === "top" ? 1 : -1;
+                    floatingWidget.activeIndex = Math.max(0, Math.min(floatingWidget.tabCount - 1, floatingWidget.activeIndex + step));
+                    floatingWidget.kickTimer();
+                }
             }
             Shortcut {
-                enabled: floatingWidget.isSidebarVisible && (floatingWidget.activeEdge === "bottom" || floatingWidget.activeEdge === "top") && !floatingWidget.childIntercepts("Right")
+                enabled: floatingWidget.isSidebarVisible && !floatingWidget.hasInputFocus && (floatingWidget.activeEdge === "bottom" || floatingWidget.activeEdge === "top") && !floatingWidget.childIntercepts("Right")
                 sequence: "Right"
-                onActivated: { floatingWidget.activeIndex = Math.min(floatingWidget.tabCount - 1, floatingWidget.activeIndex + 1); floatingWidget.kickTimer(); }
+                onActivated: {
+                    let step = floatingWidget.activeEdge === "top" ? -1 : 1;
+                    floatingWidget.activeIndex = Math.max(0, Math.min(floatingWidget.tabCount - 1, floatingWidget.activeIndex + step));
+                    floatingWidget.kickTimer();
+                }
             }
             Shortcut {
-                enabled: floatingWidget.isSidebarVisible && (floatingWidget.activeEdge === "left" || floatingWidget.activeEdge === "right") && !floatingWidget.childIntercepts("Up")
+                enabled: floatingWidget.isSidebarVisible && !floatingWidget.hasInputFocus && (floatingWidget.activeEdge === "left" || floatingWidget.activeEdge === "right") && !floatingWidget.childIntercepts("Up")
                 sequence: "Up"
                 onActivated: {
                     let step = floatingWidget.activeEdge === "right" ? 1 : -1;
@@ -342,7 +458,7 @@ Variants {
                 }
             }
             Shortcut {
-                enabled: floatingWidget.isSidebarVisible && (floatingWidget.activeEdge === "left" || floatingWidget.activeEdge === "right") && !floatingWidget.childIntercepts("Down")
+                enabled: floatingWidget.isSidebarVisible && !floatingWidget.hasInputFocus && (floatingWidget.activeEdge === "left" || floatingWidget.activeEdge === "right") && !floatingWidget.childIntercepts("Down")
                 sequence: "Down"
                 onActivated: {
                     let step = floatingWidget.activeEdge === "right" ? -1 : 1;
@@ -355,6 +471,10 @@ Variants {
                 enabled: floatingWidget.isSidebarVisible && !floatingWidget.childIntercepts("Escape")
                 sequence: "Escape"
                 onActivated: {
+                    if (floatingWidget.hasInputFocus) {
+                        floatingWidget.unfocusAllInputs();
+                        return;
+                    }
                     if (floatingWidget.isExpanded) {
                         floatingWidget.isExpanded = false;
                         floatingWidget.kickTimer();
@@ -366,6 +486,20 @@ Variants {
                 }
             }
 
+            function unfocusAllInputs() {
+                if (typeof moduleRepeater !== "undefined") {
+                    for (let i = 0; i < moduleRepeater.count; i++) {
+                        let ldr = moduleRepeater.itemAt(i);
+                        if (ldr && ldr.item && typeof ldr.item.unfocusInputs === "function") {
+                            ldr.item.unfocusInputs();
+                        }
+                    }
+                }
+                if (isExpanded) {
+                    focusTracker.forceActiveFocus();
+                }
+            }
+
             property real baseScale: Scaler.baseScale
             function s(val) {
                 let res = Scaler.s(val);
@@ -373,7 +507,16 @@ Variants {
             }
 
             property int activeIndex: 0
+            onActiveIndexChanged: {
+                unfocusAllInputs();
+            }
             property bool isExpanded: false
+            onIsExpandedChanged: {
+                if (isExpanded) {
+                    grabKeyboardFocus();
+                    Qt.callLater(grabKeyboardFocus);
+                }
+            }
 
             property var currentLayoutTemplate: [{x: 0, y: 0, w: 1, h: 1}]
 
@@ -400,11 +543,11 @@ Variants {
             property real outerCornerRadius: s(24)
             property real edgeBleed: Math.max(2, Math.ceil(s(2)))
 
-            property real h_in: s(26)
-            property real h_ac: s(86)
+            property real h_in: Math.round(s(27))
+            property real h_ac: Math.max(Math.round(s(54)), Math.round(activeTabMetrics.width + s(20)))
             property real itemSpacing: s(7)
 
-            property real buttonSize: s(18)
+            property real buttonSize: s(20)
             property real controlAreaHeight: buttonSize * 2 + s(10)
 
             property real barOffsetY: activeEdge === "left" ? (controlAreaHeight + itemSpacing) : 0
@@ -619,6 +762,8 @@ Variants {
                         floatingWidget.isExpanded = floatingWidget.pendingWasExpanded;
                         floatingWidget.isPeekVisible = false;
                         hideTimer.restart();
+                        floatingWidget.grabKeyboardFocus();
+                        Qt.callLater(floatingWidget.grabKeyboardFocus);
                     } else if (floatingWidget.pendingMode === "peek") {
                         floatingWidget.isPeekVisible = true;
                         floatingWidget.isSidebarVisible = false;
@@ -647,7 +792,7 @@ Variants {
                 return floatingWidget.controlAreaHeight + controlSpacing + activeTabH + inactiveTabsH + tabsSpacing + margins;
             }
 
-            property real sidebarW: Math.round(s(31))
+            property real sidebarW: Math.round(s(35))
 
             property real sidebarTargetX: {
                 if (activeEdge === "left") {
@@ -765,6 +910,8 @@ Variants {
                 }
                 isPeekVisible = false;
                 hideTimer.restart();
+                floatingWidget.grabKeyboardFocus();
+                Qt.callLater(floatingWidget.grabKeyboardFocus);
             }
 
             Timer {
@@ -785,7 +932,7 @@ Variants {
                 id: hideTimer
                 interval: floatingWidget.useGraceTimer ? 3000 : 800
                 onTriggered: {
-                    if (floatingWidget.isPinned) return;
+                    if (floatingWidget.isPinned || floatingWidget.hasInputFocus) return;
 
                     if ((typeof sidebarDragArea !== "undefined" && sidebarDragArea.pressed) ||
                         (typeof peekMouse !== "undefined" && peekMouse.pressed) ||
@@ -931,8 +1078,14 @@ Variants {
                 height: (floatingWidget.activeEdge === "bottom" || floatingWidget.activeEdge === "top") ? floatingWidget.s(11) : peekBarLength
                 radius: Math.min(floatingWidget.containerRadius, Math.min(width, height) / 2)
 
-                color: Qt.rgba(ThemeBackend.base.r, ThemeBackend.base.g, ThemeBackend.base.b, 1.0)
+                color: Qt.alpha(ThemeBackend.base, ThemeBackend.elementOpacity)
                 border.width: 0
+
+                WallpaperBlur {
+                    z: -1
+                    anchors.fill: parent
+                    radius: parent.radius
+                }
 
                 opacity: 1.0
                 scale: floatingWidget.isPeekVisible ? 1.0 : 0.6
@@ -984,7 +1137,7 @@ Variants {
                     width: (floatingWidget.activeEdge === "bottom" || floatingWidget.activeEdge === "top") ? floatingWidget.s(20) : floatingWidget.s(3.5)
                     height: (floatingWidget.activeEdge === "bottom" || floatingWidget.activeEdge === "top") ? floatingWidget.s(3.5) : floatingWidget.s(20)
                     radius: Math.min(ThemeBackend.borderRadius, Math.min(width, height) / 2)
-                    color: Qt.darker(ThemeBackend.mauve, 1.8)
+                    color: ThemeBackend.liquidGlass ? Qt.alpha(ThemeBackend.text, 0.85) : Qt.darker(ThemeBackend.mauve, 1.8)
                 }
 
                 MouseArea {
@@ -1084,56 +1237,37 @@ Variants {
                         }
                     }
 
-                    Shape {
+                    GlassFillets {
+                        id: sidebarFillets
+                        card: morphingBackground
+                        filletRadius: floatingWidget.outerCornerRadius > 0.5 ? floatingWidget.outerCornerRadius : 0
+                        filletDir: Qt.vector2d(-1, 0)
+                        filletInset: floatingWidget.edgeBleed
+                    }
+
+                    ShaderEffect {
                         visible: floatingWidget.outerCornerRadius > 0.5
-                        x: -floatingWidget.edgeBleed
+                        x: 0
                         y: -floatingWidget.outerCornerRadius
-                        width: floatingWidget.outerCornerRadius + floatingWidget.edgeBleed
+                        width: floatingWidget.outerCornerRadius
                         height: floatingWidget.outerCornerRadius
-                        preferredRendererType: Shape.CurveRenderer
-                        ShapePath {
-                            fillColor: Qt.rgba(ThemeBackend.base.r, ThemeBackend.base.g, ThemeBackend.base.b, 0.95)
-                            strokeColor: "transparent"
-                            startX: 0
-                            startY: 0
-                            PathLine { x: 0; y: floatingWidget.outerCornerRadius }
-                            PathLine { x: floatingWidget.edgeBleed + floatingWidget.outerCornerRadius; y: floatingWidget.outerCornerRadius }
-                            PathArc {
-                                x: floatingWidget.edgeBleed
-                                y: 0
-                                radiusX: floatingWidget.outerCornerRadius
-                                radiusY: floatingWidget.outerCornerRadius
-                                direction: PathArc.Clockwise
-                            }
-                            PathLine { x: 0; y: 0 }
-                        }
+                        property vector2d itemSize: Qt.vector2d(width, height)
+                        property real cornerIndex: 2.0
+                        property color color: Qt.alpha(ThemeBackend.base, ThemeBackend.elementOpacity)
+                        fragmentShader: "file://" + Caching.serpantinumDir + "/assets/shaders/ui/corner_cutout.frag.qsb"
                     }
 
-                    Shape {
+                    ShaderEffect {
                         visible: floatingWidget.outerCornerRadius > 0.5
-                        x: -floatingWidget.edgeBleed
+                        x: 0
                         y: parent.height
-                        width: floatingWidget.outerCornerRadius + floatingWidget.edgeBleed
+                        width: floatingWidget.outerCornerRadius
                         height: floatingWidget.outerCornerRadius
-                        preferredRendererType: Shape.CurveRenderer
-                        ShapePath {
-                            fillColor: Qt.rgba(ThemeBackend.base.r, ThemeBackend.base.g, ThemeBackend.base.b, 0.95)
-                            strokeColor: "transparent"
-                            startX: 0
-                            startY: floatingWidget.outerCornerRadius
-                            PathLine { x: 0; y: 0 }
-                            PathLine { x: floatingWidget.edgeBleed + floatingWidget.outerCornerRadius; y: 0 }
-                            PathArc {
-                                x: floatingWidget.edgeBleed
-                                y: floatingWidget.outerCornerRadius
-                                radiusX: floatingWidget.outerCornerRadius
-                                radiusY: floatingWidget.outerCornerRadius
-                                direction: PathArc.Counterclockwise
-                            }
-                            PathLine { x: 0; y: floatingWidget.outerCornerRadius }
-                        }
+                        property vector2d itemSize: Qt.vector2d(width, height)
+                        property real cornerIndex: 0.0
+                        property color color: Qt.alpha(ThemeBackend.base, ThemeBackend.elementOpacity)
+                        fragmentShader: "file://" + Caching.serpantinumDir + "/assets/shaders/ui/corner_cutout.frag.qsb"
                     }
-
                     Rectangle {
                         id: morphingBackground
                         x: -floatingWidget.edgeBleed
@@ -1145,8 +1279,20 @@ Variants {
                         bottomLeftRadius: 0
                         topRightRadius: floatingWidget.containerRadius
                         bottomRightRadius: floatingWidget.containerRadius
-                        color: Qt.rgba(ThemeBackend.base.r, ThemeBackend.base.g, ThemeBackend.base.b, 0.95)
+                        color: Qt.alpha(ThemeBackend.base, ThemeBackend.elementOpacity)
                         border.width: 0
+
+                        WallpaperBlur {
+                            z: -1
+                            anchors.fill: parent
+                            anchors.leftMargin: floatingWidget.edgeBleed
+                            topLeftRadius: parent.topLeftRadius
+                            topRightRadius: parent.topRightRadius
+                            bottomLeftRadius: parent.bottomLeftRadius
+                            bottomRightRadius: parent.bottomRightRadius
+                            filletRadius: sidebarFillets.filletRadius
+                            filletDir: sidebarFillets.filletDir
+                        }
 
                         MouseArea {
                             id: sidebarDragArea
@@ -1186,10 +1332,18 @@ Variants {
 
                         component EmptyBlock : Rectangle {
                             radius: Math.min(floatingWidget.s(10), Math.min(width, height) / 2)
-                            color: Qt.rgba(ThemeBackend.text.r, ThemeBackend.text.g, ThemeBackend.text.b, 0.05)
+                            color: blockGlass.active ? "transparent" : Qt.rgba(ThemeBackend.text.r, ThemeBackend.text.g, ThemeBackend.text.b, 0.05)
                             border.width: 0
                             border.color: Qt.rgba(ThemeBackend.text.r, ThemeBackend.text.g, ThemeBackend.text.b, 0.08)
                             clip: true
+
+                            GlassFill {
+                                id: blockGlass
+                                anchors.fill: parent
+                                radius: parent.radius
+                                tintColor: ThemeBackend.surface0
+                                tintAmount: 0.25
+                            }
                         }
 
                         Item {
@@ -1306,8 +1460,8 @@ Variants {
 
                         Item {
                             anchors.fill: parent
-                            anchors.leftMargin: floatingWidget.s(4) + 1
-                            anchors.rightMargin: floatingWidget.s(4) + 1
+                            anchors.leftMargin: floatingWidget.s(4)
+                            anchors.rightMargin: floatingWidget.s(4)
                             anchors.topMargin: floatingWidget.s(6)
                             anchors.bottomMargin: floatingWidget.s(6)
 
@@ -1482,8 +1636,24 @@ Variants {
                                 x: 0
                                 width: parent.width
                                 z: 0
-                                radius: Math.min(ThemeBackend.borderRadius, width / 2)
-                                color: ThemeBackend.mauve
+                                radius: width / 2
+                                color: highlightGlass.active ? "transparent" : ThemeBackend.mauve
+
+                                GlassFill {
+                                    id: highlightGlass
+                                    anchors.fill: parent
+                                    radius: parent.radius
+                                    tintColor: ThemeBackend.mauve
+                                    tintAmount: 0.5
+                                    shadow: 1
+                                    press: 0.3 + 0.7 * activeHighlight.lift
+                                }
+
+                                readonly property bool isMoving: Math.abs(actualTop - targetTop) > 0.5 || Math.abs(actualBottom - targetBottom) > 0.5
+                                property real lift: (highlightGlass.active && isMoving) ? 1.0 : 0.0
+                                Behavior on lift { NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
+                                scale: 1.0 + 0.14 * lift
+                                transformOrigin: Item.Center
 
                                 property int prevIdx: 0
                                 property int curIdx: floatingWidget.activeIndex
@@ -1517,13 +1687,13 @@ Variants {
 
                                     x: 0
                                     width: parent.width
-                                    radius: Math.min(ThemeBackend.borderRadius, width / 2)
+                                    radius: width / 2
                                     z: 1
 
                                     y: floatingWidget.barOffsetY + floatingWidget.getTargetY(index, floatingWidget.activeIndex)
                                     Behavior on y { enabled: !floatingWidget.disableAnim; NumberAnimation { duration: 350; easing.type: Easing.OutExpo } }
 
-                                    height: isActive ? floatingWidget.h_ac : floatingWidget.h_in
+                                    height: isActive ? floatingWidget.h_ac : width
                                     Behavior on height { enabled: !floatingWidget.disableAnim; NumberAnimation { duration: 350; easing.type: Easing.OutExpo } }
 
                                     color: isActive ? "transparent" : (isPressed ? Qt.rgba(ThemeBackend.mauve.r, ThemeBackend.mauve.g, ThemeBackend.mauve.b, 0.4) : (isHovered ? Qt.rgba(ThemeBackend.mauve.r, ThemeBackend.mauve.g, ThemeBackend.mauve.b, 0.25) : Qt.rgba(ThemeBackend.text.r, ThemeBackend.text.g, ThemeBackend.text.b, 0.15)))
@@ -1531,6 +1701,47 @@ Variants {
 
                                     scale: isActive ? 1.0 : (isPressed ? 0.95 : (isHovered ? 1.05 : 1.0))
                                     Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
+
+                                    Item {
+                                        id: tabIconItem
+                                        anchors.centerIn: parent
+                                        width: parent.width
+                                        height: parent.width
+                                        visible: !barPill.isActive || opacity > 0.001
+                                        opacity: barPill.isActive ? 0.0 : 1.0
+                                        Behavior on opacity { enabled: !floatingWidget.disableAnim; NumberAnimation { duration: 200 } }
+
+                                        Text {
+                                            anchors.centerIn: parent
+                                            font.family: ThemeBackend.iconFont
+                                            font.pixelSize: floatingWidget.s(14)
+                                            font.bold: true
+                                            color: barPill.isHovered ? ThemeBackend.text : ThemeBackend.subtext0
+                                            text: floatingWidget.getTabIcon(index)
+                                            rotation: floatingWidget.activeEdge === "right" ? 180 : (floatingWidget.activeEdge === "bottom" ? 90 : (floatingWidget.activeEdge === "top" ? -90 : 0))
+                                        }
+                                    }
+
+                                    Item {
+                                        id: tabNameWrapper
+                                        anchors.centerIn: parent
+                                        width: parent.width
+                                        height: parent.height
+                                        visible: barPill.isActive || opacity > 0.001
+                                        opacity: barPill.isActive ? 1.0 : 0.0
+                                        clip: true
+                                        Behavior on opacity { enabled: !floatingWidget.disableAnim; NumberAnimation { duration: 200 } }
+
+                                        Text {
+                                            anchors.centerIn: parent
+                                            text: floatingWidget.getTabName(index)
+                                            font.family: ThemeBackend.fontFamily
+                                            font.pixelSize: floatingWidget.s(10)
+                                            font.weight: Font.Bold
+                                            color: highlightGlass.active ? ThemeBackend.text : ThemeBackend.crust
+                                            rotation: (floatingWidget.activeEdge === "right" || floatingWidget.activeEdge === "bottom") ? 90 : -90
+                                        }
+                                    }
 
                                     MouseArea {
                                         id: barMouse
