@@ -9,23 +9,16 @@ import "../"
 Item {
     id: window
 
-    Caching { id: paths }
+    readonly property var paths: Caching
 
     property var notifModel: null
     property var liveNotifs: null
     property real layoutWidth: 500
     property real layoutHeight: 460
 
-    // --- Responsive Scaling Logic ---
-    Scaler {
-        id: scaler
-        currentWidth: (typeof masterWindow !== "undefined" && masterWindow.screen) ? masterWindow.screen.width : Screen.width
-        currentHeight: (typeof masterWindow !== "undefined" && masterWindow.screen) ? masterWindow.screen.height : Screen.height
-    }
-
-    readonly property real sf: scaler.baseScale
+    readonly property real sf: (typeof Scaler !== "undefined" && Scaler.baseScale) ? Scaler.baseScale : 1.0
     function s(val) { 
-        return Math.round(val * window.sf); 
+        return (typeof Scaler !== "undefined") ? Scaler.s(val) : Math.round(val * window.sf); 
     }
 
     property real targetMasterHeight: Math.round(580 * window.sf)

@@ -14,7 +14,7 @@ Variants {
             id: barWindow
             property bool pendingReload: false
             
-	    Caching { id: paths }
+	    readonly property var paths: Caching
 
 	    Component.onCompleted: {
  	        console.log("runDir:", paths.runDir)

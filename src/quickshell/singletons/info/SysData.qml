@@ -14,6 +14,8 @@ Item {
     property int temp: 0
     property real netRx: 0
     property real netTx: 0
+    property int gpu: 0
+    property int gpuTemp: 0
     property int diskPercent: 0
     property real diskGb: 0.0
     property real diskTotalGb: 0.0
@@ -44,15 +46,23 @@ Item {
 
         let p = text.split("|");
         if (p.length >= 4) {
-            root.cpu = parseInt(p[0]);
-            root.ramPercent = parseInt(p[1]);
-            root.ramGb = parseFloat(p[2]);
-            root.temp = parseInt(p[3]);
+            root.cpu = parseInt(p[0]) || 0;
+            root.ramPercent = parseInt(p[1]) || 0;
+            root.ramGb = parseFloat(p[2]) || 0.0;
+            root.temp = parseInt(p[3]) || 0;
         }
-        if (p.length >= 9) {
-            root.diskPercent = parseInt(p[6]);
-            root.diskGb = parseFloat(p[7]);
-            root.diskTotalGb = parseFloat(p[8]);
+        if (p.length >= 8) {
+            root.gpu = parseInt(p[6]) || 0;
+            root.gpuTemp = parseInt(p[7]) || 0;
+        }
+        if (p.length >= 11) {
+            root.diskPercent = parseInt(p[8]) || 0;
+            root.diskGb = parseFloat(p[9]) || 0.0;
+            root.diskTotalGb = parseFloat(p[10]) || 0.0;
+        } else if (p.length === 9) {
+            root.diskPercent = parseInt(p[6]) || 0;
+            root.diskGb = parseFloat(p[7]) || 0.0;
+            root.diskTotalGb = parseFloat(p[8]) || 0.0;
         }
     }
 
@@ -129,10 +139,12 @@ Item {
         }
     }
 
+    readonly property string qsWatchersDir: (Caching.qsDir ? Caching.qsDir : (Caching.home + "/.config/hypr/scripts/quickshell")) + "/watchers"
+
     Process {
         id: streamProc
         running: false
-        command: ["bash", Caching.qsDir + "/watchers/sys_fetcher.sh", "--stream", String(root.streamInterval)]
+        command: ["bash", root.qsWatchersDir + "/sys_fetcher.sh", "--stream", String(root.streamInterval)]
         environment: ({ QS_RUN_SYSDATA: root.stateDir })
         stdout: SplitParser {
             onRead: data => root.applyUsage(data)
@@ -142,7 +154,7 @@ Item {
     Process {
         id: fetchProc
         running: false
-        command: ["bash", Caching.qsDir + "/watchers/sys_fetcher.sh"]
+        command: ["bash", root.qsWatchersDir + "/sys_fetcher.sh"]
         environment: ({ QS_RUN_SYSDATA: root.stateDir })
         stdout: StdioCollector {
             onStreamFinished: root.applyUsage(this.text)

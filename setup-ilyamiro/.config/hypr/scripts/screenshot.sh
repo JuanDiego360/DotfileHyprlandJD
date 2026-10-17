@@ -89,6 +89,17 @@ while [[ "$#" -gt 0 ]]; do
     esac
 done
 
+# Detect focused monitor from Hyprland
+FOCUSED_MON=""
+if command -v hyprctl &>/dev/null; then
+    if command -v jq &>/dev/null; then
+        FOCUSED_MON=$(hyprctl monitors -j 2>/dev/null | jq -r '.[] | select(.focused == true) | .name' 2>/dev/null)
+    fi
+    if [ -z "$FOCUSED_MON" ]; then
+        FOCUSED_MON=$(hyprctl monitors 2>/dev/null | awk '/Monitor/ {m=$2} /focused: yes/ {print m}')
+    fi
+fi
+
 # ---------------------------------------------------------
 # INSTANT QR SCANNING EXECUTION
 # ---------------------------------------------------------
@@ -379,8 +390,13 @@ if [ "$FULL_MODE" = true ] || [ -n "$GEOMETRY" ]; then
     fi
 
     # Mode: Screenshot
-    GRIM_CMD="grim -"
-    [ -n "$GEOMETRY" ] && GRIM_CMD="grim -g \"$GEOMETRY\" -"
+    if [ -n "$GEOMETRY" ]; then
+        GRIM_CMD="grim -g \"$GEOMETRY\" -"
+    elif [ -n "$FOCUSED_MON" ]; then
+        GRIM_CMD="grim -o \"$FOCUSED_MON\" -"
+    else
+        GRIM_CMD="grim -"
+    fi
 
     if [ "$EDIT_MODE" = true ]; then
         eval $GRIM_CMD | GSK_RENDERER=gl satty --filename - --output-filename "$FILENAME" --init-tool brush --copy-command wl-copy
@@ -432,5 +448,6 @@ fi
 [ "$EDIT_MODE" = true ] && export QS_SCREENSHOT_EDIT="true" || export QS_SCREENSHOT_EDIT="false"
 [ -f "$CACHE_FILE" ] && export QS_CACHED_GEOM=$(cat "$CACHE_FILE") || export QS_CACHED_GEOM=""
 [ -f "$MODE_CACHE_FILE" ] && export QS_CACHED_MODE=$(cat "$MODE_CACHE_FILE") || export QS_CACHED_MODE="false"
+[ -n "$FOCUSED_MON" ] && export QS_TARGET_MON="${QS_TARGET_MON:-$FOCUSED_MON}"
 
 quickshell -p "$QML_PATH"

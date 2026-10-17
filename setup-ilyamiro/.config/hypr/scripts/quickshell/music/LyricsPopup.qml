@@ -7,26 +7,42 @@ import Quickshell
 import Quickshell.Io
 import "."
 import "../"
+import "../reusables/media" as Media
 
 Item {
     id: root
 
-    Scaler {
-        id: scaler
-        currentWidth: Screen.width
-    }
-    function s(val) { return scaler.s(val); }
+    function s(val) { return (typeof Scaler !== "undefined") ? Scaler.s(val) : val; }
 
-    MatugenColors { id: _theme }
-    readonly property color base: _theme.base
-    readonly property color surface0: _theme.surface0
-    readonly property color surface1: _theme.surface1
-    readonly property color surface2: _theme.surface2
-    readonly property color text: _theme.text
-    readonly property color subtext0: _theme.subtext0
-    readonly property color mauve: _theme.mauve
-    readonly property color blue: _theme.blue
-    readonly property color pink: _theme.pink
+    readonly property color base: (typeof ThemeBackend !== "undefined" && ThemeBackend.base) ? ThemeBackend.base : "#1e1e2e"
+    readonly property color surface0: (typeof ThemeBackend !== "undefined" && ThemeBackend.surface0) ? ThemeBackend.surface0 : "#313244"
+    readonly property color surface1: (typeof ThemeBackend !== "undefined" && ThemeBackend.surface1) ? ThemeBackend.surface1 : "#45475a"
+    readonly property color surface2: (typeof ThemeBackend !== "undefined" && ThemeBackend.surface2) ? ThemeBackend.surface2 : "#585b70"
+    readonly property color text: (typeof ThemeBackend !== "undefined" && ThemeBackend.text) ? ThemeBackend.text : "#cdd6f4"
+    readonly property color subtext0: (typeof ThemeBackend !== "undefined" && ThemeBackend.subtext0) ? ThemeBackend.subtext0 : "#a6adc8"
+    readonly property color mauve: (typeof ThemeBackend !== "undefined" && ThemeBackend.mauve) ? ThemeBackend.mauve : "#cba6f7"
+    readonly property color blue: (typeof ThemeBackend !== "undefined" && ThemeBackend.blue) ? ThemeBackend.blue : "#89b4fa"
+    readonly property color pink: (typeof ThemeBackend !== "undefined" && ThemeBackend.pink) ? ThemeBackend.pink : "#f5c2e7"
+
+    onVisibleChanged: {
+        if (root.visible && typeof Lyrics !== "undefined") {
+            Lyrics.subscribe();
+        } else if (!root.visible && typeof Lyrics !== "undefined") {
+            Lyrics.unsubscribe();
+        }
+    }
+
+    Component.onCompleted: {
+        if (root.visible && typeof Lyrics !== "undefined") {
+            Lyrics.subscribe();
+        }
+    }
+
+    Component.onDestruction: {
+        if (typeof Lyrics !== "undefined") {
+            Lyrics.unsubscribe();
+        }
+    }
 
     // Background Container
     Rectangle {
@@ -81,7 +97,7 @@ Item {
 
                     Text {
                         anchors.centerIn: parent
-                        text: (lyricsComponent.activePlayer && lyricsComponent.activePlayer.isPlaying) ? "󰏤" : "󰐊"
+                        text: (typeof MprisController !== "undefined" && MprisController.isPlaying) ? "󰏤" : "󰐊"
                         font.family: "Iosevka Nerd Font"
                         font.pixelSize: root.s(16)
                         color: root.mauve
@@ -127,7 +143,7 @@ Item {
                 spacing: root.s(8)
 
                 Text {
-                    text: lyricsComponent.rawTrackTitle ? (lyricsComponent.rawTrackArtist + " — " + lyricsComponent.rawTrackTitle) : "Sin pista activa"
+                    text: (typeof MprisController !== "undefined" && MprisController.trackTitle) ? (MprisController.trackArtist + " — " + MprisController.trackTitle) : "Sin pista activa"
                     font.family: "Inter"
                     font.pixelSize: root.s(13)
                     color: root.subtext0
@@ -137,10 +153,12 @@ Item {
             }
 
             // Main Lyrics View
-            LyricsView {
+            Media.LyricsView {
                 id: lyricsComponent
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                visible: true
+                animate: true
             }
         }
     }

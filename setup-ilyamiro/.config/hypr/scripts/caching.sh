@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
-export QS_CACHE_DIR="$HOME/.cache/quickshell"
-export QS_STATE_DIR="$HOME/.local/state/quickshell"
-export QS_RUN_DIR="${XDG_RUNTIME_DIR:-/tmp}/quickshell"
+export QS_CACHE_DIR="$HOME/.cache/serpantinum"
+export QS_STATE_DIR="$HOME/.local/state/serpantinum"
+export QS_RUN_DIR="${XDG_RUNTIME_DIR:-/tmp}/serpantinum"
 export QS_LOG_DIR="$QS_RUN_DIR/logs"
+export SERPANTINUM_DIR="$HOME/dotfiles/src"
+export QS_SETTINGS="$HOME/.config/hypr/settings.json"
+export QS_COLORS_JSON="$HOME/.local/state/serpantinum/qs_colors.json"
 
 mkdir -p "$QS_CACHE_DIR" "$QS_STATE_DIR" "$QS_RUN_DIR" "$QS_LOG_DIR"
 SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
-QS_DIR="$SCRIPT_DIR/quickshell"
+export QS_DIR="$SCRIPT_DIR/quickshell"
+export MAIN_QML="${MAIN_QML:-$HOME/.config/hypr/scripts/quickshell/Shell.qml}"
 
 # Function to dynamically create and export cache directories for ANY module by request
 qs_ensure_cache() {

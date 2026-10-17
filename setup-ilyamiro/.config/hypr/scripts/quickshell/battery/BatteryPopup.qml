@@ -9,7 +9,7 @@ import "../"
 Item {
     id: window
 
-    Caching { id: paths }
+    readonly property var paths: Caching
 
     // --- RECEIVE THE DBUS LIST FROM MAIN.QML ---
     property var notifModel

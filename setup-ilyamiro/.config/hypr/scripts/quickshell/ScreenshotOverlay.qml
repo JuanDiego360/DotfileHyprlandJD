@@ -16,14 +16,32 @@ PanelWindow {
     
     exclusionMode: ExclusionMode.Ignore 
     focusable: true
-    screen: Quickshell.cursorScreen
-    width: screen.width
-    height: screen.height
 
-    Caching { id: paths }
+    property var targetScreen: {
+        let monName = Quickshell.env("QS_TARGET_MON");
+        if (monName && Quickshell.screens) {
+            for (let i = 0; i < Quickshell.screens.length; i++) {
+                let s = Quickshell.screens[i];
+                if (s && s.name === monName) return s;
+            }
+        }
+        return Quickshell.cursorScreen ? Quickshell.cursorScreen : (Quickshell.screens ? (Quickshell.screens[0] !== undefined ? Quickshell.screens[0] : (Quickshell.screens.get ? Quickshell.screens.get(0) : null)) : null);
+    }
 
-    Scaler { id: scaler; currentWidth: width }
-    function s(val) { return scaler.s(val); }
+    screen: targetScreen
+    width: screen ? screen.width : 1920
+    height: screen ? screen.height : 1080
+
+    anchors {
+        top: true
+        bottom: true
+        left: true
+        right: true
+    }
+
+    readonly property var paths: Caching
+
+    function s(val) { return (typeof Scaler !== "undefined" && typeof Scaler.s === "function") ? Scaler.s(val) : val; }
     
     MatugenColors { id: _theme }
     property color dimColor: Qt.alpha(_theme.crust, 0.50)
@@ -101,10 +119,10 @@ PanelWindow {
     property var cachedParts: cachedGeom.trim() !== "" ? cachedGeom.trim().split(",") : []
     property bool hasValidCache: cachedParts.length === 4 && parseFloat(cachedParts[2]) > 10
 
-    property real startX: hasValidCache ? parseFloat(cachedParts[0]) : 0
-    property real startY: hasValidCache ? parseFloat(cachedParts[1]) : 0
-    property real endX: hasValidCache ? (parseFloat(cachedParts[0]) + parseFloat(cachedParts[2])) : 0
-    property real endY: hasValidCache ? (parseFloat(cachedParts[1]) + parseFloat(cachedParts[3])) : 0
+    property real startX: hasValidCache ? Math.min(Math.max(0, parseFloat(cachedParts[0])), (screen ? screen.width : 1920) - 10) : 0
+    property real startY: hasValidCache ? Math.min(Math.max(0, parseFloat(cachedParts[1])), (screen ? screen.height : 1080) - 10) : 0
+    property real endX: hasValidCache ? Math.min((screen ? screen.width : 1920), Math.max(0, parseFloat(cachedParts[0]) + parseFloat(cachedParts[2]))) : 0
+    property real endY: hasValidCache ? Math.min((screen ? screen.height : 1080), Math.max(0, parseFloat(cachedParts[1]) + parseFloat(cachedParts[3]))) : 0
     
     // Fluid Geometry Snapping
     Behavior on startX { enabled: !root.isSelecting; NumberAnimation { duration: 350; easing.type: Easing.OutExpo } }
@@ -125,7 +143,7 @@ PanelWindow {
     property real selW: Math.abs(endX - startX)
     property real selH: Math.abs(endY - startY)
     
-    property string geometryString: `${Math.round(selX + screen.x)},${Math.round(selY + screen.y)} ${Math.round(selW)}x${Math.round(selH)}`
+    property string geometryString: `${Math.round(selX + (screen ? screen.x : 0))},${Math.round(selY + (screen ? screen.y : 0))} ${Math.round(selW)}x${Math.round(selH)}`
     property int interactionMode: 0
     property real anchorX: 0; property real anchorY: 0
     property real initX: 0; property real initY: 0

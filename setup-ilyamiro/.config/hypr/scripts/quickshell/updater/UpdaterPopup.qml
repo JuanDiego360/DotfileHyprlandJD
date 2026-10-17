@@ -12,7 +12,7 @@ Item {
     id: window
     focus: true
 
-    Caching { id: paths }
+    readonly property var paths: Caching
     readonly property string videoPath: paths.getRunDir("updater") + "/video.mp4"
     
     // WAYLAND ANTI-DEADLOCK: Guarantee the initial frame is never 0x0.

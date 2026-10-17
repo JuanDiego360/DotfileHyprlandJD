@@ -97,7 +97,7 @@ PanelWindow {
                 return;
             }
 
-            if (cmd === "launcher" || targetWidget === "launcher") {
+            if (cmd === "launcher" || targetWidget === "launcher" || cmd === "applauncher" || targetWidget === "applauncher") {
                 if (cmd === "close") {
                     LauncherController.hide();
                 } else if (cmd === "open") {
@@ -120,6 +120,13 @@ PanelWindow {
                     LauncherController.hide();
                     ClipboardController.toggle();
                 }
+                return;
+            }
+
+            if (cmd === "floating" || targetWidget === "floating" || cmd === "quickactions" || targetWidget === "quickactions") {
+                let targetIdx = (arg !== "" && arg !== undefined) ? arg : ((cmd === "floating" || cmd === "quickactions") ? targetWidget : "1");
+                let targetScr = masterWindow.resolveTargetScreen();
+                FloatingController.toggle(targetIdx, targetScr);
                 return;
             }
 

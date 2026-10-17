@@ -11,16 +11,10 @@ Item {
     id: window
     focus: true
 
-    Caching { id: paths }
+    readonly property var paths: Caching
 
-    // --- Responsive Scaling Logic ---
-    Scaler {
-        id: scaler
-        currentWidth: Screen.width
-    }
-    
     function s(val) { 
-        return scaler.s(val); 
+        return (typeof Scaler !== "undefined" && typeof Scaler.s === "function") ? Scaler.s(val) : val; 
     }
 
     // -------------------------------------------------------------------------

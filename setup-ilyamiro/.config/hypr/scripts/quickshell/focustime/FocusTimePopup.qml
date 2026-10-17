@@ -11,16 +11,10 @@ import "../"
 Item {
     id: window
 
-    Caching { id: paths }
-
-    // --- Responsive Scaling Logic ---
-    Scaler {
-        id: scaler
-        currentWidth: Screen.width
-    }
+    readonly property var paths: Caching
     
     function s(val) { 
-        return scaler.s(val); 
+        return (typeof Scaler !== "undefined") ? Scaler.s(val) : val; 
     }
 
    // -------------------------------------------------------------------------

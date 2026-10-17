@@ -11,16 +11,11 @@ Item {
     id: window
     focus: true
 
-    Caching { id: paths }
+    readonly property var paths: Caching
     readonly property string moviesCache: paths.getCacheDir("movies")
 
-    Scaler {
-        id: scaler
-        currentWidth: Screen.width
-    }
-
     function s(val) { 
-        return scaler.s(val); 
+        return (typeof Scaler !== "undefined") ? Scaler.s(val) : val; 
     }
 
     MatugenColors { id: _theme }

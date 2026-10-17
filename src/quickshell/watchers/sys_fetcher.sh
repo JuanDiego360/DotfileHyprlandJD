@@ -178,8 +178,52 @@ load_disk() {
     fi
 }
 
+find_gpu_path() {
+    GPU_TEMP_PATH=""
+    GPU_BUSY_PATH=""
+    local hwmon hname card
+    for hwmon in /sys/class/hwmon/hwmon*; do
+        [ -f "$hwmon/name" ] || continue
+        read -r hname < "$hwmon/name" 2>/dev/null
+        if [ "$hname" = "amdgpu" ] && [ -f "$hwmon/temp1_input" ]; then
+            GPU_TEMP_PATH="$hwmon/temp1_input"
+            break
+        fi
+    done
+    for card in /sys/class/drm/card*; do
+        if [ -f "$card/device/gpu_busy_percent" ]; then
+            GPU_BUSY_PATH="$card/device/gpu_busy_percent"
+            break
+        fi
+    done
+}
+
+read_gpu() {
+    GPU_USAGE=0
+    GPU_TEMP=0
+    if [ -n "$GPU_BUSY_PATH" ] && [ -f "$GPU_BUSY_PATH" ]; then
+        read -r GPU_USAGE < "$GPU_BUSY_PATH" 2>/dev/null
+        GPU_USAGE=${GPU_USAGE:-0}
+    fi
+    if [ -n "$GPU_TEMP_PATH" ] && [ -f "$GPU_TEMP_PATH" ]; then
+        local raw=""
+        read -r raw < "$GPU_TEMP_PATH" 2>/dev/null
+        if [ "${raw:-0}" -gt 1000 ] 2>/dev/null; then
+            GPU_TEMP=$((raw / 1000))
+        else
+            GPU_TEMP=${raw:-0}
+        fi
+    fi
+    if [ "$GPU_USAGE" -eq 0 ] && [ "$GPU_TEMP" -eq 0 ] && command -v nvidia-smi >/dev/null 2>&1; then
+        local nv_u nv_t
+        read -r nv_u nv_t <<< "$(nvidia-smi --query-gpu=utilization.gpu,temperature.gpu --format=csv,noheader,nounits 2>/dev/null | head -n1 | tr ',' ' ')"
+        [ -n "$nv_u" ] && GPU_USAGE="$nv_u"
+        [ -n "$nv_t" ] && GPU_TEMP="$nv_t"
+    fi
+}
+
 print_usage() {
-    echo "$CPU_USAGE|$RAM_PCT|$RAM_GB|$TEMP|$RX_RATE|$TX_RATE|$DISK_PCT|$DISK_USED_GB|$DISK_TOTAL_GB"
+    echo "$CPU_USAGE|$RAM_PCT|$RAM_GB|$TEMP|$RX_RATE|$TX_RATE|$GPU_USAGE|$GPU_TEMP|$DISK_PCT|$DISK_USED_GB|$DISK_TOTAL_GB"
 }
 
 if [ "$1" = "--stream" ]; then
@@ -188,6 +232,7 @@ if [ "$1" = "--stream" ]; then
     exec {sleep_fd}<> <(:)
 
     find_temp_path
+    find_gpu_path
     load_prev_stat
     prev_us=$(( ${prev_time:-0} * 1000000 ))
     NOW=${EPOCHREALTIME%%[!0-9]*}
@@ -205,6 +250,7 @@ if [ "$1" = "--stream" ]; then
 
         read_mem
         read_temp
+        read_gpu
         [ $((NOW - DISK_TIME)) -ge 60 ] && update_disk
 
         print_usage || exit 0
@@ -220,6 +266,8 @@ compute_rates $(( (NOW - ${prev_time:-0}) * 1000000 ))
 save_prev_stat
 
 read_mem
+find_gpu_path
+read_gpu
 
 LAST_TEMP_TIME=0
 [ -f "$TEMP_TIME_FILE" ] && read -r LAST_TEMP_TIME < "$TEMP_TIME_FILE" 2>/dev/null

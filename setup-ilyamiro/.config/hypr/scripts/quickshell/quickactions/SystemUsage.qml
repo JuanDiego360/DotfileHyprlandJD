@@ -8,8 +8,6 @@ import "../" // Resolves the SysData singleton from the parent directory
 Item {
     id: root
 
-    Caching { id: paths }
-
     // By NOT declaring these as local properties, we allow QML to naturally 
     // inherit them from the parent Loader in Floating.qml
     property string safeActiveEdge: typeof activeEdge !== "undefined" ? activeEdge : "left"
@@ -29,12 +27,13 @@ Item {
     property real baseW: s(360)
     property real baseL: s(250)
 
-    property real preferredWidth: root.safeActiveEdge === "bottom" ? baseL + 80 : baseW
-    property real preferredExtraLength: root.safeActiveEdge === "bottom" ? baseW : baseL
+    property real preferredWidth: (root.safeActiveEdge === "bottom" || root.safeActiveEdge === "top") ? baseL + 80 : baseW
+    property real preferredExtraLength: (root.safeActiveEdge === "bottom" || root.safeActiveEdge === "top") ? baseW : baseL
 
     property real counterRotation: {
         if (root.safeActiveEdge === "right") return 180;
         if (root.safeActiveEdge === "bottom") return 90;
+        if (root.safeActiveEdge === "top") return -90;
         return 0; 
     }
 
@@ -46,18 +45,18 @@ Item {
     function cellH(my, mh) { return (mh * orientedRoot.height) - ((my > 0 ? sp / 2 : 0) + ((my + mh) < 0.99 ? sp / 2 : 0)); }
 
     // Unified Matugen Theming (Strict Type Binding)
-    property color cBase: typeof mochaColors !== "undefined" && mochaColors ? mochaColors.base : "#1e1e2e"
-    property color cCrust: typeof mochaColors !== "undefined" && mochaColors ? mochaColors.crust : "#11111b"
-    property color cSurface0: typeof mochaColors !== "undefined" && mochaColors ? mochaColors.surface0 : "#313244"
-    property color cSurface1: typeof mochaColors !== "undefined" && mochaColors ? mochaColors.surface1 : "#45475a"
-    property color cText: typeof mochaColors !== "undefined" && mochaColors ? mochaColors.text : "#cdd6f4"
-    property color cSubtext0: typeof mochaColors !== "undefined" && mochaColors ? mochaColors.subtext0 : "#a6adc8"
-    property color cMauve: typeof mochaColors !== "undefined" && mochaColors ? mochaColors.mauve : "#cba6f7"
-    property color cSapphire: typeof mochaColors !== "undefined" && mochaColors ? mochaColors.sapphire : "#74c7ec"
-    property color cGreen: typeof mochaColors !== "undefined" && mochaColors ? mochaColors.green : "#a6e3a1"
-    property color cPeach: typeof mochaColors !== "undefined" && mochaColors ? mochaColors.peach : "#fab387"
-    property color cYellow: typeof mochaColors !== "undefined" && mochaColors ? mochaColors.yellow : "#f9e2af"
-    property color cRed: typeof mochaColors !== "undefined" && mochaColors ? mochaColors.red : "#f38ba8"
+    property color cBase: (typeof ThemeBackend !== "undefined" && ThemeBackend.base) ? ThemeBackend.base : (typeof mochaColors !== "undefined" && mochaColors ? mochaColors.base : "#1e1e2e")
+    property color cCrust: (typeof ThemeBackend !== "undefined" && ThemeBackend.crust) ? ThemeBackend.crust : (typeof mochaColors !== "undefined" && mochaColors ? mochaColors.crust : "#11111b")
+    property color cSurface0: (typeof ThemeBackend !== "undefined" && ThemeBackend.surface0) ? ThemeBackend.surface0 : (typeof mochaColors !== "undefined" && mochaColors ? mochaColors.surface0 : "#313244")
+    property color cSurface1: (typeof ThemeBackend !== "undefined" && ThemeBackend.surface1) ? ThemeBackend.surface1 : (typeof mochaColors !== "undefined" && mochaColors ? mochaColors.surface1 : "#45475a")
+    property color cText: (typeof ThemeBackend !== "undefined" && ThemeBackend.text) ? ThemeBackend.text : (typeof mochaColors !== "undefined" && mochaColors ? mochaColors.text : "#cdd6f4")
+    property color cSubtext0: (typeof ThemeBackend !== "undefined" && ThemeBackend.subtext0) ? ThemeBackend.subtext0 : (typeof mochaColors !== "undefined" && mochaColors ? mochaColors.subtext0 : "#a6adc8")
+    property color cMauve: (typeof ThemeBackend !== "undefined" && ThemeBackend.mauve) ? ThemeBackend.mauve : (typeof mochaColors !== "undefined" && mochaColors ? mochaColors.mauve : "#cba6f7")
+    property color cSapphire: (typeof ThemeBackend !== "undefined" && ThemeBackend.sapphire) ? ThemeBackend.sapphire : (typeof mochaColors !== "undefined" && mochaColors ? mochaColors.sapphire : "#74c7ec")
+    property color cGreen: (typeof ThemeBackend !== "undefined" && ThemeBackend.green) ? ThemeBackend.green : (typeof mochaColors !== "undefined" && mochaColors ? mochaColors.green : "#a6e3a1")
+    property color cPeach: (typeof ThemeBackend !== "undefined" && ThemeBackend.peach) ? ThemeBackend.peach : (typeof mochaColors !== "undefined" && mochaColors ? mochaColors.peach : "#fab387")
+    property color cYellow: (typeof ThemeBackend !== "undefined" && ThemeBackend.yellow) ? ThemeBackend.yellow : (typeof mochaColors !== "undefined" && mochaColors ? mochaColors.yellow : "#f9e2af")
+    property color cRed: (typeof ThemeBackend !== "undefined" && ThemeBackend.red) ? ThemeBackend.red : (typeof mochaColors !== "undefined" && mochaColors ? mochaColors.red : "#f38ba8")
 
     property color accent: cMauve
     property color textPrimary: cText
@@ -68,14 +67,31 @@ Item {
     function alpha(color, a) { return Qt.rgba(color.r, color.g, color.b, a); }
 
     property bool widgetVisible: parent !== null && parent.visible !== undefined ? parent.visible : true
-    
+    property bool isSubscribed: false
+
+    function updateSubscription() {
+        if (root.widgetVisible && !root.isSubscribed) {
+            SysData.subscribe();
+            root.isSubscribed = true;
+        } else if (!root.widgetVisible && root.isSubscribed) {
+            SysData.unsubscribe();
+            root.isSubscribed = false;
+        }
+    }
+
+    onWidgetVisibleChanged: updateSubscription()
+    Component.onCompleted: updateSubscription()
+    Component.onDestruction: {
+        if (root.isSubscribed) {
+            SysData.unsubscribe();
+            root.isSubscribed = false;
+        }
+    }
+
     property real globalWavePhase: 0.0
     NumberAnimation on globalWavePhase {
         from: 0; to: Math.PI * 2; duration: 1800; loops: Animation.Infinite; running: root.widgetVisible
     }
-
-    Component.onCompleted: SysData.subscribe()
-    Component.onDestruction: SysData.unsubscribe()
 
     // --- ANIMATED DATA STATE BINDINGS ---
     // Smooths out raw SysData to drive both the visual wave and the dynamic text counters in constant 800ms time

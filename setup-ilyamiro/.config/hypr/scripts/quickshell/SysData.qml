@@ -6,7 +6,7 @@ import Quickshell.Io
 Item {
     id: root
     
-    Caching { id: paths }
+    readonly property var paths: Caching
     
     // --- Centralized Properties ---
     property int cpu: 0

@@ -20,20 +20,19 @@ Item {
     }
 
     // Theme Colors
-    MatugenColors { id: _theme }
-    readonly property color base: _theme.base
-    readonly property color surface0: _theme.surface0
-    readonly property color surface1: _theme.surface1
-    readonly property color surface2: _theme.surface2
-    readonly property color text: _theme.text
-    readonly property color subtext0: _theme.subtext0
-    readonly property color subtext1: _theme.subtext1
-    readonly property color overlay0: _theme.overlay0
-    readonly property color overlay2: _theme.overlay2
-    readonly property color blue: _theme.blue
-    readonly property color sapphire: _theme.sapphire
-    readonly property color mauve: _theme.mauve
-    readonly property color pink: _theme.pink
+    readonly property color base: (typeof ThemeBackend !== "undefined" && ThemeBackend.base) ? ThemeBackend.base : "#1e1e2e"
+    readonly property color surface0: (typeof ThemeBackend !== "undefined" && ThemeBackend.surface0) ? ThemeBackend.surface0 : "#313244"
+    readonly property color surface1: (typeof ThemeBackend !== "undefined" && ThemeBackend.surface1) ? ThemeBackend.surface1 : "#45475a"
+    readonly property color surface2: (typeof ThemeBackend !== "undefined" && ThemeBackend.surface2) ? ThemeBackend.surface2 : "#585b70"
+    readonly property color text: (typeof ThemeBackend !== "undefined" && ThemeBackend.text) ? ThemeBackend.text : "#cdd6f4"
+    readonly property color subtext0: (typeof ThemeBackend !== "undefined" && ThemeBackend.subtext0) ? ThemeBackend.subtext0 : "#a6adc8"
+    readonly property color subtext1: (typeof ThemeBackend !== "undefined" && ThemeBackend.subtext1) ? ThemeBackend.subtext1 : "#bac2de"
+    readonly property color overlay0: (typeof ThemeBackend !== "undefined" && ThemeBackend.overlay0) ? ThemeBackend.overlay0 : "#6c7086"
+    readonly property color overlay2: (typeof ThemeBackend !== "undefined" && ThemeBackend.overlay2) ? ThemeBackend.overlay2 : "#9399b2"
+    readonly property color blue: (typeof ThemeBackend !== "undefined" && ThemeBackend.blue) ? ThemeBackend.blue : "#89b4fa"
+    readonly property color sapphire: (typeof ThemeBackend !== "undefined" && ThemeBackend.sapphire) ? ThemeBackend.sapphire : "#74c7ec"
+    readonly property color mauve: (typeof ThemeBackend !== "undefined" && ThemeBackend.mauve) ? ThemeBackend.mauve : "#cba6f7"
+    readonly property color pink: (typeof ThemeBackend !== "undefined" && ThemeBackend.pink) ? ThemeBackend.pink : "#f5c2e7"
 
     // Optional musicData binding passed from parent MusicPopup
     property var musicData: null

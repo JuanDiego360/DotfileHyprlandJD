@@ -306,7 +306,7 @@ Variants {
 
             property var tabModules: [
                 "actions/DrawAction.qml",
-                "actions/SystemUsage.qml",
+                "SystemUsage.qml",
                 "actions/Timer.qml",
                 "actions/Notes.qml"
             ]
@@ -352,6 +352,24 @@ Variants {
                     }
                 }
 
+                function onToggleRequested(screen, index) {
+                    if (floatingWidget.matchesScreen(screen)) {
+                        let targetIdx = parseInt(index);
+                        if (isNaN(targetIdx)) targetIdx = 0;
+                        if (floatingWidget.isSidebarVisible && floatingWidget.activeIndex === targetIdx) {
+                            floatingWidget.isPinned = false;
+                            floatingWidget.isSidebarVisible = false;
+                            floatingWidget.isExpanded = false;
+                        } else {
+                            floatingWidget.activeIndex = targetIdx;
+                            floatingWidget.isPinned = false;
+                            floatingWidget.showSidebar(floatingWidget.activeEdge, floatingWidget.currentPos, true);
+                            floatingWidget.isExpanded = true;
+                            floatingWidget.isPinned = true;
+                        }
+                    }
+                }
+
                 function onShowSystemUsageRequested(screen) {
                     if (floatingWidget.matchesScreen(screen)) {
                         floatingWidget.showSystemUsage();
@@ -360,8 +378,11 @@ Variants {
             }
 
             function matchesScreen(targetScreen) {
-                return targetScreen && floatingWidget.screen
-                    && (targetScreen === floatingWidget.screen || targetScreen.name === floatingWidget.screen.name);
+                if (!targetScreen) {
+                    let defaultScr = Quickshell.screens ? (Quickshell.screens[0] !== undefined ? Quickshell.screens[0] : (Quickshell.screens.get ? Quickshell.screens.get(0) : null)) : null;
+                    return floatingWidget.screen === defaultScr;
+                }
+                return floatingWidget.screen && (targetScreen === floatingWidget.screen || targetScreen.name === floatingWidget.screen.name);
             }
 
             function setIndex(index) {

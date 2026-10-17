@@ -15,10 +15,10 @@ TARGET="$2"
 SUBTARGET="$3"
 
 send_qs_ipc() {
-    if [[ -n "$MAIN_QML" ]]; then
-        quickshell -p "$MAIN_QML" ipc call main handleCommand "$@" >/dev/null 2>&1
-    else
-        quickshell ipc call main handleCommand "$@" >/dev/null 2>&1
+    local target_qml="${MAIN_QML:-$HOME/.config/hypr/scripts/quickshell/Shell.qml}"
+    if ! quickshell -p "$target_qml" ipc call main handleCommand "$@" >/dev/null 2>&1; then
+        quickshell -p "$HOME/.config/hypr/scripts/quickshell/Shell.qml" ipc call main handleCommand "$@" >/dev/null 2>&1 || \
+        quickshell ipc call main handleCommand "$@" >/dev/null 2>&1 || true
     fi
 }
 
