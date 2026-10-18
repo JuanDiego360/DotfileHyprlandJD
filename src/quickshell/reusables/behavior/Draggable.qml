@@ -76,12 +76,10 @@ Item {
         if (!flowDecay.running) flowDecay.start();
     }
 
-    Timer {
+    FrameAnimation {
         id: flowDecay
-        interval: 16
-        repeat: true
         onTriggered: {
-            root.flow *= 0.88;
+            root.flow *= Math.pow(0.88, frameTime / 0.016);
             if (root.flow < 0.01) {
                 root.flow = 0;
                 stop();

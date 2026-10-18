@@ -39,7 +39,6 @@ Item {
     Component.onCompleted: nestLevel = standalone ? 0 : Nesting.nestLevel(root, null, true)
     readonly property bool transitioning: engine ? (engine.transitionProgress > 0.0 && engine.transitionProgress < 1.0) : false
     property int frame: 0
-    property int tick: 0
 
     property var screenOverride: null
     property bool useSnapshot: false
@@ -102,6 +101,8 @@ Item {
     onTintChanged: refreshTexture()
     onBlurStrengthChanged: refreshTexture()
 
+    property var geoSig: [NaN, 0, 0, 0, 0, 0, 0, 0]
+
     function refreshGeometry() {
         const w = root.hostWindow;
         const scr = root.hostScreen;
@@ -120,6 +121,9 @@ Item {
         }
         const p0 = root.mapFromItem(null, -wx, -wy);
         const px = root.mapFromItem(null, 1 - wx, -wy);
+        const gs = root.geoSig;
+        if (p0.x === gs[0] && p0.y === gs[1] && px.x === gs[2] && px.y === gs[3] && scr.width === gs[4] && scr.height === gs[5] && root.width === gs[6] && root.height === gs[7]) return;
+        gs[0] = p0.x; gs[1] = p0.y; gs[2] = px.x; gs[3] = px.y; gs[4] = scr.width; gs[5] = scr.height; gs[6] = root.width; gs[7] = root.height;
         const dx = px.x - p0.x;
         const dy = px.y - p0.y;
         const len = Math.sqrt(dx * dx + dy * dy);
@@ -143,7 +147,7 @@ Item {
         running: root.active
         onTriggered: {
             root.refreshGeometry();
-            if (root.consumers > 0 && (++root.tick % 2) === 0) root.frame++;
+            if (root.consumers > 0) root.frame++;
         }
     }
 

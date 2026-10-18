@@ -700,7 +700,7 @@ Item {
         introTabs = 0.0;
         startupSequence.restart();
         Updater.checkUpdate();
-        if (searchLoadCursor < totalTabSlots) {
+        if (searchLoadCursor < totalTabSlots && !searchLoadTimer.running) {
             searchLoadTimer.interval = 1400;
             searchLoadTimer.restart();
         }
@@ -811,7 +811,6 @@ Item {
             highlightTimer.stop();
             searchClearTimer.stop();
             searchRebuildTimer.stop();
-            searchLoadTimer.stop();
             clearSearchHaystacks();
             rebuildSearchIndex();
             pendingHighlightItem = null;
@@ -831,6 +830,10 @@ Item {
     }
 
     Component.onCompleted: {
+        if (searchLoadCursor < totalTabSlots && !searchLoadTimer.running) {
+            searchLoadTimer.interval = 600;
+            searchLoadTimer.restart();
+        }
         if (visible) {
             forceActiveFocus();
             focusTimer.restart();

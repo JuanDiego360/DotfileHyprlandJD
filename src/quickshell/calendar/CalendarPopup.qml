@@ -134,7 +134,7 @@ Item {
         if (visible) {
             forceActiveFocus();
             focusTimer.restart();
-            window.currentTime = new Date();
+            window.gridDay = DateTime.now.getDate();
             updateCalendarGrid();
             Weather.refresh(false);
             resetAndPlayIntro();
@@ -227,7 +227,7 @@ Item {
         from: 0; to: Math.PI * 2; duration: 9000; loops: Animation.Infinite; running: window.visible
     }
 
-    property var currentTime: new Date()
+    property var currentTime: DateTime.now
     property real currentEpoch: currentTime.getTime() / 1000
 
     property real secondPulse: 1.0
@@ -236,15 +236,19 @@ Item {
         to: 1.0; duration: 600; easing.type: Easing.OutQuint; running: false
     }
 
-    Timer {
-        interval: 1000; running: window.visible; repeat: true
-        onTriggered: {
-            window.currentTime = new Date();
+    property int gridDay: -1
+
+    Connections {
+        target: DateTime
+        enabled: window.visible
+        function onNowChanged() {
             window.secondPulse = 1.02;
             pulseReset.start();
 
-            if (window.currentTime.getHours() === 0 && window.currentTime.getMinutes() === 0 && window.currentTime.getSeconds() === 0) {
-                updateCalendarGrid();
+            let day = DateTime.now.getDate();
+            if (day !== window.gridDay) {
+                window.gridDay = day;
+                window.updateCalendarGrid();
             }
         }
     }
