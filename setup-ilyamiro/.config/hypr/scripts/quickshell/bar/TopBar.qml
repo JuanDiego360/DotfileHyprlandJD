@@ -791,7 +791,7 @@ Item {
                 z: -1
                 anchors.fill: parent
                 radius: parent.radius
-                surfaceEnabled: !contentWrapper.isSolid
+                surfaceEnabled: !contentWrapper || !contentWrapper.isSolid
                 standalone: true
             }
 
@@ -800,7 +800,7 @@ Item {
                 anchors.fill: parent
                 z: -1
                 radius: parent.radius
-                allowed: contentWrapper.isSolid && contentWrapper.distinctPills
+                allowed: !!contentWrapper && contentWrapper.isSolid && contentWrapper.distinctPills
                 tintColor: ThemeBackend.surface0
                 tintAmount: 0.3
             }

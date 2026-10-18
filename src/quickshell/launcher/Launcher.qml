@@ -206,7 +206,7 @@ PanelWindow {
         "position": "top",
         "width": 600,
         "itemCount": 6,
-        "terminalCommand": "kitty -e",
+        "terminalCommand": "wezterm start -- bash -c",
         "smartRanking": true
     })
 
@@ -224,7 +224,7 @@ PanelWindow {
     property string launcherPosition: (rawLauncherSettings && rawLauncherSettings.position !== undefined) ? rawLauncherSettings.position : "top"
     property real customWidth: (rawLauncherSettings && rawLauncherSettings.width !== undefined && !isNaN(rawLauncherSettings.width) && rawLauncherSettings.width > 0) ? rawLauncherSettings.width : 600
     property int customItemCount: (rawLauncherSettings && rawLauncherSettings.itemCount !== undefined && !isNaN(rawLauncherSettings.itemCount) && rawLauncherSettings.itemCount > 0) ? rawLauncherSettings.itemCount : 6
-    property string terminalCommand: (rawLauncherSettings && rawLauncherSettings.terminalCommand !== undefined) ? rawLauncherSettings.terminalCommand : "kitty -e"
+    property string terminalCommand: (rawLauncherSettings && rawLauncherSettings.terminalCommand !== undefined) ? rawLauncherSettings.terminalCommand : "wezterm start -- bash -c"
     property bool smartRanking: (rawLauncherSettings && rawLauncherSettings.smartRanking !== undefined) ? rawLauncherSettings.smartRanking : true
 
     onSmartRankingChanged: {
@@ -931,6 +931,14 @@ PanelWindow {
             let app = allApps[i];
             let nameLower = app.name ? app.name.toLowerCase() : "";
             let descLower = app.description ? app.description.toLowerCase() : "";
+            // Also match against the desktop_id and the executable name so
+            // apps like pavucontrol (whose .desktop Name is "PulseAudio Volume
+            // Control") are still findable when the user types the command.
+            let desktopIdLower = app.desktop_id ? app.desktop_id.toLowerCase() : "";
+            let desktopIdBase = desktopIdLower.endsWith(".desktop")
+                ? desktopIdLower.slice(0, -".desktop".length)
+                : desktopIdLower;
+            let execName = app.exec ? app.exec.toLowerCase().split(/[\s\/]/)[0] : "";
 
             let matchQuality = 0;
             let matches = false;
@@ -949,6 +957,12 @@ PanelWindow {
                     matches = true;
                 } else if (descLower.includes(q)) {
                     matchQuality = 5000;
+                    matches = true;
+                } else if (desktopIdBase.includes(q) || desktopIdLower.includes(q)) {
+                    matchQuality = 8000;
+                    matches = true;
+                } else if (execName.includes(q)) {
+                    matchQuality = 7000;
                     matches = true;
                 } else if (isSubsequence(q, nameLower)) {
                     matchQuality = 1000;
@@ -985,7 +999,6 @@ PanelWindow {
                 return a.name.localeCompare(b.name);
             });
         }
-
         applyModelItems(filtered);
     }
 
@@ -1062,7 +1075,11 @@ PanelWindow {
     function launchApp(appName, desktopId) {
         let entry = DesktopEntries.byId(desktopId);
         if (entry) {
-            entry.execute();
+            try {
+                entry.execute();
+            } catch (e) {
+                console.warn("launchApp failed for " + appName + ":", e);
+            }
         }
         if (Caching.qsDir) {
             Quickshell.execDetached(["python3", Caching.qsDir + "/launcher/app_rank.py", "--log-launch", "--name", appName]);

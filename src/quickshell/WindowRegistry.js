@@ -147,6 +147,87 @@ function getLayout(name, mx, my, mw, mh, userScale, barPosition) {
                 "right": { anchor: "left" } 
             } 
         },
+        "settings": { 
+            w: 1200, h: 750, comp: "guide/GuidePopup.qml", draggable: true,
+            pos: { 
+                "top": { anchor: "center" }, 
+                "bottom": { anchor: "center" }, 
+                "left": { anchor: "center" }, 
+                "right": { anchor: "center" } 
+            } 
+        },
+        "productivity": { 
+            w: 400, h: 580, comp: "productivity/ProductivityPopup.qml", 
+            pos: { 
+                "top": { anchor: "top-right", mt: 52, mr: 5 }, 
+                "bottom": { anchor: "bottom-right", mb: 52, mr: 5 }, 
+                "left": { anchor: "bottom-left", ml: 52, mb: 5 }, 
+                "right": { anchor: "bottom-right", mr: 52, mb: 5 } 
+            } 
+        },
+        "focustime": { 
+            w: 900, h: 700, comp: "focustime/FocusTimePopup.qml", 
+            pos: { 
+                "top": { anchor: "center" }, 
+                "bottom": { anchor: "center" }, 
+                "left": { anchor: "center" }, 
+                "right": { anchor: "center" } 
+            } 
+        },
+        "movies": { 
+            w: 1370, h: 850, comp: "movies/MovieWidget.qml", 
+            pos: { 
+                "top": { anchor: "bottom-center", mb: 20 }, 
+                "bottom": { anchor: "bottom-center", mb: 52 }, 
+                "left": { anchor: "bottom-center", mb: 20 }, 
+                "right": { anchor: "bottom-center", mb: 20 } 
+            } 
+        },
+        "stewart": { 
+            w: 800, h: 650, comp: "stewart/stewart.qml", 
+            pos: { 
+                "top": { anchor: "center" }, 
+                "bottom": { anchor: "center" }, 
+                "left": { anchor: "center" }, 
+                "right": { anchor: "center" } 
+            } 
+        },
+        "moon": { 
+            w: 980, h: 580, comp: "calendar/MoonPopup.qml", 
+            pos: { 
+                "top": { anchor: "top-right", mt: 52, mr: 5 }, 
+                "bottom": { anchor: "bottom-right", mb: 52, mr: 5 }, 
+                "left": { anchor: "bottom-left", ml: 52, mb: 5 }, 
+                "right": { anchor: "bottom-right", mr: 52, mb: 5 } 
+            } 
+        },
+        "lyrics": { 
+            w: 720, h: 680, comp: "music/LyricsPopup.qml", 
+            pos: { 
+                "top": { anchor: "top-left", mt: 52, ml: 5 }, 
+                "bottom": { anchor: "bottom-left", mb: 52, ml: 5 }, 
+                "left": { anchor: "top-left", mt: 5, ml: 52 }, 
+                "right": { anchor: "top-right", mt: 5, mr: 52 } 
+            } 
+        },
+        "updater": { 
+            w: 950, h: 850, comp: "updater/UpdaterPopup.qml", 
+            pos: { 
+                "top": { anchor: "center" }, 
+                "bottom": { anchor: "center" }, 
+                "left": { anchor: "center" }, 
+                "right": { anchor: "center" } 
+            } 
+        },
+        "battery": { 
+            w: 800, h: 760, comp: "battery/BatteryPopupAlt.qml", 
+            pos: { 
+                "top": { anchor: "top-right", mt: 52, mr: 5 }, 
+                "bottom": { anchor: "bottom-right", mb: 52, mr: 5 }, 
+                "left": { anchor: "bottom-left", ml: 52, mb: 5 }, 
+                "right": { anchor: "bottom-right", mr: 52, mb: 5 } 
+            } 
+        },
         "hidden": { 
             w: 1, h: 1, comp: "", 
             pos: { 
@@ -162,8 +243,19 @@ function getLayout(name, mx, my, mw, mh, userScale, barPosition) {
     let t = base[name];
     let p = t.pos[barPosition] || t.pos["top"];
 
-    let finalW = t.w === "fill" ? mw : s(t.w, scale);
-    let finalH = t.h === "fill" ? mh : s(t.h, scale);
+    // uiScale is now applied by the Scaler singleton inside each popup's QML
+    // (function s(val) = val * uiScale), so the PanelWindow itself stays at
+    // the design size and children scale relative to it. This avoids the previous
+    // double-scaling that made e.g. the calendar balloon to 1632x612 on a 1.2x
+    // uiScale and overflow the 1280x1024 DP-2 monitor.
+    let finalW = t.w === "fill" ? mw : t.w;
+    let finalH = t.h === "fill" ? mh : t.h;
+
+    // Clamp to fit the screen size with a margin so popups (e.g. 1360x510 calendar)
+    // never overflow smaller monitors like DP-2 (1280x1024) or shorter ones like HDMI-A-1 (1366x768).
+    let margin = 24;
+    finalW = Math.min(finalW, mw - margin);
+    finalH = Math.min(finalH, mh - margin);
 
     let rx = 0;
     let ry = 0;

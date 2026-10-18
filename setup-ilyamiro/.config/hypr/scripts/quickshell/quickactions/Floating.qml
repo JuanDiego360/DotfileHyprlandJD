@@ -1340,6 +1340,27 @@ Variants {
                             }
                             onReleased: { if (!containsMouse) floatingWidget.kickTimer(); }
                         }
+
+                        MouseArea {
+                            id: sidebarWheelArea
+                            anchors.top: parent.top
+                            anchors.bottom: parent.bottom
+                            anchors.left: parent.left
+                            anchors.leftMargin: floatingWidget.edgeBleed
+                            width: floatingWidget.sidebarW
+                            acceptedButtons: Qt.NoButton
+                            enabled: floatingWidget.isSidebarVisible
+
+                            onWheel: wheel => {
+                                let step = 0;
+                                if (wheel.angleDelta.y > 0) step = (floatingWidget.activeEdge === "right" || floatingWidget.activeEdge === "top") ? 1 : -1;
+                                else if (wheel.angleDelta.y < 0) step = (floatingWidget.activeEdge === "right" || floatingWidget.activeEdge === "top") ? -1 : 1;
+
+                                if (step !== 0) {
+                                    floatingWidget.activeIndex = Math.max(0, Math.min(floatingWidget.tabCount - 1, floatingWidget.activeIndex + step));
+                                }
+                            }
+                        }
                     }
 
                     Item {
@@ -1460,15 +1481,6 @@ Variants {
 
                             onEntered: hideTimer.stop()
                             onExited: { if (!sidebarDragArea.containsMouse) floatingWidget.kickTimer(); }
-                            onWheel: wheel => {
-                                let step = 0;
-                                if (wheel.angleDelta.y > 0) step = (floatingWidget.activeEdge === "right" || floatingWidget.activeEdge === "top") ? 1 : -1;
-                                else if (wheel.angleDelta.y < 0) step = (floatingWidget.activeEdge === "right" || floatingWidget.activeEdge === "top") ? -1 : 1;
-
-                                if (step !== 0) {
-                                    floatingWidget.activeIndex = Math.max(0, Math.min(floatingWidget.tabCount - 1, floatingWidget.activeIndex + step));
-                                }
-                            }
                         }
                     }
 

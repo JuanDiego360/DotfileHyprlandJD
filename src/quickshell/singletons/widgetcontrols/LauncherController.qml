@@ -12,23 +12,25 @@ Item {
 
     function getFocusedScreen() {
         try {
-            if (typeof Hyprland !== "undefined") {
-                let monName = "";
-                if (Hyprland.focusedMonitor && Hyprland.focusedMonitor.name) {
-                    monName = Hyprland.focusedMonitor.name;
-                } else if (Hyprland.focusedWorkspace && Hyprland.focusedWorkspace.monitor && Hyprland.focusedWorkspace.monitor.name) {
-                    monName = Hyprland.focusedWorkspace.monitor.name;
-                }
-
-                if (monName && typeof Quickshell !== "undefined" && Quickshell.screens) {
-                    for (let i = 0; i < Quickshell.screens.length; i++) {
-                        if (Quickshell.screens[i].name === monName) {
-                            return Quickshell.screens[i];
-                        }
-                    }
+            if (typeof Hyprland !== "undefined" && Hyprland.focusedMonitor) {
+                let monName = Hyprland.focusedMonitor.name;
+                let screens = Quickshell.screens || [];
+                let len = screens.length !== undefined ? screens.length : (screens.count !== undefined ? screens.count : 0);
+                for (let i = 0; i < len; i++) {
+                    let s = screens[i] !== undefined ? screens[i] : screens.get(i);
+                    if (s && s.name === monName) return s;
                 }
             }
         } catch (e) {}
+
+        try {
+            if (typeof Quickshell !== "undefined" && Quickshell.screens) {
+                let screens = Quickshell.screens;
+                let len = screens.length !== undefined ? screens.length : (screens.count !== undefined ? screens.count : 0);
+                if (len > 0) return screens[0] !== undefined ? screens[0] : screens.get(0);
+            }
+        } catch (e) {}
+
         return null;
     }
 
@@ -36,25 +38,27 @@ Item {
         if (scr === undefined || scr === null) return getFocusedScreen();
         if (typeof scr === "object") {
             if (typeof Quickshell !== "undefined" && Quickshell.screens) {
-                for (let i = 0; i < Quickshell.screens.length; i++) {
-                    if (Quickshell.screens[i] === scr || Quickshell.screens[i].name === scr.name) {
-                        return Quickshell.screens[i];
-                    }
+                let screens = Quickshell.screens;
+                let len = screens.length !== undefined ? screens.length : (screens.count !== undefined ? screens.count : 0);
+                for (let i = 0; i < len; i++) {
+                    let s = screens[i] !== undefined ? screens[i] : screens.get(i);
+                    if (s && (s === scr || s.name === scr.name)) return s;
                 }
             }
             return scr;
         }
         if (typeof Quickshell !== "undefined" && Quickshell.screens) {
+            let screens = Quickshell.screens;
+            let len = screens.length !== undefined ? screens.length : (screens.count !== undefined ? screens.count : 0);
             if (typeof scr === "number") {
-                if (scr >= 0 && scr < Quickshell.screens.length) {
-                    return Quickshell.screens[scr];
+                if (scr >= 0 && scr < len) {
+                    return screens[scr] !== undefined ? screens[scr] : screens.get(scr);
                 }
             }
             if (typeof scr === "string") {
-                for (let i = 0; i < Quickshell.screens.length; i++) {
-                    if (Quickshell.screens[i].name === scr) {
-                        return Quickshell.screens[i];
-                    }
+                for (let i = 0; i < len; i++) {
+                    let s = screens[i] !== undefined ? screens[i] : screens.get(i);
+                    if (s && s.name === scr) return s;
                 }
             }
         }
@@ -71,6 +75,11 @@ Item {
                 controller.screen = focused;
             }
         }
+        if (!controller.screen && typeof Quickshell !== "undefined" && Quickshell.screens) {
+            let screens = Quickshell.screens;
+            let len = screens.length !== undefined ? screens.length : (screens.count !== undefined ? screens.count : 0);
+            if (len > 0) controller.screen = screens[0] !== undefined ? screens[0] : screens.get(0);
+        }
         controller.isVisible = true;
     }
 
@@ -81,6 +90,11 @@ Item {
     function toggle(scr) {
         let target = getScreen(scr);
         let resolved = target !== null && target !== undefined ? target : getFocusedScreen();
+        if (!resolved && typeof Quickshell !== "undefined" && Quickshell.screens) {
+            let screens = Quickshell.screens;
+            let len = screens.length !== undefined ? screens.length : (screens.count !== undefined ? screens.count : 0);
+            if (len > 0) resolved = screens[0] !== undefined ? screens[0] : screens.get(0);
+        }
 
         if (controller.isVisible) {
             if (resolved !== undefined && resolved !== null && controller.screen !== resolved) {
