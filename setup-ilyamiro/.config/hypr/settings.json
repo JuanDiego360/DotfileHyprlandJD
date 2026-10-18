@@ -1,4 +1,7 @@
 {
+  "general": {
+    "avatarPath": "/home/juandiego/Documentos/ClasesSimuladas/ClaseFuerzaElectrica/avatar.png"
+  },
   "uiScale": 1.2,
   "openGuideAtStartup": true,
   "topbarHelpIcon": true,
