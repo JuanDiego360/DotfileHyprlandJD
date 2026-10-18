@@ -70,9 +70,6 @@
     },
     {
       "command": "bash -c 'sleep 1.5 && hyprctl dismissnotify -1'"
-    },
-    {
-      "command": "coucou"
     }
   ]
 }
