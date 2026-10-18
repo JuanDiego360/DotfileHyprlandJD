@@ -54,9 +54,6 @@
       "command": "playerctld"
     },
     {
-      "command": "swayosd-server --top-margin 0.9 --style \"$HOME/.config/swayosd/style.css\""
-    },
-    {
       "command": "wl-paste --type text --watch cliphist store"
     },
     {
@@ -70,6 +67,9 @@
     },
     {
       "command": "bash -c 'sleep 1.5 && hyprctl dismissnotify -1'"
+    },
+    {
+      "command": "wezterm start --always-new-process -- bash -c 'exit 0'"
     }
   ]
 }

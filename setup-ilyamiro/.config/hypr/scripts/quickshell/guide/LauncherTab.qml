@@ -23,7 +23,7 @@ Item {
         "position": "top",
         "width": 600,
         "itemCount": 6,
-        "terminalCommand": "kitty -e",
+        "terminalCommand": "wezterm start -- bash -c",
         "smartRanking": true
     })
 
@@ -39,7 +39,7 @@ Item {
     property string currentPosition: launcherSettings && launcherSettings.position !== undefined ? launcherSettings.position : "top"
     property int currentWidth: launcherSettings && launcherSettings.width !== undefined ? launcherSettings.width : 600
     property int currentItemCount: launcherSettings && launcherSettings.itemCount !== undefined ? launcherSettings.itemCount : 6
-    property string currentTerminalCommand: launcherSettings && launcherSettings.terminalCommand !== undefined ? launcherSettings.terminalCommand : "kitty -e"
+    property string currentTerminalCommand: launcherSettings && launcherSettings.terminalCommand !== undefined ? launcherSettings.terminalCommand : "wezterm start -- bash -c"
     property bool currentSmartRanking: launcherSettings && launcherSettings.smartRanking !== undefined ? launcherSettings.smartRanking : true
 
     function syncSettings() {
@@ -50,7 +50,7 @@ Item {
         launcherTabRoot.currentPosition = s.position !== undefined ? s.position : "top";
         launcherTabRoot.currentWidth = s.width !== undefined ? s.width : 600;
         launcherTabRoot.currentItemCount = s.itemCount !== undefined ? s.itemCount : 6;
-        launcherTabRoot.currentTerminalCommand = s.terminalCommand !== undefined ? s.terminalCommand : "kitty -e";
+        launcherTabRoot.currentTerminalCommand = s.terminalCommand !== undefined ? s.terminalCommand : "wezterm start -- bash -c";
         launcherTabRoot.currentSmartRanking = s.smartRanking !== undefined ? s.smartRanking : true;
     }
 
@@ -275,7 +275,7 @@ Item {
                     rootObj: launcherTabRoot.rootObj
                     icon: "󰆍"
                     title: I18n.t("guide.launcher.terminal.title", "Terminal Command")
-                    description: I18n.t("guide.launcher.terminal.desc", "Command prefix used for > executions (e.g. kitty -e, alacritty -e, foot -e)")
+                    description: I18n.t("guide.launcher.terminal.desc", "Command prefix used for > executions (e.g. wezterm start -- bash -c, kitty -e, alacritty -e, foot -e)")
 
                     Input {
                         id: terminalInput
@@ -283,7 +283,7 @@ Item {
                         implicitWidth: rootObj.s(220)
                         implicitHeight: rootObj.s(32)
                         text: launcherTabRoot.currentTerminalCommand
-                        placeholderText: "kitty -e"
+                        placeholderText: "wezterm start -- bash -c"
                         baseColor: ThemeBackend.surface0
                         accentColor: ThemeBackend.mauve
                         textColor: ThemeBackend.text

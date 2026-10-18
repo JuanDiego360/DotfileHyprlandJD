@@ -118,7 +118,7 @@ Variants {
                     "position": "top",
                     "width": 600,
                     "itemCount": 6,
-                    "terminalCommand": "kitty -e",
+                    "terminalCommand": "wezterm start -- bash -c",
                     "smartRanking": true
                 })
 

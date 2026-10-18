@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Io
 import "../../../reusables"
 import "../../../"
 
@@ -55,6 +56,38 @@ Item {
         return true;
     }
 
+    property bool showUpdater: {
+        if (widget && widget !== root && widget.menuShowUpdater !== undefined) return widget.menuShowUpdater;
+        let dummy = configRevision;
+        if (typeof Config !== "undefined" && Config.rawSettings && Config.rawSettings.bar && Config.rawSettings.bar.menuShowUpdater !== undefined) return Boolean(Config.rawSettings.bar.menuShowUpdater);
+        return true;
+    }
+
+    property bool updateAvailable: false
+
+    Process {
+        id: updatePoller
+        command: ["bash", "-c", "if [ -f " + Caching.getCacheDir("updater") + "/update_pending ]; then echo '1'; else echo '0'; fi"]
+        running: true
+        stdout: StdioCollector {
+            onStreamFinished: {
+                root.updateAvailable = (this.text.trim() === "1");
+            }
+        }
+    }
+
+    Process {
+        id: updateWatcher
+        running: true
+        command: ["bash", "-c", "inotifywait -qq -e create,delete,close_write " + Caching.getCacheDir("updater") + "/ 2>/dev/null || sleep 5"]
+        onExited: {
+            updatePoller.running = false;
+            updatePoller.running = true;
+            running = false;
+            running = true;
+        }
+    }
+
     readonly property bool effectiveShowSettings: showSettings || !showLauncher
     readonly property bool iconOnly: menuStyle === "icon"
 
@@ -68,6 +101,7 @@ Item {
     component MenuButton: Item {
         id: menuBtn
         property string glyph: ""
+        property bool hasUpdate: false
         signal clicked()
 
         width: root.isVertical ? root.s(root.isCompact ? 28 : 30) : root.s(root.isCompact ? 30 : 32)
@@ -80,15 +114,36 @@ Item {
         }
         Behavior on opacity { NumberAnimation { duration: 450; easing.type: Easing.OutCubic } }
 
+        Rectangle {
+            anchors.centerIn: parent
+            width: parent.width
+            height: parent.height
+            radius: Math.max(0, ThemeBackend.borderRadius - root.s(2))
+            color: ThemeBackend.green
+            z: -1
+            visible: menuBtn.hasUpdate && !root.iconOnly
+
+            SequentialAnimation on scale {
+                running: menuBtn.hasUpdate
+                loops: Animation.Infinite
+                NumberAnimation { from: 1.0; to: 1.25; duration: 2000; easing.type: Easing.OutCubic }
+            }
+            SequentialAnimation on opacity {
+                running: menuBtn.hasUpdate
+                loops: Animation.Infinite
+                NumberAnimation { from: 0.35; to: 0.0; duration: 2000; easing.type: Easing.OutCubic }
+            }
+        }
+
         IconButton {
             anchors.fill: parent
             visible: !root.iconOnly
             cornerRadius: Math.max(0, ThemeBackend.borderRadius - root.s(2))
             buttonIcon: menuBtn.glyph
             iconFontSize: root.s(root.isCompact ? 14 : 15)
-            accentColor: root.isCompact ? Qt.lighter(ThemeBackend.surface0, 1.18) : ThemeBackend.surface0
+            accentColor: menuBtn.hasUpdate ? Qt.rgba(ThemeBackend.green.r, ThemeBackend.green.g, ThemeBackend.green.b, 0.20) : (root.isCompact ? Qt.lighter(ThemeBackend.surface0, 1.18) : ThemeBackend.surface0)
             bgOpacity: root.barOpacity
-            textColor: isHoveredOrHighlighted ? ThemeBackend.text : (root.isCompact ? ThemeBackend.subtext0 : ThemeBackend.overlay2)
+            textColor: menuBtn.hasUpdate ? ThemeBackend.green : (isHoveredOrHighlighted ? ThemeBackend.text : (root.isCompact ? ThemeBackend.subtext0 : ThemeBackend.overlay2))
             onClicked: menuBtn.clicked()
         }
 
@@ -100,7 +155,7 @@ Item {
             font.pixelSize: root.s(root.isCompact ? 15 : 16)
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
-            color: iconMouse.containsMouse ? ThemeBackend.text : (root.isCompact ? ThemeBackend.subtext0 : ThemeBackend.overlay2)
+            color: menuBtn.hasUpdate ? ThemeBackend.green : (iconMouse.containsMouse ? ThemeBackend.text : (root.isCompact ? ThemeBackend.subtext0 : ThemeBackend.overlay2))
             Behavior on color { ColorAnimation { duration: 150 } }
         }
 
@@ -129,14 +184,27 @@ Item {
             id: settingsBtn
             visible: root.effectiveShowSettings
             glyph: "󰒓"
-            onClicked: if (!root.isPreview) Quickshell.execDetached(["bash", "-c", Caching.serpantinumDir + "/scripts/qs_manager.sh toggle guide"])
+            onClicked: if (!root.isPreview) Quickshell.execDetached(["bash", "-c", "~/.config/hypr/scripts/qs_manager.sh toggle guide"])
+        }
+
+        MenuButton {
+            id: updateBtn
+            visible: root.showUpdater
+            glyph: "󰚰"
+            hasUpdate: root.updateAvailable
+            onClicked: {
+                if (!root.isPreview) {
+                    root.updateAvailable = false;
+                    Quickshell.execDetached(["bash", "-c", "~/.config/hypr/scripts/qs_manager.sh toggle updater"]);
+                }
+            }
         }
 
         MenuButton {
             id: launcherBtn
             visible: root.showLauncher
             glyph: "󰍉"
-            onClicked: if (!root.isPreview) Quickshell.execDetached(["bash", "-c", Caching.serpantinumDir + "/scripts/qs_manager.sh toggle launcher"])
+            onClicked: if (!root.isPreview) Quickshell.execDetached(["bash", "-c", "~/.config/hypr/scripts/qs_manager.sh toggle launcher"])
         }
     }
 }

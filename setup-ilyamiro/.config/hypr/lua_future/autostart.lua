@@ -7,7 +7,11 @@ hl.on("hyprland.start", function()
   hl.exec_cmd("~/.config/hypr/scripts/init.sh")
   hl.exec_cmd("~/.config/hypr/scripts/settings_watcher.sh &")
   hl.exec_cmd("playerctld")
-  hl.exec_cmd("swayosd-server --top-margin 0.9 --style \"$HOME/.config/swayosd/style.css\"")
+  # SwayOSD disabled — Quickshell's OsdController.qml provides unified OSD for
+  # volume, brightness, Caps Lock, Num Lock, mute, airplane mode with the shell's
+  # theme. Keeping swayosd-server would cause double notifications (SwayOSD +
+  # Quickshell) every time Caps Lock or Num Lock toggles.
+  # hl.exec_cmd("swayosd-server --top-margin 0.9 --style \"$HOME/.config/swayosd/style.css\"")
   hl.exec_cmd("wl-paste --type text --watch cliphist store")
   hl.exec_cmd("wl-paste --type image --watch cliphist store")
   hl.exec_cmd("~/.config/hypr/scripts/volume_listener.sh")

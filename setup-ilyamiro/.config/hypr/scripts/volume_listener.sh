@@ -29,9 +29,11 @@ pactl subscribe | grep --line-buffered "Event 'change' on sink" | while read -r 
 
     # CHECK 2: Did the Volume/Mute actually change on the SAME device?
     if [[ "$current_vol" != "$last_vol" ]] || [[ "$current_mute" != "$last_mute" ]]; then
-        
-        # Trigger OSD (without changing volume)
-        swayosd-client --output-volume 0
+
+        # Quickshell's OsdController.qml (PipeWire integration) handles the OSD
+        # automatically when the sink's volume changes. We just need to track
+        # the state to debounce.
+        # (Previously: swayosd-client --output-volume 0)
 
         # Update tracking
         last_vol="$current_vol"

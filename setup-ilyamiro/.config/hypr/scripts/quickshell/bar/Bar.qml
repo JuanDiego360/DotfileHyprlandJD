@@ -152,7 +152,11 @@ Variants {
             }
 
             IpcHandler {
-                target: "topbar"
+                // Sidebar-specific IPC endpoint. Previously registered as "topbar" which
+                // collided with the TopBar.qml IpcHandler of the same name and produced
+                // "Handler was registered but will not be used" warnings. Splitting the
+                // target keeps both handlers addressable without one shadowing the other.
+                target: "sidebar"
                 function setRedactMode(active: string): void {
                     barWindow.isRedacting = (active === "true" || active === "1");
                 }

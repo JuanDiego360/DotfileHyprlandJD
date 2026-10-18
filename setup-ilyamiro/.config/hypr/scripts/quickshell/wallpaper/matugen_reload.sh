@@ -91,10 +91,9 @@ if pgrep -x "cava" > /dev/null; then
     killall -USR1 cava
 fi
 
-# Restart swayosd-server in the background and disown it so the script doesn't hang
-killall swayosd-server 2>/dev/null
-swayosd-server --top-margin 0.9 --style "$HOME/.config/swayosd/style.css" > /dev/null 2>&1 &
-disown
+# SwayOSD disabled — Quickshell's OsdController.qml is the unified OSD.
+# (Previously: killall swayosd-server 2>/dev/null
+#  swayosd-server --top-margin 0.9 --style "$HOME/.config/swayosd/style.css" > /dev/null 2>&1 &)
 
 # GTK Live-Reload Hack
 # Rapidly toggles the global theme to force GTK3 and GTK4 apps to flush 

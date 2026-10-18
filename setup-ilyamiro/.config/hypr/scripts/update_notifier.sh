@@ -135,20 +135,26 @@ check_system_updates() {
         flatpak_count=$(flatpak remote-ls --updates 2>/dev/null | grep -c .)
     fi
 
-    # 4. Comprobar Dotfiles (si existe versión local)
+    # 4. Comprobar Dotfiles (soporta version.txt y estado local)
     local dots_pending=0
-    if [ -f "$HOME/.local/state/imperative-dots-version" ]; then
-        local local_dots
+    local local_dots=""
+    if [ -f "$HOME/dotfiles/version.txt" ]; then
+        local_dots=$(cat "$HOME/dotfiles/version.txt" 2>/dev/null | tr -d '[:space:]')
+    elif [ -f "$HOME/.local/state/imperative-dots-version" ]; then
         local_dots=$(source "$HOME/.local/state/imperative-dots-version" 2>/dev/null && echo "$LOCAL_VERSION")
-        if [[ -n "$local_dots" && "$local_dots" != "Unknown" ]]; then
-            local remote_dots
+    fi
+
+    if [[ -n "$local_dots" && "$local_dots" != "Unknown" ]]; then
+        local remote_dots
+        remote_dots=$(curl -m 5 -s https://raw.githubusercontent.com/ilyamiro/nixos-configuration/master/version.txt 2>/dev/null | tr -d '[:space:]')
+        if [[ -z "$remote_dots" ]]; then
             remote_dots=$(curl -m 5 -s https://raw.githubusercontent.com/ilyamiro/imperative-dots/master/install.sh 2>/dev/null | grep '^DOTS_VERSION=' | cut -d'"' -f2)
-            if [[ -n "$remote_dots" && "$local_dots" != "$remote_dots" ]]; then
-                local newest
-                newest=$(printf '%s\n' "$local_dots" "$remote_dots" | sort -V | tail -n1)
-                if [[ "$newest" == "$remote_dots" ]]; then
-                    dots_pending=1
-                fi
+        fi
+        if [[ -n "$remote_dots" && "$local_dots" != "$remote_dots" ]]; then
+            local newest
+            newest=$(printf '%s\n' "$local_dots" "$remote_dots" | sort -V | tail -n1)
+            if [[ "$newest" == "$remote_dots" ]]; then
+                dots_pending=1
             fi
         fi
     fi
@@ -189,7 +195,7 @@ check_system_updates() {
 
     if (( total > 0 )); then
         # Activar el icono en la barra superior
-        touch "$PENDING_FILE"
+        touch "$PENDING_FILE" "$HOME/.cache/quickshell/updater/update_pending" 2>/dev/null
 
         # Si se detecta Hyprland >= 0.57, disparar notificación prioritaria crítica
         if [[ -n "$hypr_alert" && ! -f "$STATE_DIR/hypr_notified_$hypr_alert" ]]; then
@@ -204,7 +210,7 @@ check_system_updates() {
         [[ -f "$CACHE_FILE" ]] && last_notified=$(cat "$CACHE_FILE" 2>/dev/null)
 
         if [[ "$last_notified" != "$total" ]]; then
-            echo "$total" > "$CACHE_FILE"
+            echo "$total" | tee "$CACHE_FILE" > "$HOME/.cache/quickshell/updater/notified_count" 2>/dev/null
 
             local msg=""
             (( pacman_count > 0 )) && msg+="Pacman/CachyOS: $pacman_count  "
@@ -218,8 +224,8 @@ check_system_updates() {
         fi
     else
         # Limpiar banderas si no hay actualizaciones
-        rm -f "$PENDING_FILE"
-        rm -f "$CACHE_FILE"
+        rm -f "$PENDING_FILE" "$HOME/.cache/quickshell/updater/update_pending"
+        rm -f "$CACHE_FILE" "$HOME/.cache/quickshell/updater/notified_count"
     fi
 }
 

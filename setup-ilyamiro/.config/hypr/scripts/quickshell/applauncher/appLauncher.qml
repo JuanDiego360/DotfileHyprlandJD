@@ -11,6 +11,14 @@ Item {
     id: window
     focus: true
 
+    // Tell the Floating sidebar not to consume Enter/Return while this
+    // launcher is visible — that handler is bound to our search input.
+    property var interceptedShortcuts: ["Return", "Enter", "Escape", "Up", "Down", "Tab", "Shift+Tab"]
+
+    Component.onCompleted: {
+        Quickshell.execDetached(["bash", "-c", "echo COMP_COMPLETED visible=" + window.visible + " >> /tmp/qs_launch.log"]);
+    }
+
     readonly property var paths: Caching
 
     function s(val) { 
@@ -332,7 +340,7 @@ Item {
         }
     }
 
-    function launchApp(execStr, isFile, isMath, isClipboard) {
+    function launchApp(execStr, isFile, isMath, isClipboard, isCommand) {
         if (isClipboard) {
             Quickshell.execDetached(["bash", "-c", "cliphist decode " + execStr + " | wl-copy"]);
             Quickshell.execDetached(["notify-send", "Portapapeles", "Elemento copiado al portapapeles", "-a", "Shell"]);
@@ -342,7 +350,26 @@ Item {
         } else if (isFile) {
             Quickshell.execDetached(["xdg-open", execStr]);
         } else {
-            Quickshell.execDetached(["hyprctl", "dispatch", "exec", "--", execStr]);
+            // Execute in background — no terminal window. Apps that need a TTY
+            // (htop, vim, mc, etc.) won't work this way; prefix with ">" to open
+            // in a wezterm window instead (see launchApp's terminal-prefix path).
+            // This reproduces the original "pum me lo abría" behavior: command
+            // launches and the launcher closes immediately.
+            if (execStr.startsWith(">")) {
+                // Prefix `>` detected (with or without space): run in a wezterm window.
+                // e.g. `>pavucontrol` or `> htop` opens a wezterm with the command.
+                let cmd = execStr.startsWith("> ") ? execStr.slice(2).trim() : execStr.slice(1).trim();
+                Quickshell.execDetached(["wezterm", "start", "--", "bash", "-c", cmd]);
+            } else {
+                // Plain background execution (no UI window).
+                // GUI apps like pavucontrol launch directly. TTY-only apps
+                // (htop, vim, mc) won't be visible; prefix with `>` for those.
+                // Log to /tmp for debugging
+                Quickshell.execDetached(["bash", "-c", "echo LAUNCH execStr='" + execStr + "' >> /tmp/qs_launch.log 2>&1"]);
+                // Use sh -c to launch in background (decoupled from Quickshell)
+                // and to ensure PATH is set up correctly for .desktop files
+                Quickshell.execDetached(["sh", "-c", execStr + " &"]);
+            }
         }
         Quickshell.execDetached(["bash", Quickshell.env("HOME") + "/.config/hypr/scripts/qs_manager.sh", "close"]);
     }
@@ -353,12 +380,16 @@ Item {
         interval: 50
         running: true
         repeat: false
-        onTriggered: searchInput.forceActiveFocus()
+        onTriggered: {
+            Quickshell.execDetached(["bash", "-c", "echo FOCUS_TIMER >> /tmp/qs_launch.log"]);
+            if (searchInput) searchInput.forceActiveFocus();
+        }
     }
 
     Connections {
         target: window
         function onVisibleChanged() {
+            Quickshell.execDetached(["bash", "-c", "echo VISIBLE_CHANGED visible=" + window.visible + " >> /tmp/qs_launch.log"]);
             if (window.visible) {
                 focusTimer.restart();
                 introPhaseAnim.restart();
@@ -486,6 +517,7 @@ Item {
                         focus: true
 
                         onTextChanged: {
+                            Quickshell.execDetached(["bash", "-c", "echo TEXT_CHANGED text='" + text + "' >> /tmp/qs_launch.log"]);
                             filterApps(text);
                             if (text.trim().length >= 2 || text.trim().startsWith(";")) {
                                 fileSearchDebounce.restart();
@@ -517,18 +549,21 @@ Item {
                             event.accepted = true;
                         }
                         Keys.onReturnPressed: {
+                            // DEBUG: log directo sin pasar por launchApp
+                            Quickshell.execDetached(["bash", "-c", "echo ORP idx=" + appList.currentIndex + " count=" + appModel.count + " text='" + searchInput.text + "' >> /tmp/qs_orp.log"]);
+                            console.log("[ORP]", appList.currentIndex, appModel.count, searchInput.text);
                             // If an app, file, math result, or clipboard item is selected from the list, launch it
                             if (appList.currentIndex >= 0 && appList.currentIndex < appModel.count) {
                                 var item = appModel.get(appList.currentIndex);
                                 if (item.isCommand) {
-                                    // Run the typed text as a shell command
-                                    window.launchApp(searchInput.text.trim(), false, false, false);
+                                    // Run the typed text as a shell command (opens terminal)
+                                    window.launchApp(searchInput.text.trim(), false, false, false, true);
                                 } else {
-                                    window.launchApp(item.exec, item.isFile || false, item.isMath || false, item.isClipboard || false);
+                                    window.launchApp(item.exec, item.isFile || false, item.isMath || false, item.isClipboard || false, false);
                                 }
                             } else if (searchInput.text.trim().length > 0) {
-                                // No app selected — run typed text as a shell command
-                                window.launchApp(searchInput.text.trim(), false, false, false);
+                                // No app selected — run typed text as a shell command (opens terminal)
+                                window.launchApp(searchInput.text.trim(), false, false, false, true);
                             }
                             event.accepted = true;
                         }
@@ -784,7 +819,7 @@ Item {
                             hoverEnabled: true
                             onClicked: {
                                 appList.currentIndex = index;
-                                launchApp(model.exec, model.isFile || false, model.isMath || false, model.isClipboard || false);
+                                launchApp(model.exec, model.isFile || false, model.isMath || false, model.isClipboard || false, model.isCommand || false);
                             }
                         }
                     }

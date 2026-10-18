@@ -190,15 +190,16 @@ else
 fi
 
 # Guardar registro persistente de actualización (reinicia el ciclo semanal)
-mkdir -p "$HOME/.local/state/quickshell/updater"
-date +%Y-%m-%d > "$HOME/.local/state/quickshell/updater/last_update_date"
-date +%Y-%m-%d > "$HOME/.local/state/quickshell/updater/last_check_date"
-date +%s > "$HOME/.local/state/quickshell/updater/last_check_timestamp"
+mkdir -p "$HOME/.local/state/quickshell/updater" "$HOME/.local/state/serpantinum/updater"
+mkdir -p "$HOME/.cache/quickshell/updater" "$HOME/.cache/serpantinum/updater"
+date +%Y-%m-%d | tee "$HOME/.local/state/serpantinum/updater/last_update_date" > "$HOME/.local/state/quickshell/updater/last_update_date"
+date +%Y-%m-%d | tee "$HOME/.local/state/serpantinum/updater/last_check_date" > "$HOME/.local/state/quickshell/updater/last_check_date"
+date +%s | tee "$HOME/.local/state/serpantinum/updater/last_check_timestamp" > "$HOME/.local/state/quickshell/updater/last_check_timestamp"
 
 # Notificar a Quickshell borrando los flags de actualizaciones pendientes
-rm -f "$HOME/.cache/quickshell/updater/update_pending"
-rm -f "$HOME/.cache/quickshell/updater/notified_count"
-rm -f "$HOME/.cache/quickshell/updater/updates_summary.txt"
+rm -f "$HOME/.cache/quickshell/updater/update_pending" "$HOME/.cache/serpantinum/updater/update_pending"
+rm -f "$HOME/.cache/quickshell/updater/notified_count" "$HOME/.cache/serpantinum/updater/notified_count"
+rm -f "$HOME/.cache/quickshell/updater/updates_summary.txt" "$HOME/.cache/serpantinum/updater/updates_summary.txt"
 
 echo
 echo "Presione cualquier tecla para cerrar esta ventana..."
