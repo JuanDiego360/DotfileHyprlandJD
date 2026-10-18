@@ -47,6 +47,7 @@ Antes de copiar o actualizar archivos, los agentes (Hermes y Antigravity) deben 
 | **Pantalla de Bloqueo Nativa** | `.../scripts/lock.sh`<br>`.../hypridle.conf`<br>`.../lock/qmldir` | Enviar señal IPC nativa `quickshell -p $MAIN_QML ipc call lock activate`. Registrar `VideoLock` y `FingerprintIndicator` en `lock/qmldir`. |
 | **Foto de Perfil (Avatar)** | `~/.config/hypr/settings.json`<br>`~/.cache/serpantinum/avatar/` | `general.avatarPath` enlazado a la imagen del usuario y copiado a `avatar_cropped.png`, `~/.face` y `~/.face.icon`. |
 | **Controladores Seguros** | `.../widgetcontrols/ClipboardController.qml`<br>`.../widgetcontrols/LauncherController.qml` | Validación segura de `screens.length !== undefined ? screens.length : (screens.count !== undefined ? screens.count : 0)`. |
+| **Servidor de Notificaciones** | `.../notifications/NotificationManager.qml` | Quickshell provee el servidor nativo de notificaciones (`org.freedesktop.Notifications`). Cualquier daemon externo (`swaync.service`) debe permanecer enmascarado (`systemctl --user mask swaync.service`) para no usurpar el bus. |
 
 ---
 
