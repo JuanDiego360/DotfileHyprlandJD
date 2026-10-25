@@ -18,7 +18,14 @@ Item {
             return displayConf.monitors[screenName].scale;
         }
         var general = Config.getSetting("general", null);
-        return (general && general.uiScale !== undefined) ? general.uiScale : 1.0;
+        if (general && general.uiScale !== undefined) {
+            return general.uiScale;
+        }
+        var rootScale = Config.getSetting("uiScale", null);
+        if (rootScale !== null && rootScale !== undefined && !isNaN(Number(rootScale))) {
+            return Number(rootScale);
+        }
+        return 1.0;
     }
 
     property real baseScale: uiScale
