@@ -126,16 +126,16 @@
     "editing": false,
     "apps": [
       {
-        "name": "Kitty",
-        "comment": "Fast, feature-rich, GPU based terminal",
-        "desktop_id": "kitty",
-        "icon": "kitty"
+        "name": "WezTerm",
+        "comment": "Wez's Terminal Emulator",
+        "desktop_id": "org.wezfurlong.wezterm.desktop",
+        "icon": "org.wezfurlong.wezterm"
       },
       {
-        "name": "Files",
-        "comment": "Access and organize files",
-        "desktop_id": "org.gnome.Nautilus",
-        "icon": "org.gnome.Nautilus"
+        "name": "Dolphin",
+        "comment": "Manage your files",
+        "desktop_id": "org.kde.dolphin.desktop",
+        "icon": "org.kde.dolphin"
       }
     ],
     "overrideBoundsCorrection": false,

@@ -425,11 +425,24 @@ DockWindowState {
     }
 
     function launchApp(desktopId) {
+        if (!desktopId) return;
         if (typeof DesktopEntries !== "undefined") {
             let entry = DesktopEntries.byId(desktopId) || DesktopEntries.byId(String(desktopId).replace(/\.desktop$/, ""));
+            if (!entry && typeof AppMatcher !== "undefined") {
+                entry = AppMatcher.entry(desktopId);
+            }
             if (entry) {
                 entry.execute();
+                return;
             }
+        }
+        let cleanId = String(desktopId).replace(/\.desktop$/, "");
+        if (cleanId === "org.kde.dolphin" || cleanId === "dolphin") {
+            Quickshell.execDetached(["dolphin"]);
+        } else if (cleanId === "org.wezfurlong.wezterm" || cleanId === "wezterm") {
+            Quickshell.execDetached(["wezterm"]);
+        } else {
+            Quickshell.execDetached(["gtk-launch", desktopId]);
         }
     }
 

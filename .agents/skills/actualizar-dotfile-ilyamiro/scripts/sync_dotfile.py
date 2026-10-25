@@ -100,14 +100,45 @@ def sync():
 
     # 2. Re-aplicar personalizaciones críticas en archivos sincronizados:
     
-    # Dock: asegurar wezterm
+    # Dock: asegurar wezterm y dolphin en apps por defecto
     dock_state = os.path.join(SETUP_DIR, "dock/DockWindowState.qml")
     if os.path.exists(dock_state):
         with open(dock_state, "r", encoding="utf-8") as fp:
             content = fp.read()
         content = content.replace('"terminalCommand": "kitty -e"', '"terminalCommand": "wezterm start -- bash -c"')
+        content = re.sub(
+            r'\{\s*"name":\s*"Kitty".*?"icon":\s*"kitty"\s*\},?\s*\{\s*"name":\s*"Files".*?"icon":\s*"org\.gnome\.Nautilus"\s*\}',
+            '{\n            "name": "WezTerm", "comment": "Wez\'s Terminal Emulator", "desktop_id": "org.wezfurlong.wezterm.desktop", "icon": "org.wezfurlong.wezterm"\n        },\n        {\n            "name": "Dolphin", "comment": "Manage your files", "desktop_id": "org.kde.dolphin.desktop", "icon": "org.kde.dolphin"\n        }',
+            content,
+            flags=re.DOTALL
+        )
         with open(dock_state, "w", encoding="utf-8") as fp:
             fp.write(content)
+
+    dock_tab = os.path.join(SETUP_DIR, "guide/DockTab.qml")
+    if os.path.exists(dock_tab):
+        with open(dock_tab, "r", encoding="utf-8") as fp:
+            content = fp.read()
+        content = re.sub(
+            r'\{\s*"name":\s*"Kitty".*?"icon":\s*"kitty"\s*\},?\s*\{\s*"name":\s*"Files".*?"icon":\s*"org\.gnome\.Nautilus"\s*\}',
+            '{\n            "name": "WezTerm", "comment": "Wez\'s Terminal Emulator", "desktop_id": "org.wezfurlong.wezterm.desktop", "icon": "org.wezfurlong.wezterm"\n        },\n        {\n            "name": "Dolphin", "comment": "Manage your files", "desktop_id": "org.kde.dolphin.desktop", "icon": "org.kde.dolphin"\n        }',
+            content,
+            flags=re.DOTALL
+        )
+        with open(dock_tab, "w", encoding="utf-8") as fp:
+            fp.write(content)
+
+    dock_apps = os.path.join(SETUP_DIR, "dock/DockWindowApps.qml")
+    if os.path.exists(dock_apps):
+        with open(dock_apps, "r", encoding="utf-8") as fp:
+            content = fp.read()
+        if 'cleanId === "org.kde.dolphin"' not in content:
+            content = content.replace(
+                "            if (entry) {\n                entry.execute();\n            }",
+                '            if (!entry && typeof AppMatcher !== "undefined") {\n                entry = AppMatcher.entry(desktopId);\n            }\n            if (entry) {\n                entry.execute();\n                return;\n            }\n        }\n        let cleanId = String(desktopId).replace(/\\.desktop$/, "");\n        if (cleanId === "org.kde.dolphin" || cleanId === "dolphin") {\n            Quickshell.execDetached(["dolphin"]);\n        } else if (cleanId === "org.wezfurlong.wezterm" || cleanId === "wezterm") {\n            Quickshell.execDetached(["wezterm"]);\n        } else {\n            Quickshell.execDetached(["gtk-launch", desktopId]);'
+            )
+            with open(dock_apps, "w", encoding="utf-8") as fp:
+                fp.write(content)
 
     # Launcher: asegurar wezterm
     launcher_f = os.path.join(SETUP_DIR, "launcher/Launcher.qml")

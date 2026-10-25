@@ -38,8 +38,8 @@ PanelWindow {
         "autohideTimeout": 1000,
         "editing": false,
         "apps": [
-            { "name": "Kitty", "comment": "Fast, feature-rich, GPU based terminal", "desktop_id": "kitty.desktop", "icon": "kitty" },
-            { "name": "Files", "comment": "Access and organize files", "desktop_id": "org.gnome.Nautilus.desktop", "icon": "org.gnome.Nautilus" }
+            { "name": "WezTerm", "comment": "Wez's Terminal Emulator", "desktop_id": "org.wezfurlong.wezterm.desktop", "icon": "org.wezfurlong.wezterm" },
+            { "name": "Dolphin", "comment": "Manage your files", "desktop_id": "org.kde.dolphin.desktop", "icon": "org.kde.dolphin" }
         ],
         "overrideBoundsCorrection": false,
         "enableScrolling": false,
