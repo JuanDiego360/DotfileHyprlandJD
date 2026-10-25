@@ -131,6 +131,7 @@ PanelWindow {
     property string pendingQuery: ""
 
     function grabInputFocus() {
+        if (searchInput.hasFocus) return;
         searchInput.forceActiveFocus();
         if (typeof searchInput.forceInputFocus === "function") {
             searchInput.forceInputFocus();
@@ -513,25 +514,7 @@ PanelWindow {
 
     Timer {
         id: focusTimer
-        interval: 30
-        repeat: false
-        onTriggered: {
-            clipboardWindow.grabInputFocus();
-        }
-    }
-
-    Timer {
-        id: focusRetryTimer
-        interval: 120
-        repeat: false
-        onTriggered: {
-            clipboardWindow.grabInputFocus();
-        }
-    }
-
-    Timer {
-        id: focusFinalTimer
-        interval: 250
+        interval: 80
         repeat: false
         onTriggered: {
             clipboardWindow.grabInputFocus();
@@ -557,17 +540,12 @@ PanelWindow {
             } else {
                 executeClipFilter("");
             }
-            clipboardWindow.grabInputFocus();
             focusTimer.restart();
-            focusRetryTimer.restart();
-            focusFinalTimer.restart();
         } else {
             clipList.resetScroll();
             clipboardWindow.expandedClipId = "";
             filterDebounceTimer.stop();
             focusTimer.stop();
-            focusRetryTimer.stop();
-            focusFinalTimer.stop();
             keyboardNavTimer.stop();
         }
     }
@@ -1406,7 +1384,7 @@ PanelWindow {
                                     Text {
                                         id: delegateFontIcon
                                         anchors.centerIn: parent
-                                        font.family: "Iosevka Nerd Font"
+                                        font.family: ThemeBackend.iconFont
                                         font.pixelSize: clipboardWindow.s(14)
                                         color: (!clipDelegateCard.isImage && clipDelegateWrapper.isSelected && !ThemeBackend.liquidGlass) ? ThemeBackend.crust : (ThemeBackend.liquidGlass ? ThemeBackend.text : ThemeBackend.subtext0)
                                         text: model.type === "image" ? "󰋩" : "󰈙"

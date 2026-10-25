@@ -46,11 +46,13 @@ ShellRoot {
     Bar {}
     Lock {}
     WidgetRedactor {}
+    LockRedactor {}
 
     Launcher {}
     Clipboard {}    
 
     Polkit {}
+    WellbeingLimitOverlay {}
     PopoutManager {}
 
     Loader {

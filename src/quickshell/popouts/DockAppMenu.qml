@@ -258,7 +258,7 @@ PanelWindow {
                                         WindowTracker.focusWindow(dockAppMenuWindow.windowsList[0]);
                                     }
                                 } else if (typeof DesktopEntries !== "undefined" && DockAppMenuController.desktopId) {
-                                    let entry = DesktopEntries.byId(DockAppMenuController.desktopId);
+                                    let entry = DesktopEntries.byId(DockAppMenuController.desktopId) || DesktopEntries.byId(String(DockAppMenuController.desktopId).replace(/\.desktop$/, ""));
                                     if (entry) entry.execute();
                                 }
                                 DockAppMenuController.hide();
@@ -366,7 +366,7 @@ PanelWindow {
                                         NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
                                     }
 
-                                    IconButton {
+                                    CloseButton {
                                         x: parent.width - width
                                         width: dockAppMenuWindow.s(30)
                                         height: dockAppMenuWindow.s(30)
@@ -375,7 +375,6 @@ PanelWindow {
                                         accentColor: ThemeBackend.surface0
                                         bgOpacity: ThemeBackend.elementOpacity
                                         textColor: ThemeBackend.red
-                                        buttonIcon: "󰅖"
                                         iconFontSize: dockAppMenuWindow.s(13)
                                         opacity: rowHover.hovered ? 1.0 : 0.0
                                         Behavior on opacity {
@@ -430,7 +429,7 @@ PanelWindow {
                             textColor: ThemeBackend.text
                             onClicked: {
                                 if (typeof DesktopEntries !== "undefined" && DockAppMenuController.desktopId) {
-                                    let entry = DesktopEntries.byId(DockAppMenuController.desktopId);
+                                    let entry = DesktopEntries.byId(DockAppMenuController.desktopId) || DesktopEntries.byId(String(DockAppMenuController.desktopId).replace(/\.desktop$/, ""));
                                     if (entry) entry.execute();
                                 }
                                 DockAppMenuController.hide();

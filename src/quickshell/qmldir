@@ -10,6 +10,7 @@ ScreenshotOverlay 1.0 screenshot/ScreenshotOverlay.qml
 WallpaperEngine 1.0 wallpaper/WallpaperEngine.qml
 Idle 1.0 idle/Idle.qml
 Lock 1.0 lock/Lock.qml
+LockRedactor 1.0 lock/redactor/LockRedactor.qml
 
 Start 1.0 serp/Start.qml
 Serpantinum 1.0 serp/Serpantinum.qml
@@ -25,6 +26,7 @@ WidgetLoader 1.0 widgets/WidgetLoader.qml
 WidgetRedactor 1.0 widgets/WidgetRedactor.qml
 
 Polkit 1.0 polkit/Polkit.qml
+WellbeingLimitOverlay 1.0 guide/wellbeing/WellbeingLimitOverlay.qml
 singleton PolkitService 1.0 polkit/PolkitService.qml
 singleton NotificationManager 1.0 notifications/NotificationManager.qml
 

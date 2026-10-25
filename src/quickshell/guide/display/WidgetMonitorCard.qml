@@ -30,7 +30,6 @@ Rectangle {
     property bool showPresets: false
 
     implicitHeight: cardLayout.implicitHeight + rootObj.s(12)
-    Behavior on implicitHeight { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
 
     ColumnLayout {
         id: cardLayout
@@ -142,7 +141,7 @@ Rectangle {
             Layout.leftMargin: rootObj.s(12)
             Layout.rightMargin: rootObj.s(12)
             Layout.topMargin: rootObj.s(12)
-            Layout.bottomMargin: rootObj.s(12)
+            Layout.bottomMargin: rootObj.s(4)
             columns: 3
             rowSpacing: rootObj.s(8)
             columnSpacing: rootObj.s(8)

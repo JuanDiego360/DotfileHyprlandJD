@@ -25,6 +25,7 @@ let
     weatherInterval = mkOpt types.ints.positive "Minutes between weather refreshes.";
     weatherUnit = mkOpt (types.enum [ "metric" "imperial" "standard" ]) "Units for weather display.";
     quickactions = mkOpt types.bool "Show the quick actions panel.";
+    settingsSeparateWindow = mkOpt types.bool "Open settings as a standalone window instead of a panel inside the shell.";
     location = mkOption {
       type = freeform {
         city = mkOpt types.str "Location city name.";
@@ -55,7 +56,7 @@ let
     visContinuous = mkOpt types.bool "Render the visualizer as a continuous wave instead of discrete bars.";
     sysmonStyle = mkOpt (types.enum [ "wave" "circle" "bars" ]) "System monitor display style.";
     sysmonStats = mkOpt (types.listOf (types.enum [ "cpu" "ram" "temp" "disk" ])) "Resource metrics shown by the system monitor.";
-    batStyle = mkOpt (types.enum [ "classic" "minimal" "text" ]) "Battery module display style.";
+    batStyle = mkOpt (types.enum [ "classic" "minimal" "text" "button" ]) "Battery module display style.";
     batShowPercent = mkOpt types.bool "Show the battery charge percentage.";
     batShowIcon = mkOpt types.bool "Show the battery icon.";
     wifiStyle = mkOpt (types.enum [ "button" "text" ]) "Network module display style.";

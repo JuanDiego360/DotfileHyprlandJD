@@ -52,6 +52,7 @@ The configuration file is located at `~/.config/serpantinum/settings.json` (or `
 | `general.language` | `string` | `"en"` | Interface language code (`en`, `fr`, `ua`, `ru`, `de`, `es`, `it`, `hy`, `vi`, `ko`, `pt`, `az`, `ar`, `ja`, `zh`, `zh_tw`, `pl`, `tr`, `id`, `nl`, `fa`, `hi`, `bg`). |
 | `general.avatarPath` | `string` | `""` | Absolute path to custom profile picture. |
 | `general.quickactions` | `boolean` | `true` | Enables the floating quick-actions overlay. |
+| `general.settingsSeparateWindow` | `boolean` | `false` | Opens settings as a standalone resizable window instead of a panel inside the shell. |
 | `general.muteSfx` | `boolean` | `false` | Mutes all sound effects. |
 | `general.sfxVolume` | `number` | `100` | UI sound effects volume level (`0` to `100`). |
 | `general.screenshotCaptureOnRelease` | `boolean` | `false` | Immediately captures region when releasing mouse drag without manual shutter confirmation. |
@@ -120,7 +121,7 @@ The configuration file is located at `~/.config/serpantinum/settings.json` (or `
 | `bar.visContinuous` | `boolean` | `false` | Renders a continuous waveform line instead of discrete frequency bars. |
 | `bar.sysmonStyle` | `string` | `"wave"` | Resource monitor style: `"wave"`, `"circle"`, or `"bars"`. |
 | `bar.sysmonStats` | `array` | `["cpu", "ram", "temp"]` | Monitored resource metrics: subset of `["cpu", "ram", "temp", "disk"]`. |
-| `bar.batStyle` | `string` | `"classic"` | Battery module visual style: `"classic"`, `"minimal"`, or `"text"`. |
+| `bar.batStyle` | `string` | `"classic"` | Battery module visual style: `"classic"`, `"minimal"`, `"text"`, or `"button"`. |
 | `bar.batShowPercent` | `boolean` | `true` | Displays numeric percentage charge level. |
 | `bar.batShowIcon` | `boolean` | `true` | Displays battery status glyph. |
 | `bar.wifiStyle` | `string` | `"button"` | Wi-Fi module visual style: `"button"` or `"text"`. |
