@@ -3,6 +3,7 @@ Draggable 1.0 behavior/Draggable.qml
 
 CanvasIconButton 1.0 buttons/CanvasIconButton.qml
 ClickButton 1.0 buttons/ClickButton.qml
+CloseButton 1.0 buttons/CloseButton.qml
 DeleteButton 1.0 buttons/DeleteButton.qml
 FillButton 1.0 buttons/FillButton.qml
 IconButton 1.0 buttons/IconButton.qml
@@ -20,6 +21,7 @@ WallpaperBlur 1.0 display/WallpaperBlur.qml
 LiquidGlass 1.0 display/LiquidGlass.qml
 GlassFillets 1.0 display/GlassFillets.qml
 GlassFill 1.0 display/GlassFill.qml
+MaterialDigitGrid 1.0 display/MaterialDigitGrid.qml
 GlassLens 1.0 display/GlassLens.qml
 
 LyricsView 1.0 media/LyricsView.qml

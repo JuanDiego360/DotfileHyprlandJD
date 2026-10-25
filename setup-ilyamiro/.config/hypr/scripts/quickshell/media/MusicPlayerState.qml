@@ -170,6 +170,7 @@ Item {
         command: [
             "bash",
             Caching.qsDir + "/media/art_fetch.sh",
+            root.targetPlayer ? (root.targetPlayer.dbusName || root.targetPlayer.identity || "") : "",
             root.targetPlayer ? (root.targetPlayer.trackArtUrl || "") : "",
             root.targetPlayer ? (root.targetPlayer.trackTitle || "") : "",
             root.targetPlayer ? (root.targetPlayer.trackArtist || "") : ""

@@ -26,16 +26,12 @@ SETUP_DIR = os.path.join(DOTFILES_DIR, "setup-ilyamiro/.config/hypr/scripts/quic
 # Archivos protegidos que NUNCA deben sobrescribirse con el código vanilla de upstream
 PROTECTED_FILES = {
     "bar/faces/left/LeftFace.qml",
-    "screenshot/ScreenshotOverlay.qml",
     "singletons/info/SysData.qml",
     "singletons/system/Config.qml",
     "singletons/theme/Scaler.qml",
     "singletons/widgetcontrols/ClipboardController.qml",
     "singletons/widgetcontrols/LauncherController.qml",
     "watchers/sys_fetcher.sh",
-    "WindowRegistry.js",
-    "launcher/Launcher.qml",
-    "qmldir"
 }
 
 def audit():
@@ -113,6 +109,15 @@ def sync():
         with open(dock_state, "w", encoding="utf-8") as fp:
             fp.write(content)
 
+    # Launcher: asegurar wezterm
+    launcher_f = os.path.join(SETUP_DIR, "launcher/Launcher.qml")
+    if os.path.exists(launcher_f):
+        with open(launcher_f, "r", encoding="utf-8") as fp:
+            content = fp.read()
+        content = content.replace('"terminalCommand": "kitty -e"', '"terminalCommand": "wezterm start -- bash -c"')
+        with open(launcher_f, "w", encoding="utf-8") as fp:
+            fp.write(content)
+
     # LauncherTab: asegurar wezterm
     launcher_tab = os.path.join(SETUP_DIR, "guide/LauncherTab.qml")
     if os.path.exists(launcher_tab):
@@ -140,7 +145,6 @@ def sync():
     if os.path.exists(calendar_f):
         with open(calendar_f, "r", encoding="utf-8") as fp:
             content = fp.read()
-        # Si tiene implicitWidth rígido, lo comentamos
         lines = content.splitlines()
         new_lines = []
         for line in lines:
@@ -149,6 +153,19 @@ def sync():
             new_lines.append(line)
         with open(calendar_f, "w", encoding="utf-8") as fp:
             fp.write("\n".join(new_lines) + "\n")
+
+    # qmldir: asegurar MatugenColors y nuevos componentes
+    qmldir_f = os.path.join(SETUP_DIR, "qmldir")
+    if os.path.exists(qmldir_f):
+        with open(qmldir_f, "r", encoding="utf-8") as fp:
+            q_content = fp.read()
+        if "MatugenColors" not in q_content:
+            q_content = q_content.replace(
+                "singleton Matugen 1.0 singletons/theme/Matugen.qml",
+                "singleton Matugen 1.0 singletons/theme/Matugen.qml\nMatugenColors 1.0 MatugenColors.qml"
+            )
+            with open(qmldir_f, "w", encoding="utf-8") as fp:
+                fp.write(q_content)
 
     # Lock: asegurar que lock/qmldir registre VideoLock y FingerprintIndicator
     lock_qmldir = os.path.join(SETUP_DIR, "lock/qmldir")
@@ -162,28 +179,27 @@ def sync():
         with open(lock_qmldir, "w", encoding="utf-8") as fp:
             fp.write(q_content)
 
-    # Caching / Scripts: sincronizar WindowRegistry a src para mantener consistencia bidireccional
-    shutil.copy2(os.path.join(SETUP_DIR, "WindowRegistry.js"), os.path.join(SRC_DIR, "WindowRegistry.js"))
-    shutil.copy2(os.path.join(SETUP_DIR, "launcher/Launcher.qml"), os.path.join(SRC_DIR, "launcher/Launcher.qml"))
-    shutil.copy2(os.path.join(SETUP_DIR, "singletons/widgetcontrols/ClipboardController.qml"), os.path.join(SRC_DIR, "singletons/widgetcontrols/ClipboardController.qml"))
-    shutil.copy2(os.path.join(SETUP_DIR, "singletons/widgetcontrols/LauncherController.qml"), os.path.join(SRC_DIR, "singletons/widgetcontrols/LauncherController.qml"))
+    # Sincronizar scripts actualizados en src/scripts hacia setup-ilyamiro
+    src_scripts = os.path.join(DOTFILES_DIR, "src/scripts")
+    setup_scripts = os.path.join(DOTFILES_DIR, "setup-ilyamiro/.config/hypr/scripts")
+    for s_file in ["caching.sh", "i18n.sh"]:
+        sp = os.path.join(src_scripts, s_file)
+        dp = os.path.join(setup_scripts, s_file)
+        if os.path.exists(sp):
+            shutil.copy2(sp, dp)
 
     print("✔ Sincronización completada con éxito.")
 
 def reload_quickshell():
     print("\n=== REINICIANDO / RECARGANDO QUICKSHELL DESACOPLADO ===")
-    # Primero intentamos recarga vía IPC
     shell_path = os.path.expanduser("~/.config/hypr/scripts/quickshell/Shell.qml")
-    cmd_ipc = ["quickshell", "-p", shell_path, "ipc", "call", "main", "forceReload"]
-    res = subprocess.run(cmd_ipc, capture_output=True, text=True)
-    if res.returncode == 0:
-        print("✔ Recarga IPC enviada con éxito.")
-    else:
-        print("IPC falló o quickshell no respondía, reiniciando mediante hyprctl dispatch...")
-        subprocess.run(["pkill", "-f", "quickshell.*Shell.qml"])
-        subprocess.run(["sleep", "1"])
-        subprocess.run(["hyprctl", "dispatch", "exec", f"quickshell -p {shell_path}"])
-        print("✔ Quickshell relanzado bajo Hyprland.")
+    # Para cambios que agregan nuevos componentes raíz (como LockRedactor y WellbeingLimitOverlay),
+    # un reinicio limpio desacoplado bajo Hyprland es lo más robusto
+    print("Reiniciando Quickshell bajo Hyprland (hyprctl dispatch exec)...")
+    subprocess.run(["pkill", "-f", "quickshell.*Shell.qml"])
+    subprocess.run(["sleep", "1"])
+    subprocess.run(["hyprctl", "dispatch", "exec", f"quickshell -p {shell_path}"])
+    print("✔ Quickshell relanzado bajo Hyprland.")
 
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--audit":

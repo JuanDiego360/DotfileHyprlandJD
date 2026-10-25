@@ -17,11 +17,6 @@ Item {
         return Scaler.s(val);
     }
 
-    // The PanelWindow parent (created in Main.qml from WindowRegistry.getLayout)
-    // already enforces w/h clamped to the monitor size. Do NOT re-declare width/
-    // height/implicitWidth/implicitHeight here, or we override that clamping and
-    // overflow smaller monitors (e.g. calendar 1360x510 does not fit DP-2 1280x1024
-    // or HDMI-A-1 1366x768 vertically). Children size themselves via the parent's box.
 
     Timer {
         id: focusTimer
@@ -417,7 +412,10 @@ Item {
         let isRealCurrentMonth = (actualToday.getMonth() === targetMonth && actualToday.getFullYear() === targetYear);
         let todayDate = actualToday.getDate();
 
-        window.targetMonthName = d.toLocaleDateString(Qt.locale(I18n.currentLang), "MMMM yyyy");
+        let monthLoc = Qt.locale(I18n.qtLocaleName);
+        // standalone month name, so Ukrainian reads "Жовтень 2026" and not "жовтня 2026"
+        let monthName = monthLoc.standaloneMonthName(d.getMonth(), Locale.LongFormat);
+        window.targetMonthName = monthName.charAt(0).toUpperCase() + monthName.slice(1) + " " + d.getFullYear();
 
         let firstDay = new Date(targetYear, targetMonth, 1).getDay();
         firstDay = (firstDay === 0) ? 6 : firstDay - 1;
