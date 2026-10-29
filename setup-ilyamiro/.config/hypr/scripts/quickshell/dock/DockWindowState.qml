@@ -38,8 +38,12 @@ PanelWindow {
         "autohideTimeout": 1000,
         "editing": false,
         "apps": [
-            { "name": "WezTerm", "comment": "Wez's Terminal Emulator", "desktop_id": "org.wezfurlong.wezterm.desktop", "icon": "org.wezfurlong.wezterm" },
-            { "name": "Dolphin", "comment": "Manage your files", "desktop_id": "org.kde.dolphin.desktop", "icon": "org.kde.dolphin" }
+            {
+            "name": "WezTerm", "comment": "Wez's Terminal Emulator", "desktop_id": "org.wezfurlong.wezterm.desktop", "icon": "org.wezfurlong.wezterm"
+        },
+        {
+            "name": "Dolphin", "comment": "Manage your files", "desktop_id": "org.kde.dolphin.desktop", "icon": "org.kde.dolphin"
+        }
         ],
         "overrideBoundsCorrection": false,
         "enableScrolling": false,

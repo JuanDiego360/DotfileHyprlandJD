@@ -63,45 +63,6 @@ DisplayLockscreenState {
             }
 
             SettingsRow {
-                rootObj: displayLockscreenRoot.rootObj
-                settingId: "lockscreen_scale"
-                icon: "󰍉"
-                title: I18n.t("guide.display.lockscreen.scale.title", "UI Scale")
-                description: I18n.t("guide.display.lockscreen.scale.desc", "Adjust the size of the lock screen interface")
-                searchKeywords: "lockscreen lock screen scale size zoom interfaz tamaño"
-
-                NumberSelector {
-                    id: lockScaleSelector
-                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                    implicitWidth: rootObj.s(120)
-                    implicitHeight: rootObj.s(32)
-                    from: 0.8
-                    to: 2.0
-                    stepSize: 0.05
-                    decimals: 2
-                    suffix: "x"
-                    value: displayLockscreenRoot.currentScale
-                    baseColor: ThemeBackend.surface0
-                    accentColor: ThemeBackend.mauve
-                    buttonColor: ThemeBackend.surface1
-                    buttonTextColor: ThemeBackend.text
-                    textColor: ThemeBackend.text
-                    subTextColor: ThemeBackend.subtext0
-                    borderColor: Qt.alpha(ThemeBackend.surface2, 0.6)
-                    cornerRadius: ThemeBackend.borderRadius
-                    fontFamily: ThemeBackend.fontFamily
-                    fontPixelSize: rootObj.s(11)
-                    onValueChanged: {
-                        let v = Number(lockScaleSelector.value.toFixed(2));
-                        if (!isNaN(v) && v >= 0.8 && displayLockscreenRoot.currentScale !== v) {
-                            displayLockscreenRoot.currentScale = v;
-                            displayLockscreenRoot.updateLockscreenSetting("scale", v);
-                        }
-                    }
-                }
-            }
-
-            SettingsRow {
                 visible: displayLockscreenRoot.fingerprintSupported
                 rootObj: displayLockscreenRoot.rootObj
                 settingId: "lockscreen_fingerprint"

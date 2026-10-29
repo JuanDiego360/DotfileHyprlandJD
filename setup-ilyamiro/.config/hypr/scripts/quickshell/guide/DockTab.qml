@@ -22,8 +22,12 @@ GuideTab {
         "autohideTimeout": 1000,
         "editing": false,
         "apps": [
-            { "name": "WezTerm", "comment": "Wez's Terminal Emulator", "desktop_id": "org.wezfurlong.wezterm.desktop", "icon": "org.wezfurlong.wezterm" },
-            { "name": "Dolphin", "comment": "Manage your files", "desktop_id": "org.kde.dolphin.desktop", "icon": "org.kde.dolphin" }
+            {
+            "name": "WezTerm", "comment": "Wez's Terminal Emulator", "desktop_id": "org.wezfurlong.wezterm.desktop", "icon": "org.wezfurlong.wezterm"
+        },
+        {
+            "name": "Dolphin", "comment": "Manage your files", "desktop_id": "org.kde.dolphin.desktop", "icon": "org.kde.dolphin"
+        }
         ],
         "overrideBoundsCorrection": false,
         "enableScrolling": false,
@@ -236,8 +240,6 @@ GuideTab {
                         tintColor: ThemeBackend.surface0
                         tintAmount: 0.25
                     }
-                    border.color: Qt.alpha(ThemeBackend.surface1, 0.4)
-                    border.width: 1
 
                     property string settingId: "dock_apps"
                     property string title: I18n.t("guide.dock.apps.title", "Dock Applications")
@@ -455,8 +457,6 @@ GuideTab {
                                         tintColor: Qt.alpha(ThemeBackend.surface1, 0.3)
                                         tintAmount: 0.25
                                     }
-                                    border.color: Qt.alpha(ThemeBackend.surface2, 0.35)
-                                    border.width: ThemeBackend.liquidGlass ? 0 : 1
 
                                     RowLayout {
                                         anchors.fill: parent

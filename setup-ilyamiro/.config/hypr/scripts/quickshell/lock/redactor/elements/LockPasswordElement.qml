@@ -31,7 +31,7 @@ Item {
         cornerRadius: ThemeBackend.borderRadius
         horizontalPadding: Scaler.s(12)
         fontFamily: ThemeBackend.fontFamily
-        fontPixelSize: Scaler.s(16)
+        fontPixelSize: Scaler.s(14)
         horizontalAlignment: TextInput.AlignHCenter
         placeholderText: I18n.t("lock.status.enter_pin")
         showCaret: el.sr !== null

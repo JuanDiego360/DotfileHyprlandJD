@@ -425,7 +425,6 @@ DockWindowState {
     }
 
     function launchApp(desktopId) {
-        if (!desktopId) return;
         if (typeof DesktopEntries !== "undefined") {
             let entry = DesktopEntries.byId(desktopId) || DesktopEntries.byId(String(desktopId).replace(/\.desktop$/, ""));
             if (!entry && typeof AppMatcher !== "undefined") {

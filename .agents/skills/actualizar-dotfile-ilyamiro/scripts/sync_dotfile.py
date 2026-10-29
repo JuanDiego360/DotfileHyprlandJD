@@ -18,6 +18,7 @@ import shutil
 import filecmp
 import subprocess
 import json
+import re
 
 DOTFILES_DIR = os.path.expanduser("/home/juandiego/dotfiles")
 SRC_DIR = os.path.join(DOTFILES_DIR, "src/quickshell")
@@ -26,12 +27,14 @@ SETUP_DIR = os.path.join(DOTFILES_DIR, "setup-ilyamiro/.config/hypr/scripts/quic
 # Archivos protegidos que NUNCA deben sobrescribirse con el código vanilla de upstream
 PROTECTED_FILES = {
     "bar/faces/left/LeftFace.qml",
+    "screenshot/ScreenshotOverlay.qml",
     "singletons/info/SysData.qml",
     "singletons/system/Config.qml",
     "singletons/theme/Scaler.qml",
     "singletons/widgetcontrols/ClipboardController.qml",
     "singletons/widgetcontrols/LauncherController.qml",
     "watchers/sys_fetcher.sh",
+    "WindowRegistry.js",
 }
 
 def audit():

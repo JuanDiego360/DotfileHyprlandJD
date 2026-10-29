@@ -14,8 +14,7 @@ GuideTab {
         "passwordMaxAttempts": 5,
         "fingerprintMaxAttempts": 5,
         "backgroundMode": "follow",
-        "customBackground": "",
-        "scale": 1.3
+        "customBackground": ""
     })
 
     property var lockscreenSettings: {
@@ -26,7 +25,6 @@ GuideTab {
     }
 
     property bool fingerprintSupported: false
-    property real currentScale: (lockscreenSettings && lockscreenSettings.scale !== undefined) ? Number(lockscreenSettings.scale) : 1.3
     property string currentBackgroundMode: lockscreenSettings.backgroundMode === "custom" ? "custom" : "follow"
     property string currentCustomBackground: lockscreenSettings.customBackground ? String(lockscreenSettings.customBackground) : ""
     readonly property string currentWallpaperPath: {

@@ -144,7 +144,7 @@ PanelWindow {
                 property: "animProgress"
                 from: menuContainer.animProgress > 0.8 ? 0.2 : 0.0
                 to: 1.0
-                duration: 180
+                duration: 150
                 easing.type: Easing.OutBack
                 easing.overshoot: 1.05
             }
@@ -257,17 +257,9 @@ PanelWindow {
                                     if (typeof WindowTracker !== "undefined") {
                                         WindowTracker.focusWindow(dockAppMenuWindow.windowsList[0]);
                                     }
-                                } else if (DockAppMenuController.desktopId) {
-                                    let dId = DockAppMenuController.desktopId;
-                                    let entry = (typeof DesktopEntries !== "undefined") ? (DesktopEntries.byId(dId) || DesktopEntries.byId(String(dId).replace(/\.desktop$/, ""))) : null;
-                                    if (entry) {
-                                        entry.execute();
-                                    } else {
-                                        let clean = String(dId).replace(/\.desktop$/, "");
-                                        if (clean === "org.kde.dolphin" || clean === "dolphin") Quickshell.execDetached(["dolphin"]);
-                                        else if (clean === "org.wezfurlong.wezterm" || clean === "wezterm") Quickshell.execDetached(["wezterm"]);
-                                        else Quickshell.execDetached(["gtk-launch", dId]);
-                                    }
+                                } else if (typeof DesktopEntries !== "undefined" && DockAppMenuController.desktopId) {
+                                    let entry = DesktopEntries.byId(DockAppMenuController.desktopId) || DesktopEntries.byId(String(DockAppMenuController.desktopId).replace(/\.desktop$/, ""));
+                                    if (entry) entry.execute();
                                 }
                                 DockAppMenuController.hide();
                             }
@@ -371,7 +363,7 @@ PanelWindow {
                                     Layout.fillHeight: true
                                     clip: true
                                     Behavior on Layout.preferredWidth {
-                                        NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
+                                        NumberAnimation { duration: 250; easing.type: Easing.OutCubic }
                                     }
 
                                     CloseButton {
@@ -386,7 +378,7 @@ PanelWindow {
                                         iconFontSize: dockAppMenuWindow.s(13)
                                         opacity: rowHover.hovered ? 1.0 : 0.0
                                         Behavior on opacity {
-                                            NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
+                                            NumberAnimation { duration: 250; easing.type: Easing.OutCubic }
                                         }
                                         onClicked: {
                                             if (typeof WindowTracker !== "undefined") {
@@ -436,17 +428,9 @@ PanelWindow {
                             bgOpacity: ThemeBackend.elementOpacity
                             textColor: ThemeBackend.text
                             onClicked: {
-                                if (DockAppMenuController.desktopId) {
-                                    let dId = DockAppMenuController.desktopId;
-                                    let entry = (typeof DesktopEntries !== "undefined") ? (DesktopEntries.byId(dId) || DesktopEntries.byId(String(dId).replace(/\.desktop$/, ""))) : null;
-                                    if (entry) {
-                                        entry.execute();
-                                    } else {
-                                        let clean = String(dId).replace(/\.desktop$/, "");
-                                        if (clean === "org.kde.dolphin" || clean === "dolphin") Quickshell.execDetached(["dolphin"]);
-                                        else if (clean === "org.wezfurlong.wezterm" || clean === "wezterm") Quickshell.execDetached(["wezterm"]);
-                                        else Quickshell.execDetached(["gtk-launch", dId]);
-                                    }
+                                if (typeof DesktopEntries !== "undefined" && DockAppMenuController.desktopId) {
+                                    let entry = DesktopEntries.byId(DockAppMenuController.desktopId) || DesktopEntries.byId(String(DockAppMenuController.desktopId).replace(/\.desktop$/, ""));
+                                    if (entry) entry.execute();
                                 }
                                 DockAppMenuController.hide();
                             }
