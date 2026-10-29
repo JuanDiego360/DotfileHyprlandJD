@@ -1075,8 +1075,8 @@ PanelWindow {
                 + "if [ -n \"$handler\" ]; then\n"
                 + "  xdg-open \"$p\" 2>/dev/null && exit 0\n"
                 + "fi\n"
-                + "if command -v nautilus >/dev/null 2>&1; then\n"
-                + "  nautilus --select \"$p\" >/dev/null 2>&1 &\n"
+                + "if command -v ski >/dev/null 2>&1; then\n"
+                + "  ski \"$p\" >/dev/null 2>&1 &\n"
                 + "else\n"
                 + "  xdg-open \"$(dirname \"$p\")\" >/dev/null 2>&1 &\n"
                 + "fi";
