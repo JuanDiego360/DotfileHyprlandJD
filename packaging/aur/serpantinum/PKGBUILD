@@ -31,11 +31,11 @@ optdepends=(
 conflicts=('quickshell-git')
 backup=('etc/pam.d/serpantinum')
 install=serpantinum.install
-_skiver=0.2.0
+_skiver=0.2.2
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz"
         "ski-$_skiver-x86_64-linux.tar.gz::https://github.com/ilyamiro/Ski/releases/download/v$_skiver/ski-$_skiver-x86_64-linux.tar.gz")
 sha256sums=('63dde78567668c0882b6da28f5f310179f2ccb21991dbd136551c6ae473f08d6'
-            '23445ca575d5fdf468616d5d1791d91c8472c9c433814caee16e2f5ef8217dd2')
+            'a0e9ec598157185941b5fb400f2418529fd55c13a593aa48524a7ab51514e369')
 
 package() {
     cd "$pkgname-$pkgver"
