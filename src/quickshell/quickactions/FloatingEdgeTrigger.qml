@@ -15,7 +15,11 @@ PanelWindow {
     property real lengthB: 0
 
     readonly property bool horizontal: edge === "top" || edge === "bottom"
-    readonly property bool hovered: areaA.containsMouse || areaB.containsMouse
+    readonly property bool hovered: visible && (areaA.containsMouse || areaB.containsMouse)
+
+    onVisibleChanged: {
+        if (!visible && host) host.handleEdgeHandoff();
+    }
 
     WlrLayershell.namespace: "qs-floating-edge"
     WlrLayershell.layer: WlrLayer.Overlay

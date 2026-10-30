@@ -304,6 +304,16 @@ Variants {
                 peekHideTimer.restart();
             }
 
+            function handleEdgeHandoff() {
+                edgeHandoffTimer.restart();
+            }
+
+            Timer {
+                id: edgeHandoffTimer
+                interval: 400
+                onTriggered: peekHideTimer.restart()
+            }
+
             Connections {
                 target: (typeof Config !== "undefined") ? Config : null
                 function onSettingsLoaded() {
