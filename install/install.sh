@@ -9,6 +9,7 @@ RAW_SLUG="${REPO_SLUG:-ilyamiro/serpantinum}"
 REPO_SLUG="$(printf '%s' "$RAW_SLUG" | tr -d '\r\n\t ' | sed 's/[^a-zA-Z0-9_\/-]//g')"
 CACHE_BASE="${XDG_CACHE_HOME:-$HOME/.cache}/serpantinum-installer"
 export REPO_SLUG
+export SERPANTINUM_INSTALLER=1
 
 if [ -n "${BASH_SOURCE[0]}" ] && [ -f "${BASH_SOURCE[0]}" ]; then
     INSTALL_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
