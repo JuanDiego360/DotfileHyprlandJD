@@ -13,8 +13,7 @@ require("lua/keybinds")
 
 -- Submap passthru (Quickshell input pass-through)
 hl.define_submap("passthru", function()
-  hl.bind("SUPER SHIFT CTRL ALT, F35", function() end)
-  hl.bind("SUPER, Escape", hl.dsp.submap("reset"))
+  hl.bind("SUPER + Escape", hl.dsp.submap("reset"))
 end)
 
 -- Tablet Pen binding
