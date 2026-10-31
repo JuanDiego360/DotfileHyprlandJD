@@ -9,31 +9,45 @@ hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 -- ───────── Window Management ─────────
 hl.bind(mainMod .. " + Q", hl.dsp.window.close())
 hl.bind("ALT + F4", hl.dsp.window.close())
-hl.bind(mainMod .. " + F", hl.dsp.fullscreen({ mode = 1 }))
-hl.bind("ALT + Tab", hl.dsp.cyclenext())
-hl.bind("ALT + Tab", hl.dsp.bringactivetotop())
+hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen())
+hl.bind("ALT + Tab", hl.dsp.window.cycle_next())
+hl.bind("ALT + Tab", hl.dsp.window.bring_to_top())
+hl.bind(mainMod .. " + ALT + space", hl.dsp.exec_cmd('hyprctl --batch "dispatch togglefloating ; dispatch centerwindow ; dispatch resizeactive exact 500 350"'))
 hl.bind(mainMod .. " + ALT + code:64", hl.dsp.exec_cmd('hyprctl --batch "dispatch togglefloating ; dispatch centerwindow ; dispatch resizeactive exact 500 350"'))
-hl.bind(mainMod .. " + H", hl.dsp.layoutmsg("togglesplit"))
+hl.bind(mainMod .. " + H", hl.dsp.layout("togglesplit"))
 
 -- Focus window in direction:
+hl.bind(mainMod .. " + left", hl.dsp.focus({ direction = "left" }))
+hl.bind(mainMod .. " + right", hl.dsp.focus({ direction = "right" }))
+hl.bind(mainMod .. " + up", hl.dsp.focus({ direction = "up" }))
+hl.bind(mainMod .. " + down", hl.dsp.focus({ direction = "down" }))
 hl.bind(mainMod .. " + Left", hl.dsp.focus({ direction = "left" }))
 hl.bind(mainMod .. " + Right", hl.dsp.focus({ direction = "right" }))
 hl.bind(mainMod .. " + Up", hl.dsp.focus({ direction = "up" }))
 hl.bind(mainMod .. " + Down", hl.dsp.focus({ direction = "down" }))
 
 -- Move window in direction:
+hl.bind(mainMod .. " + SHIFT + left", hl.dsp.window.move({ direction = "l" }))
+hl.bind(mainMod .. " + SHIFT + right", hl.dsp.window.move({ direction = "r" }))
+hl.bind(mainMod .. " + SHIFT + up", hl.dsp.window.move({ direction = "u" }))
+hl.bind(mainMod .. " + SHIFT + down", hl.dsp.window.move({ direction = "d" }))
 hl.bind(mainMod .. " + SHIFT + Left", hl.dsp.window.move({ direction = "l" }))
 hl.bind(mainMod .. " + SHIFT + Right", hl.dsp.window.move({ direction = "r" }))
 hl.bind(mainMod .. " + SHIFT + Up", hl.dsp.window.move({ direction = "u" }))
 hl.bind(mainMod .. " + SHIFT + Down", hl.dsp.window.move({ direction = "d" }))
 
 -- Resize window in direction:
+hl.bind(mainMod .. " + CTRL + left", hl.dsp.window.resize({ x = -40, y = 0, relative = true }), { repeating = true })
+hl.bind(mainMod .. " + CTRL + right", hl.dsp.window.resize({ x = 40, y = 0, relative = true }), { repeating = true })
+hl.bind(mainMod .. " + CTRL + up", hl.dsp.window.resize({ x = 0, y = -40, relative = true }), { repeating = true })
+hl.bind(mainMod .. " + CTRL + down", hl.dsp.window.resize({ x = 0, y = 40, relative = true }), { repeating = true })
 hl.bind(mainMod .. " + CTRL + Left", hl.dsp.window.resize({ x = -40, y = 0, relative = true }), { repeating = true })
 hl.bind(mainMod .. " + CTRL + Right", hl.dsp.window.resize({ x = 40, y = 0, relative = true }), { repeating = true })
 hl.bind(mainMod .. " + CTRL + Up", hl.dsp.window.resize({ x = 0, y = -40, relative = true }), { repeating = true })
 hl.bind(mainMod .. " + CTRL + Down", hl.dsp.window.resize({ x = 0, y = 40, relative = true }), { repeating = true })
 
 -- ───────── Applications & Launchers ─────────
+hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd(terminal))
 hl.bind(mainMod .. " + RETURN", hl.dsp.exec_cmd(terminal))
 hl.bind(mainMod .. " + T", hl.dsp.exec_cmd(terminal))
 hl.bind("CTRL + ALT + T", hl.dsp.exec_cmd(terminal))
@@ -45,6 +59,7 @@ hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("code"))
 hl.bind(mainMod .. " + R", hl.dsp.exec_cmd("bash ~/.config/hypr/scripts/reload.sh"))
 hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("bash ~/.config/hypr/scripts/qs_manager.sh toggle clipboard"))
 hl.bind(mainMod .. " + P", hl.dsp.exec_cmd("bash ~/.config/hypr/scripts/qs_manager.sh toggle movies"))
+hl.bind(mainMod .. " + space", hl.dsp.exec_cmd("bash ~/.config/hypr/scripts/qs_manager.sh toggle applauncher"))
 hl.bind(mainMod .. " + Space", hl.dsp.exec_cmd("bash ~/.config/hypr/scripts/qs_manager.sh toggle applauncher"))
 hl.bind(mainMod .. " + I", hl.dsp.exec_cmd("bash ~/.config/hypr/scripts/qs_manager.sh toggle settings"))
 hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("bash ~/.config/hypr/scripts/qs_manager.sh toggle music"))
@@ -56,6 +71,7 @@ hl.bind(mainMod .. " + ALT + C", hl.dsp.exec_cmd("bash ~/.config/hypr/scripts/qs
 hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("bash ~/.config/hypr/scripts/qs_manager.sh toggle network"))
 hl.bind(mainMod .. " + SHIFT + T", hl.dsp.exec_cmd("bash ~/.config/hypr/scripts/qs_manager.sh toggle focustime"))
 hl.bind(mainMod .. " + ALT + V", hl.dsp.exec_cmd("bash ~/.config/hypr/scripts/qs_manager.sh toggle volume"))
+hl.bind(mainMod .. " + slash", hl.dsp.exec_cmd("bash ~/.config/hypr/scripts/qs_manager.sh toggle guide"))
 hl.bind(mainMod .. " + Slash", hl.dsp.exec_cmd("bash ~/.config/hypr/scripts/qs_manager.sh toggle guide"))
 
 -- ───────── System & Hardware ─────────
@@ -78,8 +94,8 @@ hl.bind(mainMod .. " + SHIFT + G", hl.dsp.exec_cmd("bash ~/.config/hypr/scripts/
 hl.bind(mainMod .. " + ALT + G", hl.dsp.exec_cmd("bash ~/.config/hypr/scripts/toggle-game-mode.sh"))
 
 -- ───────── Scratchpad ─────────
-hl.bind(mainMod .. " + S", hl.dsp.togglespecialworkspace("special"))
-hl.bind(mainMod .. " + ALT + S", hl.dsp.movetoworkspacesilent("special"))
+hl.bind(mainMod .. " + S", hl.dsp.workspace.toggle_special("special"))
+hl.bind(mainMod .. " + ALT + S", hl.dsp.window.move({ workspace = "special:special", silent = true }))
 
 -- ───────── Media & Audio ─────────
 hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
@@ -97,4 +113,5 @@ end
 hl.bind(mainMod .. " + 0", hl.dsp.exec_cmd("~/.config/hypr/scripts/qs_manager.sh 10"))
 hl.bind(mainMod .. " + SHIFT + 0", hl.dsp.exec_cmd("~/.config/hypr/scripts/qs_manager.sh 10 move_silent"))
 
+hl.bind(mainMod .. " + Tab", hl.dsp.exec_cmd("~/.config/hypr/scripts/focus_next_monitor.sh"))
 hl.bind(mainMod .. " + TAB", hl.dsp.exec_cmd("~/.config/hypr/scripts/focus_next_monitor.sh"))

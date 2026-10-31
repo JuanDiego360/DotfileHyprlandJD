@@ -1,12 +1,12 @@
 -- Layer rules
-hl.layerrule({ name = "lr1", match = { namespace = "^(volume_osd)$" }, no_anim = true })
-hl.layerrule({ name = "lr2", match = { namespace = "^(brightness_osd)$" }, no_anim = true })
-hl.layerrule({ name = "lr3", match = { namespace = "hyprpicker" }, no_anim = true })
-hl.layerrule({ name = "lr4", match = { namespace = "qsdock" }, no_anim = true })
-hl.layerrule({ name = "lr5", match = { namespace = "ext-session-lock" }, blur = true, ignore_alpha = 0.2 })
+hl.layer_rule({ name = "lr1", match = { namespace = "^(volume_osd)$" }, no_anim = true })
+hl.layer_rule({ name = "lr2", match = { namespace = "^(brightness_osd)$" }, no_anim = true })
+hl.layer_rule({ name = "lr3", match = { namespace = "hyprpicker" }, no_anim = true })
+hl.layer_rule({ name = "lr4", match = { namespace = "qsdock" }, no_anim = true })
+hl.layer_rule({ name = "lr5", match = { namespace = "ext-session-lock" }, blur = true, ignore_alpha = 0.2 })
 
 -- Window rules
-hl.windowrule({
+hl.window_rule({
   name = "app_launcher",
   match = { title = "^(app-launcher)$" },
   float = true,
@@ -15,7 +15,7 @@ hl.windowrule({
   animation = "slide",
 })
 
-hl.windowrule({
+hl.window_rule({
   name = "master_rule",
   match = { title = "^(qs-master)$" },
   float = true,
@@ -23,7 +23,7 @@ hl.windowrule({
   no_initial_focus = true,
 })
 
-hl.windowrule({
+hl.window_rule({
   name = "satty",
   match = { class = "^(com\\.gabm\\.satty)$" },
   float = true,
@@ -31,7 +31,7 @@ hl.windowrule({
   size = { "75%", "75%" },
 })
 
-hl.windowrule({
+hl.window_rule({
   name = "satty_freeze",
   match = { class = "^(com\\.gabm\\.sattyfreeze)$" },
   fullscreen = true,
