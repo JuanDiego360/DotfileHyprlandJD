@@ -90,10 +90,10 @@ hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("swayosd-client --output-volume 
 
 -- ───────── Workspaces ─────────
 for i = 1, 9 do
-  hl.bind(mainMod .. " + " .. i, hl.dsp.exec_cmd("~/.config/hypr/scripts/qs_manager.sh " .. i))
-  hl.bind(mainMod .. " + SHIFT + " .. i, hl.dsp.exec_cmd("~/.config/hypr/scripts/qs_manager.sh " .. i .. " move_silent"))
+  hl.bind(mainMod .. " + " .. i, hl.dsp.exec_cmd("bash ~/.config/hypr/scripts/qs_manager.sh " .. i))
+  hl.bind(mainMod .. " + SHIFT + " .. i, hl.dsp.exec_cmd("bash ~/.config/hypr/scripts/qs_manager.sh " .. i .. " move_silent"))
 end
-hl.bind(mainMod .. " + 0", hl.dsp.exec_cmd("~/.config/hypr/scripts/qs_manager.sh 10"))
-hl.bind(mainMod .. " + SHIFT + 0", hl.dsp.exec_cmd("~/.config/hypr/scripts/qs_manager.sh 10 move_silent"))
+hl.bind(mainMod .. " + 0", hl.dsp.exec_cmd("bash ~/.config/hypr/scripts/qs_manager.sh 10"))
+hl.bind(mainMod .. " + SHIFT + 0", hl.dsp.exec_cmd("bash ~/.config/hypr/scripts/qs_manager.sh 10 move_silent"))
 
-hl.bind(mainMod .. " + Tab", hl.dsp.exec_cmd("~/.config/hypr/scripts/focus_next_monitor.sh"))
+hl.bind(mainMod .. " + Tab", hl.dsp.exec_cmd("bash ~/.config/hypr/scripts/focus_next_monitor.sh"))
