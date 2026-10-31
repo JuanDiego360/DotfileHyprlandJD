@@ -10,7 +10,22 @@ Item {
     required property var screenRoot
     readonly property var passwordInput: panelView.passwordInput ? panelView.passwordInput : (fallbackPassword.item ? fallbackPassword.item.input : null)
 
-    readonly property real fit: Math.min(width / LockLayoutStore.refW, height / LockLayoutStore.refH)
+    readonly property real lockScaleMultiplier: {
+        var ls = Config.getSetting("lockscreen", {});
+        if (ls && ls.scale !== undefined && Number(ls.scale) > 0) {
+            return Number(ls.scale);
+        }
+        var rootScale = Config.getSetting("uiScale", null);
+        var gen = Config.getSetting("general", null);
+        var generalScale = (gen && gen.uiScale !== undefined) ? Number(gen.uiScale) : (rootScale !== null ? Number(rootScale) : 1.0);
+        return Math.max(1.45, generalScale * 1.2);
+    }
+    readonly property real rawFit: Math.min(width / LockLayoutStore.refW, height / LockLayoutStore.refH)
+    readonly property real maxAllowedFit: Math.min(
+        (width - screenRoot.s(32)) / LockLayoutStore.panelW,
+        (height - screenRoot.s(72)) / LockLayoutStore.panelH
+    )
+    readonly property real fit: Math.min(maxAllowedFit, rawFit * lockScaleMultiplier)
     readonly property real coreWidth: Math.min(LockLayoutStore.panelW, screenRoot.s(440))
     readonly property real shellWidth: dashboard.coreWidth + screenRoot.wingsReveal * (LockLayoutStore.panelW - dashboard.coreWidth)
     readonly property real panelLeft: LockLayoutStore.panelX >= 0 ? LockLayoutStore.panelX : (LockLayoutStore.refW - LockLayoutStore.panelW) / 2

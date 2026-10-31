@@ -35,6 +35,11 @@ PROTECTED_FILES = {
     "singletons/widgetcontrols/LauncherController.qml",
     "watchers/sys_fetcher.sh",
     "WindowRegistry.js",
+    "lock/LockClock.qml",
+    "lock/LockDashboard.qml",
+    "lock/redactor/elements/LockPasswordElement.qml",
+    "guide/display/DisplayLockscreenState.qml",
+    "guide/display/DisplayLockscreenTab.qml",
 }
 
 def audit():
