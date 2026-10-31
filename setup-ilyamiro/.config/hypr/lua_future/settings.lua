@@ -6,8 +6,10 @@ hl.config({
     float_gaps = 6,
     resize_on_border = true,
     extend_border_grab_area = 30,
-    col_active_border = "rgba(88d6bbee)",
-    col_inactive_border = "rgba(00513faa)",
+    col = {
+      active_border = "rgba(88d6bbee)",
+      inactive_border = "rgba(00513faa)",
+    },
   },
 
   decoration = {
