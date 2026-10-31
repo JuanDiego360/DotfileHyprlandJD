@@ -21,7 +21,7 @@ if [[ "$ACTION" =~ ^[0-9]+$ ]]; then
     if [[ "$TARGET" == "move" ]]; then
         hyprctl dispatch "hl.dsp.window.move({ workspace = $ACTION })" >/dev/null 2>&1 || hyprctl dispatch movetoworkspace "$ACTION" >/dev/null 2>&1
     elif [[ "$TARGET" == "move_silent" ]]; then
-        hyprctl dispatch "hl.dsp.window.move({ workspace = $ACTION, silent = true })" >/dev/null 2>&1 || hyprctl dispatch movetoworkspacesilent "$ACTION" >/dev/null 2>&1
+        hyprctl dispatch "hl.dsp.window.move({ workspace = $ACTION, follow = false })" >/dev/null 2>&1 || hyprctl dispatch movetoworkspacesilent "$ACTION" >/dev/null 2>&1
     else
         hyprctl dispatch "hl.dsp.focus({ workspace = $ACTION })" >/dev/null 2>&1 || hyprctl dispatch workspace "$ACTION" >/dev/null 2>&1
     fi
