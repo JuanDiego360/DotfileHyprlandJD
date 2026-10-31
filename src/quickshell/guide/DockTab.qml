@@ -23,7 +23,7 @@ GuideTab {
         "editing": false,
         "apps": [
             { "name": "Kitty", "comment": "Fast, feature-rich, GPU based terminal", "desktop_id": "kitty.desktop", "icon": "kitty" },
-            { "name": "Files", "comment": "Access and organize files", "desktop_id": "org.gnome.Nautilus.desktop", "icon": "org.gnome.Nautilus" }
+            { "name": "Files", "comment": "Access and organize files", "desktop_id": "ski.desktop", "icon": "ski" }
         ],
         "overrideBoundsCorrection": false,
         "enableScrolling": false,
