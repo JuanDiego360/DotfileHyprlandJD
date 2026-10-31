@@ -35,7 +35,7 @@ Rectangle {
     }
 
     property Item providedBackdrop: null
-    readonly property Item glassBackdropItem: providedBackdrop ? providedBackdrop : ((!isGrouped && !isSolid) ? ownBlur : null)
+    property Item glassBackdropItem: null
     readonly property alias faceItem: faceLoader.item
 
     readonly property var helpButton: (faceLoader.item && faceLoader.item.helpButton) ? faceLoader.item.helpButton : null
@@ -148,6 +148,7 @@ Rectangle {
     onFaceSourceChanged: loadFace()
     onFaceWantedChanged: loadFace()
     Component.onCompleted: {
+        glassBackdropItem = Qt.binding(() => providedBackdrop ? providedBackdrop : ((!isGrouped && !isSolid) ? ownBlur : null));
         loadFace();
         updateVisible();
     }
