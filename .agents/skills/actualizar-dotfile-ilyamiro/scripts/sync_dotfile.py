@@ -110,7 +110,7 @@ def sync():
             content = fp.read()
         content = content.replace('"terminalCommand": "kitty -e"', '"terminalCommand": "wezterm start -- bash -c"')
         content = re.sub(
-            r'\{\s*"name":\s*"Kitty".*?"icon":\s*"kitty"\s*\},?\s*\{\s*"name":\s*"Files".*?"icon":\s*"org\.gnome\.Nautilus"\s*\}',
+            r'\{\s*"name":\s*"Kitty".*?"icon":\s*"kitty"\s*\},?\s*\{\s*"name":\s*"Files".*?"icon":\s*"(?:org\.gnome\.Nautilus|ski)"\s*\}',
             '{\n            "name": "WezTerm", "comment": "Wez\'s Terminal Emulator", "desktop_id": "org.wezfurlong.wezterm.desktop", "icon": "org.wezfurlong.wezterm"\n        },\n        {\n            "name": "Dolphin", "comment": "Manage your files", "desktop_id": "org.kde.dolphin.desktop", "icon": "org.kde.dolphin"\n        }',
             content,
             flags=re.DOTALL
@@ -123,7 +123,7 @@ def sync():
         with open(dock_tab, "r", encoding="utf-8") as fp:
             content = fp.read()
         content = re.sub(
-            r'\{\s*"name":\s*"Kitty".*?"icon":\s*"kitty"\s*\},?\s*\{\s*"name":\s*"Files".*?"icon":\s*"org\.gnome\.Nautilus"\s*\}',
+            r'\{\s*"name":\s*"Kitty".*?"icon":\s*"kitty"\s*\},?\s*\{\s*"name":\s*"Files".*?"icon":\s*"(?:org\.gnome\.Nautilus|ski)"\s*\}',
             '{\n            "name": "WezTerm", "comment": "Wez\'s Terminal Emulator", "desktop_id": "org.wezfurlong.wezterm.desktop", "icon": "org.wezfurlong.wezterm"\n        },\n        {\n            "name": "Dolphin", "comment": "Manage your files", "desktop_id": "org.kde.dolphin.desktop", "icon": "org.kde.dolphin"\n        }',
             content,
             flags=re.DOTALL
