@@ -809,7 +809,7 @@
       "empty_title": "Нет приложений в автозапуске",
       "empty_desc": "Нажмите «добавить приложение», чтобы указать команды, бинарники, задержку и количество запусков.",
       "name_label": "Название",
-      "name_placeholder": "например, discord, EasyEffects, скрипт",
+      "name_placeholder": "например, discord, Telegram, скрипт",
       "exec_label": "Команда / исполняемый файл",
       "exec_placeholder": "Путь к бинарнику или команда с флагами (например, discord --start-minimized)",
       "browse_file": "Выбрать файл",
@@ -1147,6 +1147,9 @@
       },
       "setting": {
         "show_text": "Показывать текст"
+      },
+      "category": {
+        "lockscreen": "Экран блокировки"
       }
     }
   },
@@ -1161,7 +1164,9 @@
     "equalizer": "Эквалайзер",
     "eq": {
       "apply": "Применить",
-      "saved": "Сохранено"
+      "saved": "Сохранено",
+      "dynamic": "Динамический",
+      "dynamic_active": "Подстраивается под ваш звук"
     },
     "audio": {
       "title": "Аудио",
@@ -1556,11 +1561,21 @@
     },
     "redactor": {
       "no_widgets_active": "Нет активных виджетов",
-      "click_to_add": "Нажмите на иконку виджета на нижней панели, чтобы добавить его",
+      "click_to_add": "Выберите категорию или воспользуйтесь поиском на нижней панели, чтобы добавить виджет",
       "done": "Готово",
       "widget_singular": "виджет",
       "widgets_plural": "виджетов",
-      "widgets_short": "в"
+      "widgets_short": "в",
+      "category": {
+        "time": "Время и текст",
+        "media": "Медиа",
+        "system": "Система",
+        "info": "Информация",
+        "other": "Другое"
+      },
+      "search": "Поиск виджетов",
+      "results": "Результаты",
+      "no_results": "Ничего не найдено"
     },
     "types": {
       "clock": "Часы",
@@ -1573,7 +1588,8 @@
       "battery": "Батарея",
       "github": "Github",
       "time": "Время",
-      "notes": "Заметки"
+      "notes": "Заметки",
+      "text": "Текст"
     },
     "variants": {
       "digital": "Цифровые",
@@ -1623,7 +1639,8 @@
     "settings": {
       "lyricsLines": "Строки",
       "lyricsAlignment": "Выравнивание",
-      "showNoLyrics": "Показывать текст «нет текста песни»"
+      "showNoLyrics": "Показывать текст «нет текста песни»",
+      "textContent": "Текст"
     },
     "align": {
       "left": "Слева",
@@ -1632,6 +1649,9 @@
     },
     "notes": {
       "empty": "Пока нет заметок"
+    },
+    "text": {
+      "placeholder": "Введите текст"
     }
   },
   "cli": {
@@ -1733,6 +1753,11 @@
       "status_running": "Служба serpantinum запущена (PID: {PID}).",
       "status_stopped": "Служба serpantinum не запущена.",
       "unknown_arg": "Неизвестный аргумент: {ARG}"
+    },
+    "app_name": "Serpantinum",
+    "easyeffects": {
+      "title": "EasyEffects всё ещё включён",
+      "body": "Теперь у Serpantinum есть собственный аудиодвижок, и EasyEffects может ему мешать. Если вы использовали EasyEffects только для Serpantinum, отключите его запуск при входе в систему."
     }
   },
   "installer": {

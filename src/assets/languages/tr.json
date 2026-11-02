@@ -1103,6 +1103,9 @@
       },
       "setting": {
         "show_text": "Metni göster"
+      },
+      "category": {
+        "lockscreen": "Kilit ekranı"
       }
     }
   },
@@ -1117,7 +1120,9 @@
     "equalizer": "Ekolayzer",
     "eq": {
       "apply": "Uygula",
-      "saved": "Kaydedildi"
+      "saved": "Kaydedildi",
+      "dynamic": "Dinamik",
+      "dynamic_active": "Sesinize uyum sağlıyor"
     },
     "presets": {
       "flat": "Düz",
@@ -1512,11 +1517,21 @@
     },
     "redactor": {
       "no_widgets_active": "Etkin widget yok",
-      "click_to_add": "Eklemek için alt araç çubuğundaki bir widget simgesine tıklayın",
+      "click_to_add": "Widget eklemek için alt araç çubuğundan bir kategori seçin veya arama yapın",
       "done": "Tamam",
       "widget_singular": "widget",
       "widgets_plural": "widget",
-      "widgets_short": "w"
+      "widgets_short": "w",
+      "category": {
+        "time": "Saat ve metin",
+        "media": "Medya",
+        "system": "Sistem",
+        "info": "Bilgi",
+        "other": "Diğer"
+      },
+      "search": "Widget ara",
+      "results": "Sonuçlar",
+      "no_results": "Hiçbir şey bulunamadı"
     },
     "types": {
       "clock": "Saat",
@@ -1529,7 +1544,8 @@
       "battery": "Pil",
       "github": "Github",
       "time": "Saat",
-      "notes": "Notlar"
+      "notes": "Notlar",
+      "text": "Metin"
     },
     "variants": {
       "digital": "Dijital",
@@ -1575,7 +1591,8 @@
     },
     "settings": {
       "lyricsLines": "Satırlar",
-      "lyricsAlignment": "Hizalama"
+      "lyricsAlignment": "Hizalama",
+      "textContent": "Metin"
     },
     "align": {
       "left": "Sol",
@@ -1584,6 +1601,9 @@
     },
     "notes": {
       "empty": "Henüz not yok"
+    },
+    "text": {
+      "placeholder": "Metin girin"
     }
   },
   "cli": {
@@ -1685,6 +1705,11 @@
       "status_running": "Serpantinum arka plan programı çalışıyor (PID: {PID}).",
       "status_stopped": "Serpantinum arka plan programı çalışmıyor.",
       "unknown_arg": "Bilinmeyen argüman: {ARG}"
+    },
+    "app_name": "Serpantinum",
+    "easyeffects": {
+      "title": "EasyEffects hâlâ etkin",
+      "body": "Serpantinum artık kendi ses motoruna sahip ve EasyEffects onunla çakışabilir. EasyEffects'i yalnızca Serpantinum için kullandıysanız, oturum açılışında başlamasını kapatın."
     }
   },
   "installer": {

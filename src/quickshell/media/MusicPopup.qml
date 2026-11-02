@@ -157,6 +157,15 @@ MusicEqualizerState {
         font.bold: true
     }
 
+    Text {
+        id: dynamicMeasureText
+        visible: false
+        text: typeof I18n !== "undefined" ? I18n.t("music.eq.dynamic", "Dynamic") : "Dynamic"
+        font.family: ThemeBackend.fontFamily
+        font.pixelSize: popupRoot.s(11.5)
+        font.bold: true
+    }
+
     property real actionBtnMorph: 0.0
     property real audioHeaderProgress: 0.0
     property real presetSlideProgress: 0.0
@@ -164,6 +173,7 @@ MusicEqualizerState {
     readonly property real eqActionBtnWidth: Math.max(popupRoot.s(68), eqMeasureText.implicitWidth + popupRoot.s(26))
     readonly property real audioActionBtnWidth: Math.max(popupRoot.s(84), resetMeasureText.implicitWidth + popupRoot.s(46))
     readonly property real audioTestBtnWidth: Math.max(popupRoot.s(64), Math.min(popupRoot.s(82), testMeasureText.implicitWidth + popupRoot.s(34)))
+    readonly property real dynamicEqBtnWidth: Math.max(popupRoot.s(96), dynamicMeasureText.implicitWidth + popupRoot.s(56))
     readonly property real lyricsActionBtnWidth: Math.max(popupRoot.s(116), lyricsMeasureText.implicitWidth + popupRoot.s(44))
     readonly property real actionBtnCurrentWidth: actionBtnMorph <= 1.0
         ? eqActionBtnWidth + (audioActionBtnWidth - eqActionBtnWidth) * actionBtnMorph

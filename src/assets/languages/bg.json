@@ -1103,6 +1103,9 @@
       },
       "setting": {
         "show_text": "Показване на текст"
+      },
+      "category": {
+        "lockscreen": "Заключен екран"
       }
     }
   },
@@ -1117,7 +1120,9 @@
     "equalizer": "Еквалайзер",
     "eq": {
       "apply": "Прилагане",
-      "saved": "Запазено"
+      "saved": "Запазено",
+      "dynamic": "Динамичен",
+      "dynamic_active": "Адаптира се към вашия звук"
     },
     "presets": {
       "flat": "Плосък",
@@ -1512,11 +1517,21 @@
     },
     "redactor": {
       "no_widgets_active": "Няма активни уиджети",
-      "click_to_add": "Щракнете върху икона на уиджет в долната лента с инструменти, за да го добавите",
+      "click_to_add": "Изберете категория или потърсете в долната лента с инструменти, за да добавите уиджет",
       "done": "Готово",
       "widget_singular": "уиджет",
       "widgets_plural": "уиджета",
-      "widgets_short": "у"
+      "widgets_short": "у",
+      "category": {
+        "time": "Час и текст",
+        "media": "Медия",
+        "system": "Система",
+        "info": "Информация",
+        "other": "Други"
+      },
+      "search": "Търсене на уиджети",
+      "results": "Резултати",
+      "no_results": "Нищо не е намерено"
     },
     "types": {
       "clock": "Часовник",
@@ -1529,7 +1544,8 @@
       "battery": "Батерия",
       "github": "Github",
       "time": "Час",
-      "notes": "Бележки"
+      "notes": "Бележки",
+      "text": "Текст"
     },
     "variants": {
       "digital": "Дигитален",
@@ -1575,7 +1591,8 @@
     },
     "settings": {
       "lyricsLines": "Редове",
-      "lyricsAlignment": "Подравняване"
+      "lyricsAlignment": "Подравняване",
+      "textContent": "Текст"
     },
     "align": {
       "left": "Ляво",
@@ -1584,6 +1601,9 @@
     },
     "notes": {
       "empty": "Все още няма бележки"
+    },
+    "text": {
+      "placeholder": "Въведете текст"
     }
   },
   "cli": {
@@ -1685,6 +1705,11 @@
       "status_running": "Демонът на Serpantinum работи (PID: {PID}).",
       "status_stopped": "Демонът на Serpantinum не работи.",
       "unknown_arg": "Неизвестен аргумент: {ARG}"
+    },
+    "app_name": "Serpantinum",
+    "easyeffects": {
+      "title": "EasyEffects все още е активен",
+      "body": "Serpantinum вече има собствен аудио двигател и EasyEffects може да му пречи. Ако сте използвали EasyEffects само за Serpantinum, спрете стартирането му при вход."
     }
   },
   "installer": {

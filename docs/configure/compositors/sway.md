@@ -19,14 +19,15 @@ Configuration is stored in `~/.config/sway`. The main file is `config`, which in
 
 ## Autostart
 
-The shell daemon, clipboard history, and audio effects are launched from `configDir/autostart`:
+The shell daemon and clipboard history are launched from `configDir/autostart`:
 
 ```ini
 exec wl-paste --type text --watch cliphist store
 exec wl-paste --type image --watch cliphist store
-exec systemctl --user enable --now easyeffects
 exec serpantinumd start
 ```
+
+`serpantinumd start` also starts the [audio engine](/audio).
 
 ## Keybindings
 

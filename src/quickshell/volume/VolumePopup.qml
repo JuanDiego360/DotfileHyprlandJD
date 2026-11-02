@@ -98,10 +98,7 @@ Item {
         return ThemeBackend.green;
     }
 
-    readonly property string activeOutputName: {
-        const sink = Audio.defaultSink;
-        return sink && sink.name ? sink.name : "";
-    }
+    readonly property string activeOutputName: Audio.activeOutputName
 
     readonly property string activeInputName: {
         const source = Audio.defaultSource;

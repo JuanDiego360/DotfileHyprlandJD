@@ -50,6 +50,7 @@ Singleton {
         let appName = p["application.name"] || "";
         if (appId === "serpantinum-sfx" || appId === "serpantinum" || appId === "org.serpantinum.sfx") return true;
         if (appName === "serpantinum-sfx" || appName === "serpantinum") return true;
+        if (p["node.group"] === "serpantinum-audio" || p["node.link-group"] === "serpantinum-audio") return true;
         let mediaFile = p["media.filename"] || p["media.name"] || "";
         if (mediaFile.indexOf("assets/sounds/") !== -1) return true;
         return false;
@@ -135,6 +136,8 @@ Singleton {
     }
 
     readonly property PwNode defaultSink: Pipewire.defaultAudioSink
+
+    readonly property string activeOutputName: root.defaultSink && root.defaultSink.name ? root.defaultSink.name : ""
     readonly property PwNode defaultSource: Pipewire.defaultAudioSource
 
     function setDefaultOutput(node) {

@@ -1,5 +1,6 @@
 { lib
 , stdenv
+, callPackage
 , makeWrapper
 , python3
 , qt5
@@ -12,9 +13,7 @@
 , brightnessctl
 , ddcutil
 , cava
-, calf
 , cliphist
-, easyeffects
 , fastfetch
 , fd
 , ffmpeg
@@ -53,6 +52,7 @@
 , quickshell
 , libpulseaudio
 , pipewire
+, serpantinum-audio ? callPackage ./audio.nix { }
 , ...
 }:
 let
@@ -67,9 +67,7 @@ let
     brightnessctl
     ddcutil
     cava
-    calf
     cliphist
-    easyeffects
     fastfetch
     fd
     ffmpeg
@@ -107,6 +105,7 @@ let
     tesseract
     zbar
     quickshell
+    serpantinum-audio
   ];
   qtDeps = [
     quickshell
@@ -145,6 +144,7 @@ stdenv.mkDerivation (finalAttrs: {
     install -Dm644 packaging/desktop/serpantinum-settings.svg "$out/share/icons/hicolor/scalable/apps/serpantinum-settings.svg"
     install -Dm755 bin/serpantinum  "$out/bin/.serpantinum-wrapped"
     install -Dm755 bin/serpantinumd "$out/bin/.serpantinumd-wrapped"
+    ln -s "${lib.getExe serpantinum-audio}" "$out/bin/serpantinum-audio"
     runHook postInstall
   '';
   postFixup = ''
@@ -158,7 +158,7 @@ stdenv.mkDerivation (finalAttrs: {
         --prefix PATH : "${lib.makeBinPath pathDeps}"
     done
   '';
-  passthru = { inherit pathDeps qtDeps pythonEnv; };
+  passthru = { inherit pathDeps qtDeps pythonEnv serpantinum-audio; };
   meta = with lib; {
     description = "A desktop shell built for YOU";
     homepage = "https://github.com/ilyamiro/serpantinum";

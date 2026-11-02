@@ -138,7 +138,12 @@
       "usage": "الاستخدام: serpantinumd [start|stop|restart|status]"
     },
     "launching": "جارٍ إطلاق خدمة خلفية Serpantinum...",
-    "shutting_down": "جارٍ إيقاف خدمة خلفية Serpantinum..."
+    "shutting_down": "جارٍ إيقاف خدمة خلفية Serpantinum...",
+    "app_name": "Serpantinum",
+    "easyeffects": {
+      "title": "لا يزال EasyEffects مفعّلًا",
+      "body": "أصبح لدى Serpantinum الآن محرك صوت خاص به، وقد يتعارض EasyEffects معه. إذا كنت تستخدم EasyEffects من أجل Serpantinum فقط، فأوقف تشغيله التلقائي عند تسجيل الدخول."
+    }
   },
   "datetime": {
     "full_date": "dddd، MMMM dd"
@@ -191,7 +196,7 @@
         "title": "تمكين التشغيل التلقائي"
       },
       "name_label": "الاسم",
-      "name_placeholder": "مثال: Discord، EasyEffects، سكربت مخصص",
+      "name_placeholder": "مثال: Discord، Telegram، سكربت مخصص",
       "no_log": "السجل فارغ حاليًا",
       "repeat_delay_desc": "الفارق الزمني بين عمليات التشغيل المتكررة",
       "repeat_delay_label": "فاصل التكرار",
@@ -1316,6 +1321,9 @@
       },
       "setting": {
         "show_text": "إظهار النص"
+      },
+      "category": {
+        "lockscreen": "شاشة القفل"
       }
     }
   },
@@ -1323,7 +1331,9 @@
     "by_artist": "بواسطة {artist}",
     "eq": {
       "apply": "تطبيق",
-      "saved": "تم الحفظ"
+      "saved": "تم الحفظ",
+      "dynamic": "ديناميكي",
+      "dynamic_active": "يتكيف مع صوتك"
     },
     "audio": {
       "title": "الصوت",
@@ -1788,16 +1798,27 @@
       }
     },
     "redactor": {
-      "click_to_add": "انقر على أيقونة أداة في شريط الأدوات السفلي لإضافتها",
+      "click_to_add": "اختر فئة أو ابحث في شريط الأدوات السفلي لإضافة أداة",
       "done": "تم",
       "no_widgets_active": "لا توجد أدوات نشطة حاليًا",
       "widget_singular": "أداة",
       "widgets_plural": "أدوات",
-      "widgets_short": "أداة"
+      "widgets_short": "أداة",
+      "category": {
+        "time": "الوقت والنص",
+        "media": "الوسائط",
+        "system": "النظام",
+        "info": "معلومات",
+        "other": "أخرى"
+      },
+      "search": "البحث عن الأدوات",
+      "results": "النتائج",
+      "no_results": "لم يتم العثور على شيء"
     },
     "settings": {
       "lyricsAlignment": "محاذاة الكلمات",
-      "lyricsLines": "عدد الأسطر"
+      "lyricsLines": "عدد الأسطر",
+      "textContent": "النص"
     },
     "system": {
       "desc": "مراقب الأداء ومفاتيح الطاقة والإعدادات السريعة",
@@ -1814,7 +1835,8 @@
       "user": "المستخدم",
       "visualizer": "المرئيات الصوتية",
       "weather": "الطقس",
-      "notes": "ملاحظات"
+      "notes": "ملاحظات",
+      "text": "نص"
     },
     "variants": {
       "analog": "عقارب",
@@ -1846,6 +1868,9 @@
     },
     "notes": {
       "empty": "لا توجد ملاحظات بعد"
+    },
+    "text": {
+      "placeholder": "أدخل النص"
     }
   }
 }

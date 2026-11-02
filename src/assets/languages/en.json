@@ -1127,6 +1127,9 @@
       },
       "setting": {
         "show_text": "Show text"
+      },
+      "category": {
+        "lockscreen": "Lock screen"
       }
     }
   },
@@ -1141,7 +1144,9 @@
     "equalizer": "Equalizer",
     "eq": {
       "apply": "Apply",
-      "saved": "Saved"
+      "saved": "Saved",
+      "dynamic": "Dynamic",
+      "dynamic_active": "Adapting to your sound"
     },
     "audio": {
       "title": "Audio",
@@ -1536,11 +1541,21 @@
     },
     "redactor": {
       "no_widgets_active": "No widgets active",
-      "click_to_add": "Click a widget icon in the bottom toolbar to add it",
+      "click_to_add": "Pick a category or search in the bottom toolbar to add a widget",
       "done": "Done",
       "widget_singular": "widget",
       "widgets_plural": "widgets",
-      "widgets_short": "w"
+      "widgets_short": "w",
+      "category": {
+        "time": "Time and text",
+        "media": "Media",
+        "system": "System",
+        "info": "Info",
+        "other": "Other"
+      },
+      "search": "Search widgets",
+      "results": "Results",
+      "no_results": "Nothing found"
     },
     "types": {
       "clock": "Clock",
@@ -1553,7 +1568,8 @@
       "battery": "Battery",
       "github": "Github",
       "time": "Time",
-      "notes": "Notes"
+      "notes": "Notes",
+      "text": "Text"
     },
     "variants": {
       "digital": "Digital",
@@ -1604,7 +1620,8 @@
       "usageStyle": "Style",
       "lineThickness": "Thickness",
       "visualizerStyle": "Visualizer style",
-      "showNoLyrics": "Show \"no lyrics\" text"
+      "showNoLyrics": "Show \"no lyrics\" text",
+      "textContent": "Text"
     },
     "align": {
       "left": "Left",
@@ -1617,6 +1634,9 @@
     },
     "notes": {
       "empty": "No notes yet"
+    },
+    "text": {
+      "placeholder": "Enter text"
     }
   },
   "cli": {
@@ -1718,6 +1738,11 @@
       "status_running": "Serpantinum daemon is running (PID: {PID}).",
       "status_stopped": "Serpantinum daemon is not running.",
       "unknown_arg": "Unknown argument: {ARG}"
+    },
+    "app_name": "Serpantinum",
+    "easyeffects": {
+      "title": "EasyEffects is still enabled",
+      "body": "Serpantinum now has its own audio engine, and EasyEffects can interfere with it. If you only used EasyEffects for Serpantinum, stop it from starting at login."
     }
   },
   "installer": {
@@ -1796,6 +1821,7 @@
       "syncing": "Synchronizing and updating system packages (pacman -syyu)...",
       "enabling_copr": "Enabling COPR repository {repo}...",
       "enabling_terra": "Enabling the Terra repository...",
+      "enabling_repo": "Enabling repository {repo}...",
       "all_installed": "-> All packages are already installed! Skipping package download phase.",
       "missing_count": "-> Found {count} missing packages to install.",
       "installing_title": "Installing system packages and dependencies...",
@@ -1813,6 +1839,15 @@
       "download_failed": "Could not download Ski, skipping. You can install it later from github.com/ilyamiro/Ski.",
       "checksum_failed": "Ski download failed its checksum check, skipping.",
       "unsupported_arch": "Prebuilt Ski packages exist only for x86_64, skipping."
+    },
+    "audio": {
+      "installing": "Installing the Serpantinum audio engine...",
+      "up_to_date": "-> Serpantinum audio engine {version} is already installed.",
+      "installed": "Installed the Serpantinum audio engine {version}",
+      "building": "No prebuilt audio engine for this system, building it from source...",
+      "install_failed": "Failed to install the Serpantinum audio engine. The equalizer will not work until it is installed from github.com/ilyamiro/serpantinum-audio.",
+      "download_failed": "Could not download the Serpantinum audio engine, skipping. You can install it later from github.com/ilyamiro/serpantinum-audio.",
+      "checksum_failed": "The audio engine download failed its checksum check, skipping."
     },
     "deploy": {
       "configuring_sddm": "Configuring SDDM display manager...",

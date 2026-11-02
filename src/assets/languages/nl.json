@@ -1103,6 +1103,9 @@
       },
       "setting": {
         "show_text": "Tekst tonen"
+      },
+      "category": {
+        "lockscreen": "Vergrendelscherm"
       }
     }
   },
@@ -1117,7 +1120,9 @@
     "equalizer": "Equalizer",
     "eq": {
       "apply": "Toepassen",
-      "saved": "Opgeslagen"
+      "saved": "Opgeslagen",
+      "dynamic": "Dynamisch",
+      "dynamic_active": "Past zich aan je geluid aan"
     },
     "presets": {
       "flat": "Vlak",
@@ -1512,11 +1517,21 @@
     },
     "redactor": {
       "no_widgets_active": "Geen widgets actief",
-      "click_to_add": "Klik op een widgetpictogram in de onderste werkbalk om toe te voegen",
+      "click_to_add": "Kies een categorie of zoek in de onderste werkbalk om een widget toe te voegen",
       "done": "Klaar",
       "widget_singular": "widget",
       "widgets_plural": "widgets",
-      "widgets_short": "w"
+      "widgets_short": "w",
+      "category": {
+        "time": "Tijd en tekst",
+        "media": "Media",
+        "system": "Systeem",
+        "info": "Info",
+        "other": "Overig"
+      },
+      "search": "Widgets zoeken",
+      "results": "Resultaten",
+      "no_results": "Niets gevonden"
     },
     "types": {
       "clock": "Klok",
@@ -1529,7 +1544,8 @@
       "battery": "Batterij",
       "github": "GitHub",
       "time": "Tijd",
-      "notes": "Notities"
+      "notes": "Notities",
+      "text": "Tekst"
     },
     "variants": {
       "digital": "Digitaal",
@@ -1575,7 +1591,8 @@
     },
     "settings": {
       "lyricsLines": "Regels",
-      "lyricsAlignment": "Uitlijning"
+      "lyricsAlignment": "Uitlijning",
+      "textContent": "Tekst"
     },
     "align": {
       "left": "Links",
@@ -1584,6 +1601,9 @@
     },
     "notes": {
       "empty": "Nog geen notities"
+    },
+    "text": {
+      "placeholder": "Voer tekst in"
     }
   },
   "cli": {
@@ -1685,6 +1705,11 @@
       "status_running": "Serpantinum-daemon is actief (PID: {PID}).",
       "status_stopped": "Serpantinum-daemon is niet actief.",
       "unknown_arg": "Onbekend argument: {ARG}"
+    },
+    "app_name": "Serpantinum",
+    "easyeffects": {
+      "title": "EasyEffects is nog ingeschakeld",
+      "body": "Serpantinum heeft nu een eigen audio-engine en EasyEffects kan daarmee storen. Gebruikte u EasyEffects alleen voor Serpantinum, zorg dan dat het niet meer bij het aanmelden start."
     }
   },
   "installer": {

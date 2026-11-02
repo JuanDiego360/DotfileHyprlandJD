@@ -1103,6 +1103,9 @@
       },
       "setting": {
         "show_text": "Tampilkan teks"
+      },
+      "category": {
+        "lockscreen": "Layar kunci"
       }
     }
   },
@@ -1117,7 +1120,9 @@
     "equalizer": "Equalizer",
     "eq": {
       "apply": "Terapkan",
-      "saved": "Disimpan"
+      "saved": "Disimpan",
+      "dynamic": "Dinamis",
+      "dynamic_active": "Menyesuaikan dengan suaramu"
     },
     "presets": {
       "flat": "Datar",
@@ -1512,11 +1517,21 @@
     },
     "redactor": {
       "no_widgets_active": "Tidak ada widget aktif",
-      "click_to_add": "Klik ikon widget di bilah alat bawah untuk menambahkannya",
+      "click_to_add": "Pilih kategori atau cari di bilah alat bawah untuk menambahkan widget",
       "done": "Selesai",
       "widget_singular": "widget",
       "widgets_plural": "widget",
-      "widgets_short": "w"
+      "widgets_short": "w",
+      "category": {
+        "time": "Waktu dan teks",
+        "media": "Media",
+        "system": "Sistem",
+        "info": "Info",
+        "other": "Lainnya"
+      },
+      "search": "Cari widget",
+      "results": "Hasil",
+      "no_results": "Tidak ada yang ditemukan"
     },
     "types": {
       "clock": "Jam",
@@ -1529,7 +1544,8 @@
       "battery": "Baterai",
       "github": "Github",
       "time": "Waktu",
-      "notes": "Catatan"
+      "notes": "Catatan",
+      "text": "Teks"
     },
     "variants": {
       "digital": "Digital",
@@ -1575,7 +1591,8 @@
     },
     "settings": {
       "lyricsLines": "Baris",
-      "lyricsAlignment": "Perataan"
+      "lyricsAlignment": "Perataan",
+      "textContent": "Teks"
     },
     "align": {
       "left": "Kiri",
@@ -1584,6 +1601,9 @@
     },
     "notes": {
       "empty": "Belum ada catatan"
+    },
+    "text": {
+      "placeholder": "Masukkan teks"
     }
   },
   "cli": {
@@ -1685,6 +1705,11 @@
       "status_running": "Daemon Serpantinum sedang berjalan (PID: {PID}).",
       "status_stopped": "Daemon Serpantinum tidak berjalan.",
       "unknown_arg": "Argumen tidak dikenal: {ARG}"
+    },
+    "app_name": "Serpantinum",
+    "easyeffects": {
+      "title": "EasyEffects masih aktif",
+      "body": "Serpantinum kini memiliki mesin audio sendiri, dan EasyEffects dapat mengganggunya. Jika Anda hanya memakai EasyEffects untuk Serpantinum, matikan agar tidak berjalan otomatis saat masuk."
     }
   },
   "installer": {

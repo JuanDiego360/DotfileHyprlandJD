@@ -1103,6 +1103,9 @@
       },
       "setting": {
         "show_text": "Hiện văn bản"
+      },
+      "category": {
+        "lockscreen": "Màn hình khóa"
       }
     }
   },
@@ -1117,7 +1120,9 @@
     "equalizer": "Bộ cân chỉnh âm thanh",
     "eq": {
       "apply": "Áp dụng",
-      "saved": "Đã lưu"
+      "saved": "Đã lưu",
+      "dynamic": "Động",
+      "dynamic_active": "Đang thích ứng với âm thanh của bạn"
     },
     "audio": {
       "title": "Âm thanh",
@@ -1509,11 +1514,21 @@
     },
     "redactor": {
       "no_widgets_active": "Không có tiện ích nào hoạt động",
-      "click_to_add": "Nhấp vào biểu tượng tiện ích ở thanh công cụ phía dưới để thêm",
+      "click_to_add": "Chọn một danh mục hoặc tìm kiếm ở thanh công cụ phía dưới để thêm tiện ích",
       "done": "Hoàn tất",
       "widget_singular": "tiện ích",
       "widgets_plural": "tiện ích",
-      "widgets_short": "tiện ích"
+      "widgets_short": "tiện ích",
+      "category": {
+        "time": "Thời gian và văn bản",
+        "media": "Đa phương tiện",
+        "system": "Hệ thống",
+        "info": "Thông tin",
+        "other": "Khác"
+      },
+      "search": "Tìm tiện ích",
+      "results": "Kết quả",
+      "no_results": "Không tìm thấy gì"
     },
     "types": {
       "clock": "Đồng hồ",
@@ -1526,7 +1541,8 @@
       "battery": "Pin",
       "github": "Github",
       "time": "Thời gian",
-      "notes": "Ghi chú"
+      "notes": "Ghi chú",
+      "text": "Văn bản"
     },
     "variants": {
       "digital": "Điện tử",
@@ -1575,7 +1591,8 @@
     },
     "settings": {
       "lyricsLines": "Dòng",
-      "lyricsAlignment": "Căn chỉnh"
+      "lyricsAlignment": "Căn chỉnh",
+      "textContent": "Văn bản"
     },
     "align": {
       "left": "Trái",
@@ -1584,6 +1601,9 @@
     },
     "notes": {
       "empty": "Chưa có ghi chú"
+    },
+    "text": {
+      "placeholder": "Nhập văn bản"
     }
   },
   "cli": {
@@ -1685,6 +1705,11 @@
       "status_running": "Daemon Serpantinum đang chạy (PID: {PID}).",
       "status_stopped": "Daemon Serpantinum không chạy.",
       "unknown_arg": "Đối số không xác định: {ARG}"
+    },
+    "app_name": "Serpantinum",
+    "easyeffects": {
+      "title": "EasyEffects vẫn đang bật",
+      "body": "Serpantinum giờ đã có công cụ âm thanh riêng và EasyEffects có thể gây xung đột. Nếu bạn chỉ dùng EasyEffects cho Serpantinum, hãy tắt việc tự khởi động khi đăng nhập."
     }
   },
   "installer": {

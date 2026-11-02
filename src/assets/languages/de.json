@@ -809,7 +809,7 @@
       "empty_title": "Keine Autostart-Anwendungen",
       "empty_desc": "Klicken Sie auf 'Anwendung hinzufügen', um Befehle, Binärdateien, Verzögerungen und Wiederholungen festzulegen.",
       "name_label": "Name",
-      "name_placeholder": "z. B. Discord, EasyEffects, Skript",
+      "name_placeholder": "z. B. Discord, Telegram, Skript",
       "exec_label": "Ausführungsbefehl",
       "exec_placeholder": "Binärpfad oder Name mit Flags (z. B. discord --start-minimized)",
       "browse_file": "Datei durchsuchen",
@@ -1147,6 +1147,9 @@
       },
       "setting": {
         "show_text": "Text anzeigen"
+      },
+      "category": {
+        "lockscreen": "Sperrbildschirm"
       }
     }
   },
@@ -1161,7 +1164,9 @@
     "equalizer": "Equalizer",
     "eq": {
       "apply": "Anwenden",
-      "saved": "Gespeichert"
+      "saved": "Gespeichert",
+      "dynamic": "Dynamisch",
+      "dynamic_active": "Passt sich deinem Klang an"
     },
     "audio": {
       "title": "Audio",
@@ -1556,11 +1561,21 @@
     },
     "redactor": {
       "no_widgets_active": "Keine Widgets aktiv",
-      "click_to_add": "Auf ein Widget-Symbol in der unteren Leiste klicken, um es hinzuzufügen",
+      "click_to_add": "Eine Kategorie wählen oder in der unteren Leiste suchen, um ein Widget hinzuzufügen",
       "done": "Fertig",
       "widget_singular": "Widget",
       "widgets_plural": "Widgets",
-      "widgets_short": "W"
+      "widgets_short": "W",
+      "category": {
+        "time": "Zeit und Text",
+        "media": "Medien",
+        "system": "System",
+        "info": "Info",
+        "other": "Sonstiges"
+      },
+      "search": "Widgets suchen",
+      "results": "Ergebnisse",
+      "no_results": "Nichts gefunden"
     },
     "types": {
       "clock": "Uhr",
@@ -1573,7 +1588,8 @@
       "battery": "Akku",
       "github": "GitHub",
       "time": "Zeit",
-      "notes": "Notizen"
+      "notes": "Notizen",
+      "text": "Text"
     },
     "variants": {
       "digital": "Digital",
@@ -1622,7 +1638,8 @@
     },
     "settings": {
       "lyricsLines": "Zeilen",
-      "lyricsAlignment": "Ausrichtung"
+      "lyricsAlignment": "Ausrichtung",
+      "textContent": "Text"
     },
     "align": {
       "left": "Links",
@@ -1631,6 +1648,9 @@
     },
     "notes": {
       "empty": "Noch keine Notizen"
+    },
+    "text": {
+      "placeholder": "Text eingeben"
     }
   },
   "cli": {
@@ -1732,6 +1752,11 @@
       "status_running": "Serpantinum-Daemon läuft (PID: {PID}).",
       "status_stopped": "Serpantinum-Daemon läuft nicht.",
       "unknown_arg": "Unbekanntes Argument: {ARG}"
+    },
+    "app_name": "Serpantinum",
+    "easyeffects": {
+      "title": "EasyEffects ist noch aktiv",
+      "body": "Serpantinum hat jetzt eine eigene Audio-Engine, und EasyEffects kann sie stören. Wurde EasyEffects nur für Serpantinum genutzt, den Start bei der Anmeldung deaktivieren."
     }
   },
   "installer": {

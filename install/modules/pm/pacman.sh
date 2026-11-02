@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 PM_BOOTSTRAP_TOOLS=(fzf jq curl git pciutils unzip fontconfig base-devel)
+PM_AUDIO_BUILD_PKGS=(base-devel pkgconf pipewire)
 
 pm_prepare_repos() {
     if [ -f /etc/pacman.conf ]; then

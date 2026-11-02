@@ -1103,6 +1103,9 @@
       },
       "setting": {
         "show_text": "Ցուցադրել տեքստը"
+      },
+      "category": {
+        "lockscreen": "Կողպման էկրան"
       }
     }
   },
@@ -1117,7 +1120,9 @@
     "equalizer": "Հավասարիչ",
     "eq": {
       "apply": "Կիրառել",
-      "saved": "Պահպանված է"
+      "saved": "Պահպանված է",
+      "dynamic": "Դինամիկ",
+      "dynamic_active": "Հարմարվում է ձեր հնչողությանը"
     },
     "audio": {
       "title": "Աուդիո",
@@ -1509,11 +1514,21 @@
     },
     "redactor": {
       "no_widgets_active": "Ակտիվ վիջեթներ չկան",
-      "click_to_add": "Ավելացնելու համար ներքևի գործիքագոտում սեղմեք վիջեթի պատկերակը",
+      "click_to_add": "Վիջեթ ավելացնելու համար ներքևի գործիքագոտում ընտրեք կատեգորիա կամ որոնեք",
       "done": "Պատրաստ է",
       "widget_singular": "վիջեթ",
       "widgets_plural": "վիջեթ",
-      "widgets_short": "վ"
+      "widgets_short": "վ",
+      "category": {
+        "time": "Ժամ և տեքստ",
+        "media": "Մեդիա",
+        "system": "Համակարգ",
+        "info": "Տեղեկություն",
+        "other": "Այլ"
+      },
+      "search": "Որոնել վիջեթներ",
+      "results": "Արդյունքներ",
+      "no_results": "Ոչինչ չի գտնվել"
     },
     "types": {
       "clock": "Ժամացույց",
@@ -1526,7 +1541,8 @@
       "battery": "Մարտկոց",
       "github": "Github",
       "time": "Ժամանակ",
-      "notes": "Նշումներ"
+      "notes": "Նշումներ",
+      "text": "Տեքստ"
     },
     "variants": {
       "digital": "Թվային",
@@ -1575,7 +1591,8 @@
     },
     "settings": {
       "lyricsLines": "Տողեր",
-      "lyricsAlignment": "Հավասարեցում"
+      "lyricsAlignment": "Հավասարեցում",
+      "textContent": "Տեքստ"
     },
     "align": {
       "left": "Ձախ",
@@ -1584,6 +1601,9 @@
     },
     "notes": {
       "empty": "Նշումներ դեռ չկան"
+    },
+    "text": {
+      "placeholder": "Մուտքագրեք տեքստ"
     }
   },
   "cli": {
@@ -1685,6 +1705,11 @@
       "status_running": "Serpantinum-ի սպասարկիչն աշխատում է (PID՝ {PID})։",
       "status_stopped": "Serpantinum-ի սպասարկիչը չի աշխատում։",
       "unknown_arg": "Անհայտ փաստարկ՝ {ARG}"
+    },
+    "app_name": "Serpantinum",
+    "easyeffects": {
+      "title": "EasyEffects-ը դեռ միացված է",
+      "body": "Serpantinum-ն այժմ ունի իր սեփական ձայնային շարժիչը, և EasyEffects-ը կարող է խանգարել դրան։ Եթե EasyEffects-ն օգտագործում էիք միայն Serpantinum-ի համար, անջատեք դրա գործարկումը մուտք գործելիս։"
     }
   },
   "installer": {

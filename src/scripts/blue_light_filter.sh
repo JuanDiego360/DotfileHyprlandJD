@@ -6,6 +6,7 @@ TEMP_MAX=10000
 DAY_TEMP=6500
 UPDATE_INTERVAL=300
 PIDDIR="${XDG_RUNTIME_DIR:-/tmp}/quickshell-bluelight"
+GAMMARELAY_PATTERN='^([^ ]*/)?wl-gammarelay-rs( |$)'
 
 source "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/caching.sh"
 
@@ -133,7 +134,7 @@ gammarelay_running() {
 ensure_single_gammarelay() {
     if gammarelay_running; then
         local pids
-        pids="$(pgrep -x wl-gammarelay-rs 2>/dev/null || true)"
+        pids="$(pgrep -f "$GAMMARELAY_PATTERN" 2>/dev/null || true)"
         local count=0
         if [[ -n "$pids" ]]; then
             count="$(echo "$pids" | wc -w)"
@@ -144,16 +145,16 @@ ensure_single_gammarelay() {
     fi
 
     local pids
-    pids="$(pgrep -x wl-gammarelay-rs 2>/dev/null || true)"
+    pids="$(pgrep -f "$GAMMARELAY_PATTERN" 2>/dev/null || true)"
     local count=0
     if [[ -n "$pids" ]]; then
         count="$(echo "$pids" | wc -w)"
     fi
 
     if (( count > 1 )); then
-        pkill -9 -x wl-gammarelay-rs 2>/dev/null || true
+        pkill -9 -f "$GAMMARELAY_PATTERN" 2>/dev/null || true
         local i=0
-        while pgrep -x wl-gammarelay-rs >/dev/null 2>&1 && (( i < 15 )); do
+        while pgrep -f "$GAMMARELAY_PATTERN" >/dev/null 2>&1 && (( i < 15 )); do
             sleep 0.01
             i=$((i+1))
         done
@@ -164,9 +165,9 @@ ensure_single_gammarelay() {
             i=$((i+1))
         done
         if ! gammarelay_running; then
-            pkill -9 -x wl-gammarelay-rs 2>/dev/null || true
+            pkill -9 -f "$GAMMARELAY_PATTERN" 2>/dev/null || true
             i=0
-            while pgrep -x wl-gammarelay-rs >/dev/null 2>&1 && (( i < 15 )); do
+            while pgrep -f "$GAMMARELAY_PATTERN" >/dev/null 2>&1 && (( i < 15 )); do
                 sleep 0.01
                 i=$((i+1))
             done

@@ -1103,6 +1103,9 @@
       },
       "setting": {
         "show_text": "顯示文字"
+      },
+      "category": {
+        "lockscreen": "鎖定畫面"
       }
     }
   },
@@ -1117,7 +1120,9 @@
     "equalizer": "等化器",
     "eq": {
       "apply": "套用",
-      "saved": "已儲存"
+      "saved": "已儲存",
+      "dynamic": "動態",
+      "dynamic_active": "正在適應你的聲音"
     },
     "presets": {
       "flat": "平直",
@@ -1512,11 +1517,21 @@
     },
     "redactor": {
       "no_widgets_active": "無啟用中的小工具",
-      "click_to_add": "按一下底部工具列中的小工具圖示以新增",
+      "click_to_add": "在底部工具列中選擇一個類別或進行搜尋以新增小工具",
       "done": "完成",
       "widget_singular": "個小工具",
       "widgets_plural": "個小工具",
-      "widgets_short": "個"
+      "widgets_short": "個",
+      "category": {
+        "time": "時間與文字",
+        "media": "媒體",
+        "system": "系統",
+        "info": "資訊",
+        "other": "其他"
+      },
+      "search": "搜尋小工具",
+      "results": "結果",
+      "no_results": "找不到任何內容"
     },
     "types": {
       "clock": "時鐘",
@@ -1529,7 +1544,8 @@
       "battery": "電池",
       "github": "GitHub",
       "time": "時間",
-      "notes": "筆記"
+      "notes": "筆記",
+      "text": "文字"
     },
     "variants": {
       "digital": "數位",
@@ -1575,7 +1591,8 @@
     },
     "settings": {
       "lyricsLines": "行數",
-      "lyricsAlignment": "對齊方式"
+      "lyricsAlignment": "對齊方式",
+      "textContent": "文字"
     },
     "align": {
       "left": "靠左",
@@ -1584,6 +1601,9 @@
     },
     "notes": {
       "empty": "尚無筆記"
+    },
+    "text": {
+      "placeholder": "輸入文字"
     }
   },
   "cli": {
@@ -1685,6 +1705,11 @@
       "status_running": "Serpantinum 常駐程式正在執行（PID: {PID}）。",
       "status_stopped": "Serpantinum 常駐程式未執行。",
       "unknown_arg": "未知引數：{ARG}"
+    },
+    "app_name": "Serpantinum",
+    "easyeffects": {
+      "title": "EasyEffects 仍處於啟用狀態",
+      "body": "Serpantinum 現在擁有自己的音訊引擎，EasyEffects 可能會與其衝突。如果你只是為 Serpantinum 使用 EasyEffects，請關閉它的登入自動啟動。"
     }
   },
   "installer": {

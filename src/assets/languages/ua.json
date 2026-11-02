@@ -792,7 +792,7 @@
       "empty_title": "Немає програм в автозапуску",
       "empty_desc": "Натисніть «додати програму», щоб вказати команди, бінарники, затримку та кількість запусків.",
       "name_label": "Назва",
-      "name_placeholder": "наприклад, discord, EasyEffects, скрипт",
+      "name_placeholder": "наприклад, discord, Telegram, скрипт",
       "exec_label": "Команда / виконуваний файл",
       "exec_placeholder": "Шлях до бінарника або команда з прапорцями (наприклад, discord --start-minimized)",
       "browse_file": "Обрати файл",
@@ -1126,6 +1126,9 @@
       },
       "setting": {
         "show_text": "Показувати текст"
+      },
+      "category": {
+        "lockscreen": "Екран блокування"
       }
     }
   },
@@ -1140,7 +1143,9 @@
     "equalizer": "Еквалайзер",
     "eq": {
       "apply": "Застосувати",
-      "saved": "Збережено"
+      "saved": "Збережено",
+      "dynamic": "Динамічний",
+      "dynamic_active": "Підлаштовується під ваш звук"
     },
     "audio": {
       "title": "Аудіо",
@@ -1532,11 +1537,21 @@
     },
     "redactor": {
       "no_widgets_active": "Немає активних віджетів",
-      "click_to_add": "Натисніть на іконку віджета на нижній панелі, щоб додати його",
+      "click_to_add": "Оберіть категорію або скористайтеся пошуком на нижній панелі, щоб додати віджет",
       "done": "Готово",
       "widget_singular": "віджет",
       "widgets_plural": "віджетів",
-      "widgets_short": "в"
+      "widgets_short": "в",
+      "category": {
+        "time": "Час і текст",
+        "media": "Медіа",
+        "system": "Система",
+        "info": "Інформація",
+        "other": "Інше"
+      },
+      "search": "Пошук віджетів",
+      "results": "Результати",
+      "no_results": "Нічого не знайдено"
     },
     "types": {
       "clock": "Годинник",
@@ -1549,7 +1564,8 @@
       "battery": "Батарея",
       "github": "Github",
       "time": "Час",
-      "notes": "Нотатки"
+      "notes": "Нотатки",
+      "text": "Текст"
     },
     "variants": {
       "digital": "Цифровий",
@@ -1598,7 +1614,8 @@
     },
     "settings": {
       "lyricsLines": "Рядки",
-      "lyricsAlignment": "Вирівнювання"
+      "lyricsAlignment": "Вирівнювання",
+      "textContent": "Текст"
     },
     "align": {
       "left": "Зліва",
@@ -1607,6 +1624,9 @@
     },
     "notes": {
       "empty": "Поки немає нотаток"
+    },
+    "text": {
+      "placeholder": "Введіть текст"
     }
   },
   "cli": {
@@ -1708,6 +1728,11 @@
       "status_running": "Службу serpantinum запущено (PID: {PID}).",
       "status_stopped": "Службу serpantinum не запущено.",
       "unknown_arg": "Невідомий аргумент: {ARG}"
+    },
+    "app_name": "Serpantinum",
+    "easyeffects": {
+      "title": "EasyEffects досі увімкнено",
+      "body": "Тепер Serpantinum має власний аудіорушій, і EasyEffects може йому заважати. Якщо ви використовували EasyEffects лише для Serpantinum, вимкніть його запуск під час входу в систему."
     }
   },
   "installer": {

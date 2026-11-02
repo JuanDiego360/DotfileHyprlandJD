@@ -18,14 +18,15 @@ Configuration is stored in `~/.config/niri`. The main file is `config.kdl`, whic
 
 ## Autostart
 
-The shell daemon, clipboard history, and audio effects are launched from `config/autostart.kdl`:
+The shell daemon and clipboard history are launched from `config/autostart.kdl`:
 
 ```kdl
 spawn-at-startup "bash" "-c" "wl-paste --type text --watch cliphist store"
 spawn-at-startup "bash" "-c" "wl-paste --type image --watch cliphist store"
-spawn-at-startup "systemctl" "--user" "enable" "--now" "easyeffects"
 spawn-at-startup "serpantinumd" "start"
 ```
+
+`serpantinumd start` also starts the [audio engine](/audio).
 
 ## Keybindings
 

@@ -1,3 +1,43 @@
+### 2.3.3
+
+- feat(widgets): remember the last picker category, thicken the dock and strengthen the redactor dim
+- refactor(widgets): remove search from the widget picker
+- fix(music): bound device and source pills so long device names stay inside the popup
+- feat(widgets): cycle picker groups with tab and arrows and fit the drawer to its widgets
+- style(widgets): open widget categories as a drawer merged into the picker dock
+- style(widgets): redesign the widget picker with live previews and a flatter dock
+- perf(lock): load the lock backdrop before image widgets
+- fix(widgets): polish the widget picker layout, search and category placement
+- feat(widgets): group the redactor widget picker into categories with search
+- feat(widgets): add text widget
+- fix(audio): ignore the serpantinum-audio output stream when detecting active playback
+- fix(lock): don't auto-repeat characters in the password field (#513)
+- chore: bump bundled Ski to 0.4.3 in the AUR packages and flake lock
+- fix(audio): use the real default output now that serpantinum-audio 0.2.0 routes streams instead of taking the default
+- chore: bump bundled Ski to 0.4.1 in the AUR packages and flake lock
+- fix(network): connect after pairing once the pairing link drops (#514)
+
+### 2.3.2
+
+- fix(media): restore the test tone paths so the audio test plays through serpantinum-audio
+- docs: describe the narrower EasyEffects handover and how to turn EasyEffects off
+- fix(audio): limit the EasyEffects handover to what Serpantinum set up and notify once instead of killing it on every start
+- fix(nix): put serpantinum-audio on PATH alongside the shell binaries
+- feat(media): show the dynamic EQ as a labelled button with a toggle and let Toggle take a track size
+- feat(audio): replace EasyEffects with the serpantinum-audio engine and add a dynamic EQ toggle
+- docs: document the serpantinum-audio engine and drop EasyEffects from the guides
+- feat(install): add Void Linux support with an xbps backend
+- chore: bump bundled Ski to 0.4.0 in the AUR packages
+- fix(bluelight): anchor wl-gammarelay-rs process match and guard SERPANTINUM_DIR under nounset
+- fix(bluelight): prevent unbound variable in caching.sh under nounset and fix process matching (#510)
+- chore: bump bundled Ski to 0.3.0 in the AUR packages
+- chore: update flake.lock
+- fix(network): raise lightning beam cap to 16 so a third Bluetooth device gets its beams
+- chore: bump bundled Ski to 0.2.2 in the AUR packages
+- fix(glass): defer backdrop resolve until the fill is completed to stop binding loop warnings
+- fix(bar): install the glass backdrop binding after creation to stop binding loop warnings
+- fix(quickactions): stop the floating peek bar from sticking after the edge trigger hands off
+
 ### 2.3.1
 
 - fix(installer): stop caching.sh from creating the version marker so fresh installs aren't detected as updates

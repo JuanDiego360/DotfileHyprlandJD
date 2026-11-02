@@ -1103,6 +1103,9 @@
       },
       "setting": {
         "show_text": "Afficher le texte"
+      },
+      "category": {
+        "lockscreen": "Écran de verrouillage"
       }
     }
   },
@@ -1117,7 +1120,9 @@
     "equalizer": "Égaliseur",
     "eq": {
       "apply": "Appliquer",
-      "saved": "Enregistré"
+      "saved": "Enregistré",
+      "dynamic": "Dynamique",
+      "dynamic_active": "S'adapte à votre son"
     },
     "presets": {
       "flat": "Plat",
@@ -1512,11 +1517,21 @@
     },
     "redactor": {
       "no_widgets_active": "Aucun widget actif",
-      "click_to_add": "Cliquez sur une icône de widget dans la barre d'outils inférieure pour l'ajouter",
+      "click_to_add": "Choisissez une catégorie ou lancez une recherche dans la barre d'outils inférieure pour ajouter un widget",
       "done": "Terminé",
       "widget_singular": "widget",
       "widgets_plural": "widgets",
-      "widgets_short": "w"
+      "widgets_short": "w",
+      "category": {
+        "time": "Heure et texte",
+        "media": "Médias",
+        "system": "Système",
+        "info": "Infos",
+        "other": "Autres"
+      },
+      "search": "Rechercher des widgets",
+      "results": "Résultats",
+      "no_results": "Aucun résultat"
     },
     "types": {
       "clock": "Horloge",
@@ -1529,7 +1544,8 @@
       "battery": "Batterie",
       "github": "Github",
       "time": "Heure",
-      "notes": "Notes"
+      "notes": "Notes",
+      "text": "Texte"
     },
     "variants": {
       "digital": "Numérique",
@@ -1575,7 +1591,8 @@
     },
     "settings": {
       "lyricsLines": "Lignes",
-      "lyricsAlignment": "Alignement"
+      "lyricsAlignment": "Alignement",
+      "textContent": "Texte"
     },
     "align": {
       "left": "Gauche",
@@ -1584,6 +1601,9 @@
     },
     "notes": {
       "empty": "Aucune note pour l'instant"
+    },
+    "text": {
+      "placeholder": "Saisissez du texte"
     }
   },
   "cli": {
@@ -1685,6 +1705,11 @@
       "status_running": "Le démon Serpantinum est en cours d'exécution (PID : {PID}).",
       "status_stopped": "Le démon Serpantinum n'est pas en cours d'exécution.",
       "unknown_arg": "Argument inconnu : {ARG}"
+    },
+    "app_name": "Serpantinum",
+    "easyeffects": {
+      "title": "EasyEffects est toujours activé",
+      "body": "Serpantinum dispose désormais de son propre moteur audio, et EasyEffects peut interférer avec lui. Si vous utilisiez EasyEffects uniquement pour Serpantinum, empêchez-le de démarrer à l'ouverture de session."
     }
   },
   "installer": {

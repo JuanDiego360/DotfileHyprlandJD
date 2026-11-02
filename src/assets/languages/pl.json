@@ -132,6 +132,9 @@
       },
       "setting": {
         "show_text": "Pokaż tekst"
+      },
+      "category": {
+        "lockscreen": "Ekran blokady"
       }
     }
   },
@@ -146,7 +149,9 @@
     "equalizer": "Korektor",
     "eq": {
       "apply": "Zastosuj",
-      "saved": "Zapisano"
+      "saved": "Zapisano",
+      "dynamic": "Dynamiczny",
+      "dynamic_active": "Dostosowuje się do twojego dźwięku"
     },
     "presets": {
       "flat": "Płaski",
@@ -541,11 +546,21 @@
     },
     "redactor": {
       "no_widgets_active": "Brak aktywnych widżetów",
-      "click_to_add": "Kliknij ikonę widżetu na dolnym pasku, aby go dodać",
+      "click_to_add": "Wybierz kategorię lub wyszukaj na dolnym pasku, aby dodać widżet",
       "done": "Gotowe",
       "widget_singular": "widżet",
       "widgets_plural": "widżety",
-      "widgets_short": "w"
+      "widgets_short": "w",
+      "category": {
+        "time": "Czas i tekst",
+        "media": "Multimedia",
+        "system": "System",
+        "info": "Informacje",
+        "other": "Inne"
+      },
+      "search": "Szukaj widżetów",
+      "results": "Wyniki",
+      "no_results": "Nic nie znaleziono"
     },
     "types": {
       "clock": "Zegar",
@@ -558,7 +573,8 @@
       "battery": "Bateria",
       "github": "GitHub",
       "time": "Czas",
-      "notes": "Notatki"
+      "notes": "Notatki",
+      "text": "Tekst"
     },
     "variants": {
       "digital": "Cyfrowy",
@@ -604,7 +620,8 @@
     },
     "settings": {
       "lyricsLines": "Linie",
-      "lyricsAlignment": "Wyrównanie"
+      "lyricsAlignment": "Wyrównanie",
+      "textContent": "Tekst"
     },
     "align": {
       "left": "Do lewej",
@@ -613,6 +630,9 @@
     },
     "notes": {
       "empty": "Brak notatek"
+    },
+    "text": {
+      "placeholder": "Wpisz tekst"
     }
   },
   "cli": {
@@ -714,6 +734,11 @@
       "status_running": "Demon Serpantinum jest uruchomiony (PID: {PID}).",
       "status_stopped": "Demon Serpantinum nie jest uruchomiony.",
       "unknown_arg": "Nieznany argument: {ARG}"
+    },
+    "app_name": "Serpantinum",
+    "easyeffects": {
+      "title": "EasyEffects jest nadal włączony",
+      "body": "Serpantinum ma teraz własny silnik dźwięku, a EasyEffects może mu przeszkadzać. Jeśli EasyEffects służył Ci tylko do Serpantinum, wyłącz jego uruchamianie przy logowaniu."
     }
   },
   "installer": {

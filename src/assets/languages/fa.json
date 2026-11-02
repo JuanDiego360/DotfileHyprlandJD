@@ -1103,6 +1103,9 @@
       },
       "setting": {
         "show_text": "نمایش متن"
+      },
+      "category": {
+        "lockscreen": "صفحه قفل"
       }
     }
   },
@@ -1117,7 +1120,9 @@
     "equalizer": "اکولایزر",
     "eq": {
       "apply": "اِعمال",
-      "saved": "ذخیره شد"
+      "saved": "ذخیره شد",
+      "dynamic": "پویا",
+      "dynamic_active": "در حال سازگاری با صدای شما"
     },
     "presets": {
       "flat": "یکنواخت",
@@ -1512,11 +1517,21 @@
     },
     "redactor": {
       "no_widgets_active": "هیچ ابزارکی فعال نیست",
-      "click_to_add": "برای افزودن، روی نماد یک ابزارک در نوار ابزار پایین کلیک کنید",
+      "click_to_add": "برای افزودن ابزارک، یک دسته را در نوار ابزار پایین انتخاب یا جستجو کنید",
       "done": "انجام شد",
       "widget_singular": "ابزارک",
       "widgets_plural": "ابزارک‌ها",
-      "widgets_short": "ا"
+      "widgets_short": "ا",
+      "category": {
+        "time": "زمان و متن",
+        "media": "رسانه",
+        "system": "سیستم",
+        "info": "اطلاعات",
+        "other": "سایر"
+      },
+      "search": "جستجوی ابزارک‌ها",
+      "results": "نتایج",
+      "no_results": "چیزی پیدا نشد"
     },
     "types": {
       "clock": "ساعت",
@@ -1529,7 +1544,8 @@
       "battery": "باتری",
       "github": "گیت‌هاب",
       "time": "زمان",
-      "notes": "یادداشت‌ها"
+      "notes": "یادداشت‌ها",
+      "text": "متن"
     },
     "variants": {
       "digital": "دیجیتال",
@@ -1575,7 +1591,8 @@
     },
     "settings": {
       "lyricsLines": "سطرها",
-      "lyricsAlignment": "تراز"
+      "lyricsAlignment": "تراز",
+      "textContent": "متن"
     },
     "align": {
       "left": "چپ",
@@ -1584,6 +1601,9 @@
     },
     "notes": {
       "empty": "هنوز یادداشتی وجود ندارد"
+    },
+    "text": {
+      "placeholder": "متن را وارد کنید"
     }
   },
   "cli": {
@@ -1685,6 +1705,11 @@
       "status_running": "دیمن serpantinum در حال اجرا است (PID: {PID}).",
       "status_stopped": "دیمن serpantinum در حال اجرا نیست.",
       "unknown_arg": "آرگومان ناشناخته: {ARG}"
+    },
+    "app_name": "Serpantinum",
+    "easyeffects": {
+      "title": "EasyEffects هنوز فعال است",
+      "body": "Serpantinum اکنون موتور صوتی خودش را دارد و EasyEffects ممکن است با آن تداخل کند. اگر EasyEffects را فقط برای Serpantinum استفاده می‌کردید، اجرای خودکار آن هنگام ورود را غیرفعال کنید."
     }
   },
   "installer": {

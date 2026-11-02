@@ -1103,6 +1103,9 @@
       },
       "setting": {
         "show_text": "Mostrar texto"
+      },
+      "category": {
+        "lockscreen": "Tela de bloqueio"
       }
     }
   },
@@ -1117,7 +1120,9 @@
     "equalizer": "Equalizador",
     "eq": {
       "apply": "Aplicar",
-      "saved": "Salvo"
+      "saved": "Salvo",
+      "dynamic": "Dinâmico",
+      "dynamic_active": "Adaptando-se ao seu som"
     },
     "audio": {
       "title": "Áudio",
@@ -1509,11 +1514,21 @@
     },
     "redactor": {
       "no_widgets_active": "Nenhum widget ativo",
-      "click_to_add": "Clique num ícone na barra inferior para adicionar",
+      "click_to_add": "Escolha uma categoria ou pesquise na barra inferior para adicionar um widget",
       "done": "Concluir",
       "widget_singular": "widget",
       "widgets_plural": "widgets",
-      "widgets_short": "w"
+      "widgets_short": "w",
+      "category": {
+        "time": "Hora e texto",
+        "media": "Mídia",
+        "system": "Sistema",
+        "info": "Informações",
+        "other": "Outros"
+      },
+      "search": "Pesquisar widgets",
+      "results": "Resultados",
+      "no_results": "Nada encontrado"
     },
     "types": {
       "clock": "Relógio",
@@ -1526,7 +1541,8 @@
       "battery": "Bateria",
       "github": "Github",
       "time": "Hora",
-      "notes": "Notas"
+      "notes": "Notas",
+      "text": "Texto"
     },
     "variants": {
       "digital": "Digital",
@@ -1575,7 +1591,8 @@
     },
     "settings": {
       "lyricsLines": "Linhas",
-      "lyricsAlignment": "Alinhamento"
+      "lyricsAlignment": "Alinhamento",
+      "textContent": "Texto"
     },
     "align": {
       "left": "Esquerda",
@@ -1584,6 +1601,9 @@
     },
     "notes": {
       "empty": "Ainda não há notas"
+    },
+    "text": {
+      "placeholder": "Digite o texto"
     }
   },
   "cli": {
@@ -1685,6 +1705,11 @@
       "status_running": "Daemon do serpantinum em execução (PID: {PID}).",
       "status_stopped": "O daemon do serpantinum não está em execução.",
       "unknown_arg": "Argumento desconhecido: {ARG}"
+    },
+    "app_name": "Serpantinum",
+    "easyeffects": {
+      "title": "O EasyEffects ainda está ativado",
+      "body": "O Serpantinum agora tem seu próprio mecanismo de áudio, e o EasyEffects pode interferir nele. Se você usava o EasyEffects só para o Serpantinum, impeça que ele inicie ao entrar na sessão."
     }
   },
   "installer": {
