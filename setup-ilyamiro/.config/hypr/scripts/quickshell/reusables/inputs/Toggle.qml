@@ -11,6 +11,8 @@ Item {
 
     property int horizontalPadding: 10
     property int cornerRadius: 16
+    property real trackWidth: 44
+    property real trackHeight: 24
 
     property string buttonText: ""
     property string buttonIcon: ""
@@ -84,8 +86,8 @@ Item {
 
         Rectangle {
             id: track
-            implicitWidth: 44
-            implicitHeight: 24
+            implicitWidth: root.trackWidth
+            implicitHeight: root.trackHeight
             radius: Math.min(height / 2, root.cornerRadius)
             color: trackGlass.active ? "transparent" : (root.checked ? root.accentColor : (root.isHoveredOrHighlighted ? Qt.lighter(root.baseColor, 1.2) : root.baseColor))
             opacity: root.enabled ? 1.0 : 0.5
@@ -108,11 +110,12 @@ Item {
 
             Rectangle {
                 id: handle
-                width: parent.height - 6 + (handleGlass.active && btnMa.pressed ? 8 : 0) + (handleGlass.active ? 10 * root.stretch : 0)
-                height: parent.height - 6
-                radius: Math.min(height / 2, Math.max(0, root.cornerRadius - 3))
+                readonly property real inset: Math.max(2, Math.round(parent.height / 8))
+                width: parent.height - inset * 2 + (handleGlass.active && btnMa.pressed ? 8 : 0) + (handleGlass.active ? 10 * root.stretch : 0)
+                height: parent.height - inset * 2
+                radius: Math.min(height / 2, Math.max(0, root.cornerRadius - inset))
                 anchors.verticalCenter: parent.verticalCenter
-                x: root.checked ? parent.width - width - 3 : 3
+                x: root.checked ? parent.width - width - inset : inset
                 color: handleGlass.active ? "transparent" : (root.checked ? root.handleColor : root.handleOffColor)
 
                 GlassFill {

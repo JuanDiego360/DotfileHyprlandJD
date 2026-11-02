@@ -19,9 +19,15 @@ Item {
     Behavior on x { NumberAnimation { duration: 400; easing.type: Easing.OutQuart } }
     Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
 
+    readonly property bool dynamicOn: !!root.eqData && root.eqData.dyneq === true
+    property real dynamicDim: dynamicOn ? 1.0 : 0.0
+    Behavior on dynamicDim { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
+
     ColumnLayout {
         anchors.fill: parent
         spacing: root.s(12)
+        enabled: !eqView.dynamicOn
+        opacity: 1.0 - 0.7 * eqView.dynamicDim
 
         Item {
             Layout.fillWidth: true
@@ -413,6 +419,32 @@ Item {
                     delegate: MusicPresetButton { required property var modelData; root: eqView.root; name: modelData }
                 }
             }
+        }
+    }
+
+    Item {
+        anchors.fill: parent
+        z: 10
+        opacity: eqView.dynamicDim
+        visible: opacity > 0.01
+
+        MouseArea {
+            anchors.fill: parent
+            hoverEnabled: true
+            acceptedButtons: Qt.AllButtons
+            onWheel: (wheel) => wheel.accepted = true
+        }
+
+        Text {
+            anchors.centerIn: parent
+            width: parent.width
+            horizontalAlignment: Text.AlignHCenter
+            wrapMode: Text.WordWrap
+            text: typeof I18n !== "undefined" ? I18n.t("music.eq.dynamic_active", "Adapting to your sound") : "Adapting to your sound"
+            color: ThemeBackend.text || "#cdd6f4"
+            font.family: ThemeBackend.fontFamily
+            font.pixelSize: root.s(18)
+            font.bold: true
         }
     }
 }

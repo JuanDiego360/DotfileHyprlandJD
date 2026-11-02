@@ -40,6 +40,12 @@ PROTECTED_FILES = {
     "lock/redactor/elements/LockPasswordElement.qml",
     "guide/display/DisplayLockscreenState.qml",
     "guide/display/DisplayLockscreenTab.qml",
+    "dock/DockWindowState.qml",
+    "dock/DockWindowApps.qml",
+    "guide/DockTab.qml",
+    "guide/LauncherTab.qml",
+    "guide/AboutTab.qml",
+    "calendar/CalendarPopup.qml",
 }
 
 def audit():
@@ -221,7 +227,7 @@ def sync():
     # Sincronizar scripts actualizados en src/scripts hacia setup-ilyamiro
     src_scripts = os.path.join(DOTFILES_DIR, "src/scripts")
     setup_scripts = os.path.join(DOTFILES_DIR, "setup-ilyamiro/.config/hypr/scripts")
-    for s_file in ["caching.sh", "i18n.sh"]:
+    for s_file in ["caching.sh", "i18n.sh", "blue_light_filter.sh", "migrate_easyeffects.sh"]:
         sp = os.path.join(src_scripts, s_file)
         dp = os.path.join(setup_scripts, s_file)
         if os.path.exists(sp):
@@ -237,7 +243,10 @@ def reload_quickshell():
     print("Reiniciando Quickshell bajo Hyprland (hyprctl dispatch exec)...")
     subprocess.run(["pkill", "-f", "quickshell.*Shell.qml"])
     subprocess.run(["sleep", "1"])
-    subprocess.run(["hyprctl", "dispatch", "exec", f"quickshell -p {shell_path}"])
+    cmd_lua = f'hl.dsp.exec_raw("quickshell -p {shell_path}")'
+    res = subprocess.run(["hyprctl", "dispatch", cmd_lua], capture_output=True, text=True)
+    if res.returncode != 0:
+        subprocess.run(["hyprctl", "dispatch", "exec", f"quickshell -p {shell_path}"])
     print("✔ Quickshell relanzado bajo Hyprland.")
 
 if __name__ == "__main__":
