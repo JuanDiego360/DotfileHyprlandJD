@@ -95,5 +95,24 @@
         "icon": "org.kde.dolphin"
       }
     ]
+  },
+  "display": {
+    "monitors": {
+      "DP-2": {
+        "enabled": false,
+        "temperature": 58
+      }
+    }
+  },
+  "notifications": {
+    "dnd": false,
+    "position": "top right",
+    "horizontalPosition": 88,
+    "verticalPosition": 11,
+    "sound": true,
+    "soundFile": "/home/juandiego/dotfiles/src/assets/sounds/notifications/Botanica.wav",
+    "showEmptyGraphic": true,
+    "rightClickClose": true
   }
 }
+

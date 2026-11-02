@@ -7,6 +7,7 @@ hl.on("hyprland.start", function()
   hl.exec_cmd("~/.config/hypr/scripts/init.sh")
   hl.exec_cmd("~/.config/hypr/scripts/settings_watcher.sh &")
   hl.exec_cmd("playerctld")
+  hl.exec_cmd("wl-gammarelay-rs")
   -- SwayOSD disabled — Quickshell's OsdController.qml provides unified OSD for
   -- volume, brightness, Caps Lock, Num Lock, mute, airplane mode with the shell's
   -- theme. Keeping swayosd-server would cause double notifications (SwayOSD +
