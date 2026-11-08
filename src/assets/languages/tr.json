@@ -44,7 +44,12 @@
       "bar_modules": "Modüller",
       "bar_side_modules": "Yan modüller",
       "display_lockscreen": "Kilit ekranı",
-      "screenshot": "Ekran görüntüsü"
+      "screenshot": "Ekran görüntüsü",
+      "theme_appearance": "Görünüm",
+      "theme_apps": "Uygulama temaları",
+      "theme_wallpapers": "Duvar kâğıtları",
+      "general_main": "Genel",
+      "general_presets": "Ön ayarlar"
     },
     "launcher": {
       "position": {
@@ -144,7 +149,7 @@
       "warning_command": {
         "title": "Uyarı komutu",
         "desc": "Eylemden önce çalıştırılacak uzaklık ve komut",
-        "placeholder": "örn. notify-send 'uyarı'"
+        "placeholder": "örn. serpantinum-core notify 'uyarı'"
       },
       "before_command": {
         "title": "Önceki komut",
@@ -154,7 +159,7 @@
       "resume_command": {
         "title": "Devam etme komutu",
         "desc": "Kullanıcı etkinliği devam ettiğinde çalıştırılır",
-        "placeholder": "örn. notify-send 'devam edildi'"
+        "placeholder": "örn. serpantinum-core notify 'devam edildi'"
       },
       "dim": {
         "title": "Ekranı karart",
@@ -219,10 +224,6 @@
         "title": "Hızlı işlemler",
         "desc": "Kayan hızlı işlemler katmanını etkinleştirin"
       },
-      "separatewindow": {
-        "title": "Ayarları ayrı pencerede aç",
-        "desc": "Ayarları kabuk içindeki bir panel yerine yeniden boyutlandırılabilir normal bir uygulama penceresi olarak aç"
-      },
       "location": {
         "title": "Konum",
         "desc": "Otomatik güneş takvimi ve hava durumu için konumu yapılandırın",
@@ -251,10 +252,25 @@
       "screenshot_on_release": {
         "title": "Fare bırakıldığında bölgeyi yakala",
         "desc": "Deklanşöre tıklamadan, sürüklemeyi bitirir bitirmez ekran görüntüsünü alın"
+      },
+      "presets": {
+        "save": {
+          "title": "Mevcut kurulumu kaydet",
+          "desc": "Tüm ayarları, widget'ları ve duvar kağıtlarını ön ayar olarak kaydet",
+          "button": "Ön ayarı kaydet"
+        },
+        "empty": "Henüz ön ayar yok. Oluşturmak için mevcut kurulumunu kaydet",
+        "confirm": {
+          "title": "Ön ayar uygulansın mı?",
+          "desc": "Kendi ayarlarını önce kaydetmeden bu ön ayarı uygulamak istediğine emin misin? Mevcut ayarlarının üzerine yazılacak ve onları geri alamayacaksın.",
+          "dont_show": "Bunu bir daha gösterme",
+          "apply": "Uygula",
+          "cancel": "İptal"
+        }
       }
     },
     "display": {
-      "bluelight": {
+      "gamma": {
         "title": "Mavi ışık filtresi",
         "desc": "Sıcak ekran aydınlatmasını açıp kapatın"
       },
@@ -282,7 +298,11 @@
           "title": "Düzenleyicide çubuğu gizle",
           "desc": "Düzenleyici modunda widget'ları düzenlerken çubuğu otomatik olarak gizleyin"
         },
-        "hide_presets": "Ön Ayarları Gizle",
+        "show_distances": {
+          "title": "Mesafeleri göster",
+          "desc": "Düzenleyicide widget'ları taşırken veya yeniden boyutlandırırken aralarındaki mesafeleri göster"
+        },
+        "hide_presets": "Ön ayarları gizle",
         "choose_preset": "Bir ön ayar seçin",
         "presets": {
           "title": "Widget Ön Ayarları"
@@ -326,7 +346,7 @@
     },
     "bar": {
       "modules": {
-        "vis": "Görselleştirici (cava)",
+        "vis": "Görselleştirici",
         "actions": "Eylemler",
         "workspaces": {
           "style": {
@@ -418,6 +438,7 @@
         "desc": "Gruplamayı başlatmak için bir ögeye sağ tıklayın, eklemek için başka bir ögeye sağ tıklayın. Gruplanmış bir ögeyi kaldırmak için üzerine sağ tıklayın.",
         "reset": "Sıfırla",
         "available": "Kullanılabilir",
+        "shown": "Gösterilen",
         "left": "Sol",
         "center": "Orta",
         "right": "Sağ"
@@ -464,21 +485,13 @@
           "wave": "Dalga",
           "circle": "Daire"
         },
-        "cpu": {
-          "title": "CPU kullanımı",
-          "desc": "İşlemci kullanım halkasını görüntüleyin"
-        },
-        "ram": {
-          "title": "Bellek kullanımı",
-          "desc": "Bellek (RAM) kullanım halkasını görüntüleyin"
-        },
-        "temp": {
-          "title": "Sıcaklık",
-          "desc": "Sistem sıcaklığı halkasını görüntüleyin"
-        },
-        "disk": {
-          "title": "Disk kullanımı",
-          "desc": "Depolama diski kullanım halkasını görüntüleyin"
+        "items": {
+          "title": "İstatistikler",
+          "desc": "İstatistikleri yeniden sıralamak için sürükleyin veya gizlemek için kullanılabilir alanına taşıyın",
+          "cpu": "CPU",
+          "ram": "Bellek",
+          "temp": "Sıcaklık",
+          "disk": "Disk"
         }
       },
       "bat": {
@@ -598,6 +611,10 @@
           "title": "Kontrolleri göster",
           "desc": "Önceki, oynat ve sonraki düğmelerini görüntüleyin"
         },
+        "hide_when_idle": {
+          "title": "Hiçbir şey çalmıyorken gizle",
+          "desc": "Etkin medya yokken bileşeni çubuktan gizle"
+        },
         "preview": {
           "title": "Şarkı adı",
           "author": "Song author"
@@ -608,13 +625,14 @@
         "desc": "Çubuğun kalınlığını değiştirin, modüller buna uyum sağlar"
       },
       "menu": {
-        "show_settings": {
-          "title": "Ayarlar simgesini göster",
-          "desc": "Ayarları açan düğmeyi gösterir"
-        },
-        "show_launcher": {
-          "title": "Başlatıcı simgesini göster",
-          "desc": "Başlatıcıyı açan arama düğmesini gösterir"
+        "items": {
+          "title": "Düğmeler",
+          "desc": "Düğmeleri yeniden sıralamak için sürükleyin veya gizlemek için kullanılabilir alanına taşıyın",
+          "settings": "Ayarlar",
+          "launcher": "Başlatıcı",
+          "night_light": "Gece ışığı",
+          "caffeine": "Kafein",
+          "shuffle": "Rastgele duvar kağıdı"
         },
         "style": {
           "title": "Stil",
@@ -650,7 +668,58 @@
         "select_dir": "Dizin seçin...",
         "select_wallpaper": "Duvar kâğıdı seç",
         "no_wallpaper_selected": "Duvar kâğıdı seçilmedi",
-        "select": "Duvar Kâğıdı"
+        "select": "Duvar Kâğıdı",
+        "transition": {
+          "mode": {
+            "title": "Geçiş",
+            "random": "Rastgele",
+            "custom": "Özel seçim",
+            "desc_random": "Duvar kâğıdı her değiştiğinde rastgele bir geçiş kullan",
+            "desc_custom": "Seçili geçişler arasından rastgele seç. Eklemek veya çıkarmak için önizlemelere tıkla"
+          },
+          "fade": {
+            "name": "Solma",
+            "desc": "Yeni duvar kâğıdına yumuşakça geç"
+          },
+          "wipe": {
+            "name": "Açılma",
+            "desc": "Ekranın ortasından açıl"
+          },
+          "circle": {
+            "name": "Daire",
+            "desc": "Ekranı kaplayana kadar bir daire büyüt"
+          },
+          "swipe": {
+            "name": "Kaydırma",
+            "desc": "Ekranı bir kenardan veya köşeden süpür"
+          },
+          "orientation": {
+            "title": "Yön ekseni",
+            "desc": "Geçişin açıldığı eksen",
+            "random": "Rastgele",
+            "horizontal": "Yatay",
+            "vertical": "Dikey"
+          },
+          "origin": {
+            "title": "Başlangıç noktası",
+            "desc": "Dairenin başladığı yer. Masaüstü menüsü onu her zaman tıkladığın yerden başlatır",
+            "random": "Rastgele",
+            "center": "Merkez"
+          },
+          "direction": {
+            "title": "Yön",
+            "desc": "Kaydırmanın başladığı kenar veya köşe",
+            "random": "Rastgele",
+            "left": "Soldan",
+            "right": "Sağdan",
+            "top": "Yukarıdan",
+            "bottom": "Aşağıdan",
+            "top_left": "Sol üstten",
+            "top_right": "Sağ üstten",
+            "bottom_left": "Sol alttan",
+            "bottom_right": "Sağ alttan"
+          }
+        }
       },
       "element_opacity": {
         "title": "Öğe opaklığı",
@@ -663,6 +732,43 @@
           "blur": "Bulanıklık",
           "liquid": "Sıvı cam"
         }
+      },
+      "apps": {
+        "loading": "Yüklü uygulamalar aranıyor...",
+        "status": {
+          "error": "Uygulanamadı: {detail}"
+        },
+        "issue": {
+          "missing_config": "Yapılandırma bulunamadı. Bunu {file} dosyasına ekleyin: {line}",
+          "system_config": "Yapılandırmanız {file}. Buna şunu ekleyin: {line}",
+          "read_only": "{file} salt okunur. Buna şunu ekleyin: {line}",
+          "manual": "Yapılandırma güvenle düzenlenemedi. Bunu {file} dosyasına ekleyin: {line}",
+          "no_theme": "GTK 3 uygulamalarının da paleti izlemesi için {line} temasını yükleyin",
+          "env": "Oturum ortamında {line} ayarlayın",
+          "requires": "Qt uygulamalarına tema uygulamak için {line} yükleyin",
+          "failed": "Yapılandırma güncellenemedi: {line}"
+        },
+        "hint": {
+          "select_in_app": "Uygulama ayarlarında Serpantinum temasını seçin",
+          "restart": "Yeni renkleri görmek için açık pencereleri yeniden başlatın",
+          "neovim": "Kullanmak için :colorscheme serpantinum çalıştırın",
+          "helix": "Yeni renkleri görmek için açık düzenleyicilerde :config-reload çalıştırın",
+          "fastfetch": "Kullanmak için fastfetch -c serpantinum çalıştırın",
+          "spicetify": "spicetify config current_theme Serpantinum ve ardından spicetify apply çalıştırın",
+          "discord": "İstemcinin tema ayarlarında Serpantinum'u etkinleştirin",
+          "emacs": "Kullanmak için M-x load-theme serpantinum komutunu çalıştırın",
+          "steam": "Material-Theme'i Millennium ile kurun, ardından renk ayarlarında Matugen'i seçin",
+          "heroic": "Heroic'in özel temalar yolunu tema klasörüne ayarlayın, ardından serpantinum'u seçin",
+          "telegram": "Tema dosyasını Telegram'ın sohbet ayarlarından yükleyin"
+        },
+        "list": {
+          "title": "Temalı uygulamalar",
+          "desc": "Kabuk renklerini izleyen uygulamalar. Listeden daha fazlasını ekleyin"
+        },
+        "add": {
+          "title": "Uygulama ekle"
+        },
+        "empty": "Henüz temalı uygulama yok. Listeden bir tane ekleyin"
       }
     },
     "file_picker": {
@@ -970,6 +1076,11 @@
         "failed": "İndirme başarısız. Bağlantınızı kontrol edin.",
         "offline": "Dil listesine ulaşılamıyor. Yalnızca yüklü diller gösteriliyor.",
         "loading": "Diller yükleniyor..."
+      },
+      "directory": {
+        "title": "Ekran görüntüsü klasörü",
+        "desc": "Ekran görüntülerinin kaydedildiği klasör",
+        "select_dir": "Dizin seçin..."
       }
     }
   },
@@ -1423,7 +1534,9 @@
       "generating_thumbnails": "Küçük resimler oluşturuluyor...",
       "no_wallpapers_found": "Duvar kâğıdı bulunamadı",
       "videos": "Videolar",
-      "history": "Son uygulananlar"
+      "history": "Son uygulananlar",
+      "favorites": "Favoriler",
+      "recently_added": "Son eklenenler"
     },
     "filters": {
       "all": "Tümü",
@@ -1611,7 +1724,7 @@
     "description": "Wayland birleştiricileri için masaüstü kabuğu.",
     "commands": "Komutlar:",
     "script_commands": "Betik komutları:",
-    "launch_desc": "Bağımsız bileşenleri başlat (start, widgetredactor, lock-redactor)",
+    "launch_desc": "Bağımsız bileşenleri başlat (start)",
     "msg_desc": "Arayüz yöneticisine komutları veya çalışma alanı geçişlerini gönder",
     "ipc_desc": "IPC çağrılarını doğrudan kabuğa ilet",
     "kill_desc": "Çalışan arka plan programını düzgünce durdur",
@@ -1625,18 +1738,16 @@
     "daemon_restarted": "Serpantinum arka plan programı yeniden başlatıldı.",
     "starting_daemon": "Arka plan programı çalışmıyor. serpantinumd arka planda başlatılıyor...",
     "error_missing_qml": "Hata: başlatılacak hedef eksik.",
-    "launch_usage": "Kullanım: serpantinum launch <start|widgetredactor|lock-redactor> [argümanlar...]",
+    "launch_usage": "Kullanım: serpantinum launch <start> [argümanlar...]",
     "error_qml_not_found": "Hata: {DIR} içinde {NAME}.qml çözümlenemedi",
     "error_shell_qml_not_found": "Hata: {DIR} içinde shell.qml yolu çözümlenemedi",
     "error_unknown_command": "Hata: bilinmeyen komut '{CMD}'.",
     "error_unknown_target": "Hata: bilinmeyen hedef '{TARGET}'.",
     "launch_help": {
-      "usage": "Kullanım: serpantinum launch <start|widgetredactor|lock-redactor> [argümanlar...]",
+      "usage": "Kullanım: serpantinum launch <start> [argümanlar...]",
       "description": "Bağımsız bileşenleri doğrudan çalıştırıcı modunda başlatın.",
       "available_targets": "Kullanılabilir hedefler:",
-      "target_start": "Başlangıç kurulum arayüzünü başlat",
-      "target_widgetredactor": "Masaüstü widget düzenleyici arayüzünü başlat",
-      "target_lock_redactor": "Kilit ekranı düzen düzenleyicisini değiştir, aç veya kapat"
+      "target_start": "Başlangıç kurulum arayüzünü başlat"
     },
     "msg_help": {
       "usage": "Kullanım: serpantinum msg <komut|çalışma_alanı> [argümanlar...]",
@@ -1660,16 +1771,15 @@
       "location": "Coğrafi koordinatları al ve güncelle",
       "screenshot": "Ekran görüntüleri yakala, video kaydet veya QR kodlarını çözümle",
       "brightness": "Ekran arka ışığı parlaklığını ayarla",
-      "current_focus": "Etkin pencere odak değişikliklerini izle ve günlüğe kaydet",
-      "monitors_detect": "Etkin ekran çıkışlarını ve yenileme hızlarını sorgula",
       "location_manual": "Coğrafi koordinatları ve saat dilimini manuel olarak ayarla",
-      "blue_light_filter": "Renk sıcaklığını ve otomatik gündüz/gece programını ayarla",
+      "gamma": "Renk sıcaklığını ve otomatik gündüz/gece programını ayarla",
       "translate": "Anlık metin ve seçim çevirmeni",
       "suspend": "Ekranı kilitle ve sistemi askıya al",
       "hibernate": "Sistemi hazırda beklet",
       "reboot": "Sistemi yeniden başlat",
       "poweroff": "Sistemi kapat",
-      "redactor": "Masaüstü widget düzen düzenleyicisini aç veya değiştir"
+      "redactor": "Masaüstü widget düzen düzenleyicisini aç veya değiştir",
+      "lock_redactor": "Kilit ekranı düzen düzenleyicisini değiştir, aç veya kapat"
     },
     "usage_label": "Kullanım:",
     "config_desc": "Ayarları oku ve değiştir (get, set, dump, path, edit)",
@@ -1681,10 +1791,11 @@
     "error_unknown_theme": "Hata: bilinmeyen tema '{NAME}'.",
     "error_no_wallpapers": "Hata: duvar kağıdı dizininde duvar kağıdı bulunamadı.",
     "error_file_not_found": "Hata: dosya bulunamadı: {PATH}",
-    "info_desc": "Bir ayarın geçerli durumunu göster (dnd, caffeine, dock, theme, wallpaper, monitors, updates...)",
-    "set_desc": "Bir ayarı değiştir (dnd, caffeine, dock, sfx-mute, matugen, lang, theme, wallpaper)",
-    "trigger_desc": "Tek seferlik bir eylem çalıştır (idle, notifications-clear, firstlaunch, theme-reload, theme-generate)",
-    "settings_desc": "Ayarlar penceresini aç (isteğe bağlı olarak belirli bir sekmede)"
+    "info_desc": "Bir ayarın geçerli durumunu göster (notifications, idle, dock, sfx, theme, lang, wallpaper, monitors, updates)",
+    "set_desc": "Bir ayarı değiştir (notifications, idle, dock, sfx, theme, lang, wallpaper)",
+    "trigger_desc": "Tek seferlik bir eylem çalıştır (idle, notifications, theme, firstlaunch)",
+    "settings_desc": "Ayarlar penceresini aç (isteğe bağlı olarak belirli bir sekmede)",
+    "error_unknown_app": "Hata: bilinmeyen uygulama '{ID}'."
   },
   "daemon": {
     "already_running": "Arka plan programı zaten çalışıyor. Çıkılıyor...",

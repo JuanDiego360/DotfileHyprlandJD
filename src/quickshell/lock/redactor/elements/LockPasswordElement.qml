@@ -48,16 +48,27 @@ Item {
 
         onAccepted: (finalText) => {
             if (!el.sr) return;
-            if (finalText.length > 0 && el.sr.pam.responseRequired && !el.sr.lockUI.authenticating) {
-                el.sr.lockUI.authenticating = true;
-                el.sr.lockUI.statusText = I18n.t("lock.status.authenticating");
-                el.sr.lockUI.failed = false;
-                el.sr.pam.respond(finalText);
+            el.sr.lockUI.submitPassword(finalText);
+        }
+
+        Component.onCompleted: {
+            if (el.sr) field.text = el.sr.lockUI.passwordText;
+        }
+
+        Connections {
+            target: el.sr ? el.sr.lockUI : null
+            function onPasswordTextChanged() {
+                if (field.text !== el.sr.lockUI.passwordText) field.text = el.sr.lockUI.passwordText;
             }
+        }
+
+        onCleared: {
+            if (el.sr) el.sr.lockUI.passwordText = "";
         }
 
         onTextEdited: (newText) => {
             if (!el.sr) return;
+            el.sr.lockUI.passwordText = newText;
             if (el.sr.lockUI.authenticating || el.sr.isUnlocking || el.sr.lockUI.lockedOut) return;
             if (newText.length > 0 && !el.sr.inputActive) {
                 el.sr.inputActive = true;

@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Io
 import "../../../reusables"
 import "../../../"
+import "../../"
 
 Item {
     id: root
@@ -42,11 +43,11 @@ Item {
         return "button";
     }
 
-    property bool showSettings: {
-        if (widget && widget !== root && widget.menuShowSettings !== undefined) return widget.menuShowSettings;
+    property var menuItems: {
+        if (widget && widget !== root && widget.menuItems !== undefined) return widget.menuItems;
         let dummy = configRevision;
-        if (typeof Config !== "undefined" && Config.rawSettings && Config.rawSettings.bar && Config.rawSettings.bar.menuShowSettings !== undefined) return Boolean(Config.rawSettings.bar.menuShowSettings);
-        return true;
+        let bs = (typeof Config !== "undefined" && Config.rawSettings && Config.rawSettings.bar) ? Config.rawSettings.bar : {};
+        return BarModuleRegistry.menuItemsFromSettings(bs);
     }
 
     property bool showLauncher: {
@@ -91,9 +92,97 @@ Item {
     readonly property bool effectiveShowSettings: showSettings || !showLauncher
     readonly property bool iconOnly: menuStyle === "icon"
 
-    readonly property var helpButton: effectiveShowSettings ? settingsBtn : launcherBtn
+    readonly property var helpButton: {
+        let dummy = menuRepeater.count;
+        let found = null;
+        for (let i = 0; i < menuRepeater.count; i++) {
+            let it = menuRepeater.itemAt(i);
+            if (!it) continue;
+            if (it.itemId === "settings") return it;
+            if (!found && it.itemId === "launcher") found = it;
+        }
+        return found || menuRepeater.itemAt(0);
+    }
 
-    property real targetLength: (!module || module.moduleActive) ? ((isVertical ? buttonsFlow.implicitHeight : buttonsFlow.implicitWidth) + s(isCompact ? 6 : 8)) : 0
+    property bool nightLightActive: {
+        let dummy = configRevision;
+        return (typeof Gamma !== "undefined" && typeof Gamma.isAnyEnabled === "function") ? Gamma.isAnyEnabled() : false;
+    }
+
+    property bool caffeineActive: {
+        let dummy = configRevision;
+        let idleObj = (typeof Config !== "undefined" && Config.rawSettings && Config.rawSettings.idle) ? Config.rawSettings.idle : null;
+        if (!idleObj || !idleObj.manualInhibit) return false;
+        let endTime = Number(idleObj.caffeineEndTime) || 0;
+        return endTime <= 0 || endTime > Date.now();
+    }
+
+    Connections {
+        target: (typeof Gamma !== "undefined") ? Gamma : null
+        ignoreUnknownSignals: true
+        function onSettingsChanged() { root.configRevision++; }
+    }
+
+    Timer {
+        interval: 15000
+        repeat: true
+        running: root.showCaffeine && root.caffeineActive && !root.isPreview
+        onTriggered: {
+            let idleObj = Config.getSetting("idle", {}) || {};
+            let endTime = Number(idleObj.caffeineEndTime) || 0;
+            if (endTime > 0 && endTime <= Date.now()) root.setCaffeine(false);
+        }
+    }
+
+    function toggleNightLight() {
+        if (typeof Gamma === "undefined" || typeof Gamma.setEnabled !== "function") return;
+        let target = !root.nightLightActive;
+        let monNames = [];
+        let ds = Config.getSetting("display", {"monitors": {}});
+        let mons = (ds && ds.monitors) ? ds.monitors : {};
+        for (let m in mons) {
+            if (monNames.indexOf(m) === -1) monNames.push(m);
+        }
+        if (Quickshell.screens) {
+            for (let i = 0; i < Quickshell.screens.length; i++) {
+                let scr = Quickshell.screens[i];
+                if (scr && scr.name && monNames.indexOf(scr.name) === -1) monNames.push(scr.name);
+            }
+        }
+        if (monNames.length > 0) {
+            for (let i = 0; i < monNames.length; i++) Gamma.setEnabled(monNames[i], target);
+        } else {
+            Gamma.setEnabled("", target);
+        }
+    }
+
+    function shuffleWallpaper(btn) {
+        let scr = barWindow ? barWindow.screen : null;
+        let transition = "circle";
+        if (btn && scr && scr.width > 0 && scr.height > 0) {
+            let pt = btn.mapToItem(null, btn.width / 2, btn.height / 2);
+            let pos = barWindow.barPosition;
+            let x = pt.x + (pos === "right" ? scr.width - barWindow.width : 0);
+            let y = pt.y + (pos === "bottom" ? scr.height - barWindow.height : 0);
+            transition = "circle:" + Math.max(0, Math.min(1, x / scr.width)) + ":" + Math.max(0, Math.min(1, y / scr.height));
+        }
+        Wallpaper.shuffle(scr && scr.name ? scr.name : "", transition);
+    }
+
+    function setCaffeine(enabled) {
+        let now = Date.now();
+        let idleObj = Object.assign({}, Config.getSetting("idle", {}));
+        idleObj.manualInhibit = enabled;
+        idleObj.caffeineStartTime = enabled ? now : 0;
+        idleObj.caffeineEndTime = enabled ? now + 3600 * 1000 : 0;
+        Config.setSetting("idle", idleObj);
+    }
+
+    readonly property int menuCount: menuItems ? menuItems.length : 0
+    readonly property real buttonsLength: menuCount > 0
+        ? menuCount * (isVertical ? s(isCompact ? 28 : 30) : s(isCompact ? 30 : 32)) + (menuCount - 1) * s(isCompact ? 2 : 4)
+        : 0
+    property real targetLength: (!module || module.moduleActive) ? (buttonsLength + s(isCompact ? 6 : 8)) : 0
 
     implicitWidth: isVertical ? (parent ? parent.width : 0) : targetLength
     implicitHeight: isVertical ? targetLength : (parent ? parent.height : 0)
@@ -140,6 +229,7 @@ Item {
             visible: !root.iconOnly
             cornerRadius: Math.max(0, ThemeBackend.borderRadius - root.s(2))
             buttonIcon: menuBtn.glyph
+            iconOffsetY: menuBtn.glyphYOffset
             iconFontSize: root.s(root.isCompact ? 14 : 15)
             accentColor: menuBtn.hasUpdate ? Qt.rgba(ThemeBackend.green.r, ThemeBackend.green.g, ThemeBackend.green.b, 0.20) : (root.isCompact ? Qt.lighter(ThemeBackend.surface0, 1.18) : ThemeBackend.surface0)
             bgOpacity: root.barOpacity
@@ -149,6 +239,7 @@ Item {
 
         Text {
             anchors.centerIn: parent
+            anchors.verticalCenterOffset: menuBtn.glyphYOffset
             visible: root.iconOnly
             text: menuBtn.glyph
             font.family: ThemeBackend.iconFont

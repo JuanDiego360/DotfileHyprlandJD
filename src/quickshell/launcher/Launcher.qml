@@ -51,9 +51,8 @@ PanelWindow {
     property string tabEmojisTitle: (typeof I18n !== "undefined") ? I18n.t("applauncher.tab_emojis", "Emojis") : "Emojis"
 
     function saveLastTab() {
-        let dir = (typeof Caching !== "undefined" && typeof Caching.getCacheDir === "function") ? Caching.getCacheDir("launcher") : "";
-        if (dir) {
-            Quickshell.execDetached(["bash", "-c", "mkdir -p '" + dir + "' && echo '" + currentTabIndex + "' > '" + dir + "/last_tab.txt'"]);
+        if (lastTabWatcher.path !== "") {
+            lastTabWatcher.setText(currentTabIndex + "\n");
         }
     }
 
@@ -293,8 +292,12 @@ PanelWindow {
 
     property real barHeight: {
         let dummy = configRevision;
-        return (typeof Config !== "undefined" && Config.rawSettings && Config.rawSettings.bar && Config.rawSettings.bar.height) ? s(Config.rawSettings.bar.height) : s(40);
+        let v = (typeof Config !== "undefined" && Config.rawSettings && Config.rawSettings.bar && Config.rawSettings.bar.height !== undefined) ? Number(Config.rawSettings.bar.height) : 40;
+        if (isNaN(v)) v = 40;
+        return Math.round(s(Math.max(28, Math.min(48, v))));
     }
+
+    property real barInset: barHeight + (barStyle === "solid" && !barAutohide ? Math.round(s(4)) : 0)
 
     property bool isBarAttachable: barStyle === "solid" || barStyle === "fill"
     property bool barMatchesLauncher: isBarAttachable && (attachEdge === barPosition) && !isBarEffectivelyHidden
@@ -362,7 +365,7 @@ PanelWindow {
     Process {
         id: rankFetcher
         running: false
-        command: Caching.qsDir ? ["python3", Caching.qsDir + "/launcher/app_rank.py", "--rank"] : []
+        command: ["serpantinum-core", "launcher", "rank"]
 
         stdout: StdioCollector {
             onStreamFinished: {
@@ -382,7 +385,6 @@ PanelWindow {
         }
     }
 
-    property string fileSearchScript: "import os, sys, json\nq = sys.argv[1] if len(sys.argv) > 1 else ''\nhome = os.path.expanduser('~')\nres = []\nif q.startswith('/') or q.startswith('~'):\n    p = os.path.expanduser(q)\n    d = p if (os.path.isdir(p) and (q.endswith('/') or q.endswith('\\\\'))) else (os.path.dirname(p) or home)\n    pref = '' if (os.path.isdir(p) and (q.endswith('/') or q.endswith('\\\\'))) else os.path.basename(p).lower()\n    if os.path.isdir(d):\n        try:\n            entries = sorted(os.listdir(d), key=lambda x: (not os.path.isdir(os.path.join(d, x)), x.lower()))\n            for item in entries:\n                if item.startswith('.') and not pref.startswith('.'):\n                    continue\n                if not pref or pref in item.lower():\n                    full = os.path.join(d, item)\n                    res.append({'name': item, 'path': full, 'isDir': os.path.isdir(full)})\n                    if len(res) >= 40: break\n        except Exception: pass\nelse:\n    s = q.lower().strip()\n    targets = [home, os.path.join(home, 'Desktop'), os.path.join(home, 'Documents'), os.path.join(home, 'Downloads'), os.path.join(home, 'Pictures'), os.path.join(home, 'Videos'), os.path.join(home, 'Music')]\n    seen = set()\n    for t in targets:\n        if not os.path.isdir(t): continue\n        try:\n            for root, dirs, files in os.walk(t):\n                rel = os.path.relpath(root, t)\n                if rel != '.' and rel.count(os.sep) >= 2:\n                    dirs.clear()\n                    continue\n                dirs[:] = [dr for dr in dirs if not dr.startswith('.') and dr not in ('node_modules', '.git', '.cache', 'target', 'build', '.local')]\n                if s:\n                    for dr in dirs:\n                        if s in dr.lower():\n                            full = os.path.join(root, dr)\n                            if full not in seen:\n                                seen.add(full)\n                                res.append({'name': dr, 'path': full, 'isDir': True})\n                                if len(res) >= 40: break\n                for fn in files:\n                    if fn.startswith('.'): continue\n                    if not s or s in fn.lower():\n                        full = os.path.join(root, fn)\n                        if full not in seen:\n                            seen.add(full)\n                            res.append({'name': fn, 'path': full, 'isDir': False})\n                            if len(res) >= 40: break\n                if len(res) >= 40: break\n        except Exception: pass\n        if len(res) >= 40: break\nprint(json.dumps(res[:40]))"
 
     Process {
         id: fileSearchProcess
@@ -821,7 +823,7 @@ PanelWindow {
         if (fileSearchProcess.running) {
             fileSearchProcess.running = false;
         }
-        fileSearchProcess.command = ["python3", "-c", launcherWindow.fileSearchScript, query ? query.trim() : ""];
+        fileSearchProcess.command = ["serpantinum-core", "launcher", "files", query ? query.trim() : ""];
         fileSearchProcess.running = true;
     }
 
@@ -1149,7 +1151,7 @@ PanelWindow {
             }
         }
         if (Caching.qsDir) {
-            Quickshell.execDetached(["python3", Caching.qsDir + "/launcher/app_rank.py", "--log-launch", "--name", appName]);
+            Quickshell.execDetached(["serpantinum-core", "launcher", "log", appName]);
         }
         closeLauncher();
     }
@@ -1157,7 +1159,7 @@ PanelWindow {
     Item {
         id: topBarHole
 
-        property int barThickness: launcherWindow.barHeight
+        property int barThickness: launcherWindow.barInset
         property string bp: launcherWindow.barPosition
         property bool activeBar: !launcherWindow.isBarEffectivelyHidden
 
@@ -1214,10 +1216,10 @@ PanelWindow {
 
         x: {
             if (launcherWindow.attachEdge === "left") {
-                return launcherWindow.barMatchesLauncher ? launcherWindow.barHeight : 0;
+                return launcherWindow.barMatchesLauncher ? launcherWindow.barInset : 0;
             }
             if (launcherWindow.attachEdge === "right") {
-                let offset = launcherWindow.barMatchesLauncher ? launcherWindow.barHeight : 0;
+                let offset = launcherWindow.barMatchesLauncher ? launcherWindow.barInset : 0;
                 return (launcherWindow.width - offset) - width;
             }
             return Math.floor((launcherWindow.width - width) / 2);
@@ -1225,10 +1227,10 @@ PanelWindow {
 
         y: {
             if (launcherWindow.attachEdge === "top") {
-                return launcherWindow.barMatchesLauncher ? launcherWindow.barHeight : 0;
+                return launcherWindow.barMatchesLauncher ? launcherWindow.barInset : 0;
             }
             if (launcherWindow.attachEdge === "bottom") {
-                let offset = launcherWindow.barMatchesLauncher ? launcherWindow.barHeight : 0;
+                let offset = launcherWindow.barMatchesLauncher ? launcherWindow.barInset : 0;
                 return (launcherWindow.height - offset) - height;
             }
             return Math.floor((launcherWindow.height - height) / 2);

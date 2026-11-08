@@ -44,7 +44,12 @@
       "bar_modules": "Modules",
       "bar_side_modules": "Zijmodules",
       "display_lockscreen": "Vergrendelscherm",
-      "screenshot": "Screenshot"
+      "screenshot": "Screenshot",
+      "theme_appearance": "Uiterlijk",
+      "theme_apps": "App-thema's",
+      "theme_wallpapers": "Achtergronden",
+      "general_main": "Algemeen",
+      "general_presets": "Voorinstellingen"
     },
     "launcher": {
       "position": {
@@ -144,7 +149,7 @@
       "warning_command": {
         "title": "Waarschuwingsopdracht",
         "desc": "Verschuiving en opdracht die vóór de actie wordt uitgevoerd",
-        "placeholder": "bijv. notify-send 'waarschuwing'"
+        "placeholder": "bijv. serpantinum-core notify 'waarschuwing'"
       },
       "before_command": {
         "title": "Voorafgaande opdracht",
@@ -154,7 +159,7 @@
       "resume_command": {
         "title": "Hervattingsopdracht",
         "desc": "Wordt uitgevoerd wanneer gebruikersactiviteit wordt hervat",
-        "placeholder": "bijv. notify-send 'hervat'"
+        "placeholder": "bijv. serpantinum-core notify 'hervat'"
       },
       "dim": {
         "title": "Scherm dimmen",
@@ -219,10 +224,6 @@
         "title": "Snelle acties",
         "desc": "Zwevend venster voor snelle acties inschakelen"
       },
-      "separatewindow": {
-        "title": "Instellingen in een apart venster openen",
-        "desc": "Instellingen openen als een normaal, schaalbaar app-venster in plaats van een paneel in de shell"
-      },
       "location": {
         "title": "Locatie",
         "desc": "Configureer locatie voor automatisch zonschema en weer",
@@ -251,10 +252,25 @@
       "screenshot_on_release": {
         "title": "Gebied vastleggen bij loslaten van muisknop",
         "desc": "Maak de schermafbeelding zodra u klaar bent met slepen, zonder op de ontspanknop te klikken"
+      },
+      "presets": {
+        "save": {
+          "title": "Huidige opstelling opslaan",
+          "desc": "Alle instellingen, widgets en achtergronden opslaan als voorinstelling",
+          "button": "Voorinstelling opslaan"
+        },
+        "empty": "Nog geen voorinstellingen. Sla je huidige opstelling op om er een te maken",
+        "confirm": {
+          "title": "Voorinstelling toepassen?",
+          "desc": "Weet je zeker dat je deze voorinstelling wilt toepassen zonder eerst je eigen instellingen op te slaan? Je huidige instellingen worden overschreven en kunnen niet worden hersteld.",
+          "dont_show": "Niet meer tonen",
+          "apply": "Toepassen",
+          "cancel": "Annuleren"
+        }
       }
     },
     "display": {
-      "bluelight": {
+      "gamma": {
         "title": "Blauwlichtfilter",
         "desc": "Warme schermverlichting in-/uitschakelen"
       },
@@ -281,6 +297,10 @@
         "hide_bar": {
           "title": "Balk verbergen in de editor",
           "desc": "Balk automatisch verbergen bij bewerken van widgets in editormodus"
+        },
+        "show_distances": {
+          "title": "Afstanden tonen",
+          "desc": "Afstanden tussen widgets tonen tijdens het verplaatsen of schalen in de editor"
         },
         "hide_presets": "Voorinstellingen verbergen",
         "choose_preset": "Kies een voorinstelling",
@@ -326,7 +346,7 @@
     },
     "bar": {
       "modules": {
-        "vis": "Visualisator (cava)",
+        "vis": "Visualisator",
         "actions": "Acties",
         "workspaces": {
           "style": {
@@ -418,6 +438,7 @@
         "desc": "Klik met de rechtermuisknop op een item om te groeperen, klik met de rechtermuisknop op een ander om toe te voegen. Klik met de rechtermuisknop op een gegroepeerd item om het te verwijderen.",
         "reset": "Herstellen",
         "available": "Beschikbaar",
+        "shown": "Getoond",
         "left": "Links",
         "center": "Midden",
         "right": "Rechts"
@@ -464,21 +485,13 @@
           "wave": "Golf",
           "circle": "Cirkel"
         },
-        "cpu": {
-          "title": "CPU-gebruik",
-          "desc": "Ring voor processorbelasting weergeven"
-        },
-        "ram": {
-          "title": "Geheugengebruik",
-          "desc": "Ring voor werkgeheugen (RAM) weergeven"
-        },
-        "temp": {
-          "title": "Temperatuur",
-          "desc": "Ring voor systeemtemperatuur weergeven"
-        },
-        "disk": {
-          "title": "Schijfgebruik",
-          "desc": "Ring voor schijfopslaggebruik weergeven"
+        "items": {
+          "title": "Statistieken",
+          "desc": "Sleep statistieken om ze te herschikken, of verplaats ze naar beschikbaar om ze te verbergen",
+          "cpu": "CPU",
+          "ram": "Geheugen",
+          "temp": "Temperatuur",
+          "disk": "Schijf"
         }
       },
       "bat": {
@@ -598,6 +611,10 @@
           "title": "Bediening tonen",
           "desc": "Toont de knoppen voor vorige, afspelen en volgende"
         },
+        "hide_when_idle": {
+          "title": "Verbergen als er niets speelt",
+          "desc": "Verberg de widget in de balk zolang er geen media actief is"
+        },
         "preview": {
           "title": "Titel van het nummer",
           "author": "Song author"
@@ -608,13 +625,14 @@
         "desc": "Wijzig de dikte van de balk, modules passen zich aan"
       },
       "menu": {
-        "show_settings": {
-          "title": "Instellingenpictogram tonen",
-          "desc": "Toont de knop die de instellingen opent"
-        },
-        "show_launcher": {
-          "title": "Launcherpictogram tonen",
-          "desc": "Toont de zoekknop die de launcher opent"
+        "items": {
+          "title": "Knoppen",
+          "desc": "Sleep knoppen om ze te herschikken, of verplaats ze naar beschikbaar om ze te verbergen",
+          "settings": "Instellingen",
+          "launcher": "Starter",
+          "night_light": "Nachtlicht",
+          "caffeine": "Cafeïne",
+          "shuffle": "Willekeurige achtergrond"
         },
         "style": {
           "title": "Stijl",
@@ -650,7 +668,58 @@
         "select_dir": "Map selecteren...",
         "select_wallpaper": "Achtergrond selecteren",
         "no_wallpaper_selected": "Geen achtergrond geselecteerd",
-        "select": "Achtergrond"
+        "select": "Achtergrond",
+        "transition": {
+          "mode": {
+            "title": "Overgang",
+            "random": "Willekeurig",
+            "custom": "Eigen selectie",
+            "desc_random": "Gebruik een willekeurige overgang telkens wanneer de achtergrond verandert",
+            "desc_custom": "Kies willekeurig uit de geselecteerde overgangen. Klik op voorbeelden om ze toe te voegen of te verwijderen"
+          },
+          "fade": {
+            "name": "Vervagen",
+            "desc": "Vloeiend overvloeien naar de nieuwe achtergrond"
+          },
+          "wipe": {
+            "name": "Openen",
+            "desc": "Openen vanuit het midden van het scherm"
+          },
+          "circle": {
+            "name": "Cirkel",
+            "desc": "Laat een cirkel groeien tot het scherm bedekt is"
+          },
+          "swipe": {
+            "name": "Vegen",
+            "desc": "Over het scherm vegen vanaf een rand of hoek"
+          },
+          "orientation": {
+            "title": "Richting",
+            "desc": "As waarlangs de overgang opent",
+            "random": "Willekeurig",
+            "horizontal": "Horizontaal",
+            "vertical": "Verticaal"
+          },
+          "origin": {
+            "title": "Oorsprong",
+            "desc": "Waar de cirkel begint. Het bureaubladmenu start hem altijd waar je klikte",
+            "random": "Willekeurig",
+            "center": "Midden"
+          },
+          "direction": {
+            "title": "Richting",
+            "desc": "Rand of hoek waar het vegen begint",
+            "random": "Willekeurig",
+            "left": "Van links",
+            "right": "Van rechts",
+            "top": "Van boven",
+            "bottom": "Van onder",
+            "top_left": "Van linksboven",
+            "top_right": "Van rechtsboven",
+            "bottom_left": "Van linksonder",
+            "bottom_right": "Van rechtsonder"
+          }
+        }
       },
       "element_opacity": {
         "title": "Elementdekking",
@@ -663,6 +732,43 @@
           "blur": "Vervagen",
           "liquid": "Liquid glass"
         }
+      },
+      "apps": {
+        "loading": "Geïnstalleerde apps zoeken...",
+        "status": {
+          "error": "Toepassen mislukt: {detail}"
+        },
+        "issue": {
+          "missing_config": "Configuratie niet gevonden. Voeg dit toe aan {file}: {line}",
+          "system_config": "Je configuratie is {file}. Voeg dit eraan toe: {line}",
+          "read_only": "{file} is alleen-lezen. Voeg dit eraan toe: {line}",
+          "manual": "Kon de configuratie niet veilig bewerken. Voeg dit toe aan {file}: {line}",
+          "no_theme": "Installeer het thema {line} zodat GTK 3-apps ook het palet volgen",
+          "env": "Stel {line} in de sessieomgeving in",
+          "requires": "Installeer {line} om Qt-apps een thema te geven",
+          "failed": "Kon de configuratie niet bijwerken: {line}"
+        },
+        "hint": {
+          "select_in_app": "Kies het thema Serpantinum in de instellingen van de app",
+          "restart": "Start open vensters opnieuw om de nieuwe kleuren te zien",
+          "neovim": "Voer :colorscheme serpantinum uit om het te gebruiken",
+          "helix": "Voer :config-reload uit in open editors om de nieuwe kleuren te zien",
+          "fastfetch": "Voer fastfetch -c serpantinum uit om het te gebruiken",
+          "spicetify": "Voer spicetify config current_theme Serpantinum uit en daarna spicetify apply",
+          "discord": "Schakel Serpantinum in bij de thema-instellingen van de client",
+          "emacs": "Voer M-x load-theme serpantinum uit om het te gebruiken",
+          "steam": "Installeer Material-Theme met Millennium en kies daarna Matugen in de kleurinstellingen",
+          "heroic": "Stel het pad voor eigen thema's in Heroic in op de themamap en kies daarna serpantinum",
+          "telegram": "Laad het themabestand via de chatinstellingen van Telegram"
+        },
+        "list": {
+          "title": "Apps met thema",
+          "desc": "Apps die de kleuren van de shell volgen. Voeg er meer toe uit de lijst"
+        },
+        "add": {
+          "title": "App toevoegen"
+        },
+        "empty": "Nog geen apps met thema. Voeg er een toe uit de lijst"
       }
     },
     "file_picker": {
@@ -970,6 +1076,11 @@
         "failed": "Download mislukt. Controleer je verbinding.",
         "offline": "De talenlijst is niet bereikbaar. Alleen geïnstalleerde talen worden getoond.",
         "loading": "Talen laden..."
+      },
+      "directory": {
+        "title": "Screenshotmap",
+        "desc": "Map waarin screenshots worden opgeslagen",
+        "select_dir": "Map selecteren..."
       }
     }
   },
@@ -1423,7 +1534,9 @@
       "generating_thumbnails": "Miniaturen genereren...",
       "no_wallpapers_found": "Geen achtergronden gevonden",
       "videos": "Video's",
-      "history": "Recent toegepast"
+      "history": "Recent toegepast",
+      "favorites": "Favorieten",
+      "recently_added": "Recent toegevoegd"
     },
     "filters": {
       "all": "Alles",
@@ -1611,7 +1724,7 @@
     "description": "Een desktopshell voor wayland-compositors.",
     "commands": "Opdrachten:",
     "script_commands": "Scriptopdrachten:",
-    "launch_desc": "Zelfstandige componenten starten (start, widgetredactor, lock-redactor)",
+    "launch_desc": "Zelfstandige componenten starten (start)",
     "msg_desc": "Opdrachten of werkbladwissels verzenden naar de UI-beheerder",
     "ipc_desc": "IPC-aanroepen direct doorsturen naar de shell",
     "kill_desc": "De actieve daemon netjes stoppen",
@@ -1625,18 +1738,16 @@
     "daemon_restarted": "Serpantinum-daemon opnieuw gestart.",
     "starting_daemon": "Daemon niet actief. serpantinumd wordt op de achtergrond gestart...",
     "error_missing_qml": "Fout: ontbrekend doel om te starten.",
-    "launch_usage": "Gebruik: serpantinum launch <start|widgetredactor|lock-redactor> [argumenten...]",
+    "launch_usage": "Gebruik: serpantinum launch <start> [argumenten...]",
     "error_qml_not_found": "Fout: kan {NAME}.qml niet vinden in {DIR}",
     "error_shell_qml_not_found": "Fout: kan pad naar shell.qml niet vinden in {DIR}",
     "error_unknown_command": "Fout: onbekende opdracht '{CMD}'.",
     "error_unknown_target": "Fout: onbekend doel '{TARGET}'.",
     "launch_help": {
-      "usage": "Gebruik: serpantinum launch <start|widgetredactor|lock-redactor> [argumenten...]",
+      "usage": "Gebruik: serpantinum launch <start> [argumenten...]",
       "description": "Zelfstandige componenten rechtstreeks starten in runner-modus.",
       "available_targets": "Beschikbare doelen:",
-      "target_start": "Start de installatie-interface van de startwizard",
-      "target_widgetredactor": "Start de editor-interface voor bureaubladwidgets",
-      "target_lock_redactor": "Lay-outeditor van het vergrendelscherm schakelen, openen of sluiten"
+      "target_start": "Start de installatie-interface van de startwizard"
     },
     "msg_help": {
       "usage": "Gebruik: serpantinum msg <opdracht|werkblad> [argumenten...]",
@@ -1660,16 +1771,15 @@
       "location": "Geografische coördinaten ophalen en bijwerken",
       "screenshot": "Schermafbeeldingen maken, video opnemen of QR-codes scannen",
       "brightness": "Helderheid van achtergrondverlichting van het beeldscherm aanpassen",
-      "current_focus": "Focuswijzigingen van actieve vensters monitoren en vastleggen",
-      "monitors_detect": "Actieve beeldschermuitvoeren en verversingssnelheden opvragen",
       "location_manual": "Geografische coördinaten en tijdzone handmatig instellen",
-      "blue_light_filter": "Kleurtemperatuur en automatisch dag-/nachtschema aanpassen",
+      "gamma": "Kleurtemperatuur en automatisch dag-/nachtschema aanpassen",
       "translate": "Directe tekst- en selectievertaler",
       "suspend": "Scherm vergrendelen en systeem in slaapstand zetten",
       "hibernate": "Systeem in sluimerstand zetten",
       "reboot": "Systeem opnieuw opstarten",
       "poweroff": "Systeem uitschakelen",
-      "redactor": "Lay-outeditor voor bureaubladwidgets openen of schakelen"
+      "redactor": "Lay-outeditor voor bureaubladwidgets openen of schakelen",
+      "lock_redactor": "Lay-outeditor van het vergrendelscherm schakelen, openen of sluiten"
     },
     "usage_label": "Gebruik:",
     "config_desc": "Instellingen lezen en wijzigen (get, set, dump, path, edit)",
@@ -1681,10 +1791,11 @@
     "error_unknown_theme": "Fout: onbekend thema '{NAME}'.",
     "error_no_wallpapers": "Fout: geen achtergronden gevonden in de achtergrondmap.",
     "error_file_not_found": "Fout: bestand niet gevonden: {PATH}",
-    "info_desc": "De huidige status van een instelling tonen (dnd, caffeine, dock, theme, wallpaper, monitors, updates...)",
-    "set_desc": "Een instelling wijzigen (dnd, caffeine, dock, sfx-mute, matugen, lang, theme, wallpaper)",
-    "trigger_desc": "Een eenmalige actie uitvoeren (idle, notifications-clear, firstlaunch, theme-reload, theme-generate)",
-    "settings_desc": "Instellingenvenster openen (optioneel op een bepaald tabblad)"
+    "info_desc": "De huidige status van een instelling tonen (notifications, idle, dock, sfx, theme, lang, wallpaper, monitors, updates)",
+    "set_desc": "Een instelling wijzigen (notifications, idle, dock, sfx, theme, lang, wallpaper)",
+    "trigger_desc": "Een eenmalige actie uitvoeren (idle, notifications, theme, firstlaunch)",
+    "settings_desc": "Instellingenvenster openen (optioneel op een bepaald tabblad)",
+    "error_unknown_app": "Fout: onbekende app '{ID}'."
   },
   "daemon": {
     "already_running": "Daemon draait al. Afsluiten...",

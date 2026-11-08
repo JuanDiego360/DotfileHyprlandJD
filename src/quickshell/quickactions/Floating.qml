@@ -407,6 +407,8 @@ Variants {
 
             property bool isPinned: false
             property bool useGraceTimer: false
+            property bool heldOpen: false
+            readonly property bool isOpen: (isSidebarVisible && isExpanded) || (pendingMode === "sidebar" && pendingWasExpanded)
 
             onIsPinnedChanged: {
                 if (!isPinned) kickTimer();
@@ -494,6 +496,18 @@ Variants {
                         floatingWidget.showNotes();
                     }
                 }
+
+                function onOpenRequested(screen) {
+                    if (floatingWidget.matchesScreen(screen)) {
+                        floatingWidget.openPanel();
+                    }
+                }
+
+                function onCloseRequested(screen) {
+                    if ((!screen || floatingWidget.matchesScreen(screen)) && floatingWidget.closePanel()) {
+                        FloatingController.closedAny = true;
+                    }
+                }
             }
 
             function matchesScreen(targetScreen) {
@@ -533,6 +547,46 @@ Variants {
                 floatingWidget.useGraceTimer = true;
                 floatingWidget.showSidebar(sideEdge, centerPos, true);
                 hideTimer.restart();
+            }
+
+            function openPanel() {
+                if (floatingWidget.isPinned) {
+                    floatingWidget.isExpanded = true;
+                    return;
+                }
+                if (floatingWidget.isOpen) return;
+                floatingWidget.useGraceTimer = false;
+                if (floatingWidget.isSidebarVisible && floatingWidget.pendingMode === "") {
+                    floatingWidget.isExpanded = true;
+                } else {
+                    let sideEdge = (floatingWidget.barPosition === "left") ? "right" : "left";
+                    floatingWidget.showSidebar(sideEdge, floatingWidget.screenHeight / 2, true);
+                    if (floatingWidget.pendingMode === "sidebar") floatingWidget.pendingWasExpanded = true;
+                }
+                floatingWidget.heldOpen = floatingWidget.isOpen;
+            }
+
+            function closePanel() {
+                let wasOpen = floatingWidget.isOpen;
+                if (floatingWidget.hasInputFocus) floatingWidget.unfocusAllInputs();
+                if (floatingWidget.isPinned) {
+                    floatingWidget.isExpanded = false;
+                    return wasOpen;
+                }
+                edgeTransitionTimer.stop();
+                teleportTimer.stop();
+                peekShowTimer.stop();
+                if (floatingWidget.pendingMode !== "") {
+                    floatingWidget.pendingMode = "";
+                    floatingWidget.disableAnim = false;
+                }
+                hideTimer.stop();
+                floatingWidget.heldOpen = false;
+                floatingWidget.useGraceTimer = false;
+                floatingWidget.isExpanded = false;
+                floatingWidget.isSidebarVisible = false;
+                floatingWidget.isPeekVisible = false;
+                return wasOpen;
             }
 
             function childIntercepts(sequenceStr) {
@@ -624,6 +678,10 @@ Variants {
                         floatingWidget.unfocusAllInputs();
                         return;
                     }
+                    if (floatingWidget.heldOpen) {
+                        floatingWidget.closePanel();
+                        return;
+                    }
                     if (floatingWidget.isExpanded) {
                         floatingWidget.isExpanded = false;
                         floatingWidget.kickTimer();
@@ -664,6 +722,8 @@ Variants {
                 if (isExpanded) {
                     grabKeyboardFocus();
                     Qt.callLater(grabKeyboardFocus);
+                } else if (pendingMode !== "sidebar") {
+                    heldOpen = false;
                 }
             }
 
@@ -1081,7 +1141,7 @@ Variants {
                 id: hideTimer
                 interval: floatingWidget.useGraceTimer ? 3000 : 800
                 onTriggered: {
-                    if (floatingWidget.isPinned || floatingWidget.hasInputFocus) return;
+                    if (floatingWidget.isPinned || floatingWidget.hasInputFocus || floatingWidget.heldOpen) return;
 
                     if ((typeof sidebarDragArea !== "undefined" && sidebarDragArea.pressed) ||
                         (typeof peekMouse !== "undefined" && peekMouse.pressed) ||
@@ -1380,6 +1440,7 @@ Variants {
                                 floatingWidget.useGraceTimer = false;
                                 hideTimer.stop();
                             } else {
+                                floatingWidget.heldOpen = false;
                                 floatingWidget.kickTimer();
                             }
                         }

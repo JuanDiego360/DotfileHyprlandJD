@@ -25,7 +25,6 @@ let
     weatherInterval = mkOpt types.ints.positive "Minutes between weather refreshes.";
     weatherUnit = mkOpt (types.enum [ "metric" "imperial" "standard" ]) "Units for weather display.";
     quickactions = mkOpt types.bool "Show the quick actions panel.";
-    settingsSeparateWindow = mkOpt types.bool "Open settings as a standalone window instead of a panel inside the shell.";
     location = mkOption {
       type = freeform {
         city = mkOpt types.str "Location city name.";
@@ -74,6 +73,7 @@ let
     mediaWidth = mkOpt (types.ints.between 80 400) "Width of the media module text area on top and bottom bars, in pixels.";
     mediaShowIcon = mkOpt types.bool "Show the album art or music icon in the media module.";
     mediaShowControls = mkOpt types.bool "Show the previous, play and next buttons in the media module.";
+    mediaHideWhenIdle = mkOpt types.bool "Hide the media module while nothing is playing.";
     groupColors = mkOpt (types.attrsOf types.str) "Hex accent colors keyed by grouped module pill ID, e.g. { g_sysmon = \"#ffb59c\"; }.";
     time = mkOption {
       type = freeform {
@@ -150,6 +150,7 @@ let
     matugen = mkOpt types.bool "Auto-generate colors from the current wallpaper.";
     mode = mkOpt types.str "Color scheme mode (dark or light).";
     schemeType = mkOpt types.str "Matugen scheme type.";
+    apps = mkOpt (types.listOf types.str) "Apps recolored with the shell palette (ids from the App theming page).";
     colors = mkOption {
       type = types.attrsOf types.str;
       default = { };

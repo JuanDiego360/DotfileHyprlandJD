@@ -10,7 +10,8 @@ GuideTab {
     subTabIndex: 1
 
     property var defaultWidgetsSettings: ({
-        "hideBarInRedactor": true
+        "hideBarInRedactor": true,
+        "showDistances": true
     })
 
     property var widgetsSettings: {
@@ -23,6 +24,7 @@ GuideTab {
     }
 
     property bool currentHideBarInRedactor: widgetsSettings && widgetsSettings.hideBarInRedactor !== undefined ? widgetsSettings.hideBarInRedactor : true
+    property bool currentShowDistances: widgetsSettings && widgetsSettings.showDistances !== undefined ? widgetsSettings.showDistances : true
     property int wallpaperRevision: 0
 
     function syncSettings() {
@@ -31,6 +33,7 @@ GuideTab {
             : displayWidgetsRoot.defaultWidgetsSettings;
         displayWidgetsRoot.widgetsSettings = s;
         displayWidgetsRoot.currentHideBarInRedactor = s.hideBarInRedactor !== undefined ? s.hideBarInRedactor : true;
+        displayWidgetsRoot.currentShowDistances = s.showDistances !== undefined ? s.showDistances : true;
     }
 
     function updateWidgetsSetting(key, value) {
@@ -333,8 +336,9 @@ GuideTab {
 
         if (formattedList.length > 0) {
             Quickshell.execDetached(["bash", "-c",
-                "mkdir -p \"$1\" && printf '%s' \"$2\" > \"$1/layout.json\" && quickshell -p \"$3\" ipc call \"widgets-$4\" reload",
-                "_", Caching.getStateDir("widgets/" + safeM), JSON.stringify(formattedList), Caching.mainQml, safeM]);
+                "mkdir -p \"$1\" && printf '%s' \"$2\" > \"$1/layout.json\"",
+                "_", Caching.getStateDir("widgets/" + safeM), JSON.stringify(formattedList)]);
+            WidgetSync.applyPreset(monName, formattedList, true);
         }
     }
 
@@ -355,7 +359,7 @@ GuideTab {
         m[monName] = newList;
         displayWidgetsRoot.monitorWidgetsMap = m;
 
-        Quickshell.execDetached(["quickshell", "-p", Caching.mainQml, "ipc", "call", "widgets-" + safeM, "remove", targetId]);
+        WidgetSync.removeWidget(monName, targetId);
     }
 
     function deleteCustomPreset(presetName) {
@@ -369,6 +373,12 @@ GuideTab {
 
         displayWidgetsRoot.userPresets = displayWidgetsRoot.userPresets.filter(p => p.name !== presetName && p.id !== presetName && p.name !== sanitizeName && p.id !== sanitizeName);
         displayWidgetsRoot.availablePresets = displayWidgetsRoot.availablePresets.filter(p => p.name !== presetName && p.id !== presetName && p.name !== sanitizeName && p.id !== sanitizeName);
+    }
+
+    FileView {
+        id: presetWriter
+        printErrors: false
+        preload: false
     }
 
     function saveCustomPreset(presetName, monName, widgetsList) {
@@ -405,11 +415,8 @@ GuideTab {
             category: "user"
         };
 
-        let jsonStr = JSON.stringify(presetObj, null, 2);
-        let escapeBash = function(str) { return String(str).replace(/(["\\$`])/g, '\\$1'); };
-        let filePath = userPath + "/" + sanitizeName + ".json";
-        let cmd = "mkdir -p \"" + escapeBash(userPath) + "\" && echo \"" + escapeBash(jsonStr) + "\" > \"" + escapeBash(filePath) + "\"";
-        Quickshell.execDetached(["bash", "-c", cmd]);
+        presetWriter.path = userPath + "/" + sanitizeName + ".json";
+        presetWriter.setText(JSON.stringify(presetObj, null, 2) + "\n");
 
         let uArr = displayWidgetsRoot.userPresets.filter(p => p.name !== sanitizeName && p.id !== presetObj.id);
         uArr.push(presetObj);

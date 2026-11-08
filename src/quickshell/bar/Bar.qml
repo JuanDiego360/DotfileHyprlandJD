@@ -73,7 +73,10 @@ Variants {
                 if (typeof Config !== "undefined" && Config.dataReady) {
                     barWindowRoot.configRevision++;
                 }
+                ShellSurfaces.register("bars", modelData.name, barWindowRoot);
             }
+
+            Component.onDestruction: ShellSurfaces.unregister("bars", modelData.name, barWindowRoot)
 
             property string barStyle: {
                 let dummy = configRevision;
@@ -149,6 +152,14 @@ Variants {
                 interval: 50
                 running: true
                 onTriggered: barWindowRoot.startupFilesReady = true
+            }
+
+            Connections {
+                target: WidgetSync
+                function onRedactModeChanged(monitor, active) {
+                    let name = barWindowRoot.screen ? barWindowRoot.screen.name : "";
+                    if (monitor === name || monitor === name.replace(/[^a-zA-Z0-9_-]/g, "_")) barWindowRoot.isRedacting = active;
+                }
             }
 
             IpcHandler {
@@ -354,6 +365,8 @@ Variants {
             property bool fastPollerLoaded: false
             property bool isDataReady: fastPollerLoaded
             Timer { interval: 400; running: true; onTriggered: barWindowRoot.isDataReady = true }
+
+            readonly property Item snapshotItem: isVertical ? verticalLoader : horizontalLoader
 
             Loader {
                 id: verticalLoader

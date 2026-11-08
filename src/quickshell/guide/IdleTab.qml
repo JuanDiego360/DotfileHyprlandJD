@@ -10,8 +10,6 @@ import "../reusables/guide"
 GuideTab {
     id: idleTabRoot
 
-    property bool isNiri: false
-    property bool isMango: false
     property var expandedActionMap: ({})
 
     function toggleActionExpanded(id) {
@@ -207,7 +205,7 @@ GuideTab {
     }
 
     function getDefaultResumeCommand(actId) {
-        if (actId === "dpms") return idleTabRoot.isNiri ? "niri msg action power-on-monitors" : idleTabRoot.isMango ? "mmsg get all-monitors 2>/dev/null | jq -r '.monitors[]?.name' | while read -r mon; do mmsg dispatch \"wakeup_monitor,$mon\"; done" : "hyprctl dispatch 'hl.dsp.dpms({ action = \"enable\" })' || hyprctl dispatch dpms on";
+        if (actId === "dpms") return Compositor.name === "niri" ? "niri msg action power-on-monitors" : Compositor.name === "mango" ? "mmsg get all-monitors 2>/dev/null | jq -r '.monitors[]?.name' | while read -r mon; do mmsg dispatch \"wakeup_monitor,$mon\"; done" : Compositor.name === "hyprland" ? "hyprctl dispatch 'hl.dsp.dpms({ action = \"enable\" })' || hyprctl dispatch dpms on" : "";
         return I18n.t("guide.idle.resume_command.placeholder", "Resume command");
     }
 
@@ -286,9 +284,6 @@ GuideTab {
     }
 
     Component.onCompleted: {
-        let de = (typeof SystemInfo !== "undefined" && SystemInfo.desktopEnv) ? SystemInfo.desktopEnv.toLowerCase() : "";
-        idleTabRoot.isNiri = de.indexOf("niri") !== -1;
-        idleTabRoot.isMango = de.indexOf("mango") !== -1;
         idleTabRoot.refreshActionIds();
     }
 

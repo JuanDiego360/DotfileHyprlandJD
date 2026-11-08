@@ -6,13 +6,13 @@
 }:
 stdenv.mkDerivation (finalAttrs: {
   pname = "serpantinum-audio";
-  version = "0.2.0";
+  version = "0.4.0";
 
   src = fetchFromGitHub {
     owner = "ilyamiro";
     repo = "serpantinum-audio";
     rev = "v${finalAttrs.version}";
-    hash = "sha256-orWu0sq5zXZWFKMhU8DlBA6Ghj7GtpHEefSA5DpZT6o=";
+    hash = "sha256-lG01hs2rCee2sKFWyWN3V4Z14eAbuFNyGq8UHbD7K6g=";
   };
 
   strictDeps = true;

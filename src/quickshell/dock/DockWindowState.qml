@@ -2,7 +2,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
-import Quickshell.Io
 import "../"
 
 PanelWindow {
@@ -133,45 +132,77 @@ PanelWindow {
         return Boolean(val);
     }
 
-    property bool isNiri: false
-    property bool isSway: false
-    property bool isHyprland: false
-    readonly property bool isMango: MangoState.isMango
     readonly property string myOutput: (dockWindow.screen && dockWindow.screen.name) ? dockWindow.screen.name : ""
     readonly property int niriActiveIndex: NiriState.activeIndexFor(myOutput)
     readonly property var niriOccupiedMap: NiriState.occupiedMap
     readonly property int mangoActiveIndex: MangoState.activeIndexFor(myOutput)
     readonly property var mangoOccupiedMap: MangoState.occupiedByOutput
-    property int swayActiveIndex: 0
-    property var swayOccupiedMap: ({})
+    readonly property int swayActiveIndex: SwayState.activeIndexFor(myOutput)
+    readonly property var swayOccupiedMap: SwayState.occupiedMap
+    property bool swaySubscribed: false
 
     property int activeIndex: {
         let idx = -1;
-        if (isNiri) {
+        if (Compositor.name === "niri") {
             idx = niriActiveIndex;
-        } else if (isSway) {
+        } else if (Compositor.name === "sway") {
             idx = swayActiveIndex;
-        } else if (isMango) {
+        } else if (Compositor.name === "mango") {
             idx = mangoActiveIndex;
-        } else if (isHyprland || typeof Hyprland !== "undefined") {
-            const fw = (typeof Hyprland !== "undefined") ? Hyprland.focusedWorkspace : null;
-            if (!fw) return -1;
-            idx = fw.id - 1;
+        } else if (Compositor.name === "hyprland" || typeof Hyprland !== "undefined") {
+            const mon = (typeof Hyprland !== "undefined" && Hyprland.monitors && Hyprland.monitors.values) ? Hyprland.monitors.values.find(m => m.name === myOutput) : null;
+            const ws = (mon && mon.activeWorkspace) ? mon.activeWorkspace : ((typeof Hyprland !== "undefined") ? Hyprland.focusedWorkspace : null);
+            if (!ws) return -1;
+            idx = ws.id - 1;
         }
         return idx >= 0 ? idx : -1;
     }
 
+    readonly property var hyprMonitor: (typeof Hyprland !== "undefined" && Hyprland.monitors && Hyprland.monitors.values) ? (Hyprland.monitors.values.find(m => m.name === myOutput) ?? null) : null
+    // Name of the special workspace shown on this monitor ("" when none).
+    // Hyprland never reports it as the monitor's activeWorkspace.
+    property string hyprSpecialName: ""
+
+    function _syncHyprSpecial() {
+        const sp = (hyprMonitor && hyprMonitor.lastIpcObject) ? hyprMonitor.lastIpcObject.specialWorkspace : null;
+        dockWindow.hyprSpecialName = (sp && sp.name) ? sp.name : "";
+    }
+
+    readonly property var hyprSpecialWorkspace: (hyprSpecialName !== "" && typeof Hyprland !== "undefined" && Hyprland.workspaces && Hyprland.workspaces.values) ? (Hyprland.workspaces.values.find(w => w.name === hyprSpecialName) ?? null) : null
+
+    onHyprMonitorChanged: _syncHyprSpecial()
+
+    Connections {
+        target: dockWindow.hyprMonitor
+        function onLastIpcObjectChanged() { dockWindow._syncHyprSpecial(); }
+    }
+
+    Connections {
+        target: (typeof Hyprland !== "undefined") ? Hyprland : null
+        function onRawEvent(event) {
+            // activespecial>>WORKSPACENAME,MONITORNAME (empty name when it closes)
+            if (event.name !== "activespecial") return;
+            const data = event.data || "";
+            const sep = data.lastIndexOf(",");
+            if (sep < 0 || data.substring(sep + 1) !== dockWindow.myOutput) return;
+            dockWindow.hyprSpecialName = data.substring(0, sep);
+        }
+    }
+
     readonly property bool isWorkspaceBusy: {
-        if (isNiri) {
+        if (Compositor.name === "niri") {
             return !!niriOccupiedMap[activeIndex];
         }
-        if (isSway) {
+        if (Compositor.name === "sway") {
             return !!swayOccupiedMap[activeIndex];
         }
-        if (isMango) {
+        if (Compositor.name === "mango") {
             return !!(mangoOccupiedMap && MangoState.isOccupied(myOutput, activeIndex));
         }
         if (typeof Hyprland !== "undefined") {
+            if (hyprSpecialWorkspace && hyprSpecialWorkspace.toplevels && hyprSpecialWorkspace.toplevels.values.length > 0) {
+                return true;
+            }
             let ws = null;
             if (dockWindow.screen && Hyprland.monitors && Hyprland.monitors.values) {
                 let mon = Hyprland.monitors.values.find(m => m.name === dockWindow.screen.name);
@@ -200,59 +231,6 @@ PanelWindow {
     property bool autohide: rawDockSettings.autohide !== undefined ? rawDockSettings.autohide : false
     readonly property bool effectiveAutohide: smartAutohide ? isWorkspaceBusy : autohide
 
-
-    property alias swayPoller: swayPoller
-
-    Process {
-        id: swayPoller
-        running: false
-        command: [
-            "bash",
-            "-c",
-            "swaymsg -t get_workspaces -r 2>/dev/null || echo '[]'"
-        ]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                try {
-                    let wsList = JSON.parse(this.text) || [];
-                    let occ = {};
-                    let activeIdx = 0;
-                    for (let i = 0; i < wsList.length; i++) {
-                        let w = wsList[i];
-                        let num = (w.num !== undefined && w.num > 0) ? w.num : parseInt(w.name);
-                        let idx = (!isNaN(num) && num > 0) ? num - 1 : i;
-                        if (w.focused) {
-                            activeIdx = idx;
-                        }
-                        occ[idx] = true;
-                    }
-                    dockWindow.swayActiveIndex = activeIdx;
-                    dockWindow.swayOccupiedMap = occ;
-                } catch (e) {}
-
-                swayWaiter.running = false;
-                if (dockWindow.isSway) {
-                    swayWaiter.running = true;
-                }
-            }
-        }
-    }
-
-    Process {
-        id: swayWaiter
-        running: false
-        command: [
-            "bash",
-            "-c",
-            "swaymsg -t subscribe -m '[\"workspace\", \"window\"]' 2>/dev/null | grep -m 1 -E '\"change\"'"
-        ]
-        onExited: {
-            swayPoller.running = false;
-            if (dockWindow.isSway) {
-                swayPoller.running = true;
-            }
-        }
-    }
 
     property real dockHoverScaleMultiplier: {
         let val = undefined;
@@ -400,15 +378,14 @@ PanelWindow {
         } catch (e) {}
         return false;
     }
+    // Fullscreen on the workspaces shown on this dock's monitor, not on the focused one.
     readonly property bool isHyprlandFullscreen: {
-        try {
-            if (typeof Hyprland !== "undefined" && Hyprland.focusedWorkspace) {
-                return Boolean(Hyprland.focusedWorkspace.hasFullscreen || (Hyprland.activeToplevel && Hyprland.activeToplevel.fullscreen));
-            }
-        } catch (e) {}
-        return false;
+        if (!hyprMonitor) return false;
+        if (hyprMonitor.activeWorkspace && hyprMonitor.activeWorkspace.hasFullscreen) return true;
+        return Boolean(hyprSpecialWorkspace && hyprSpecialWorkspace.hasFullscreen);
     }
-    readonly property bool isFullscreenActive: isOsdFullscreen || isToplevelFullscreen || isHyprlandFullscreen
+    // OsdController.isFullscreen is shared by every screen, so on Hyprland the per-monitor check replaces it.
+    readonly property bool isFullscreenActive: hyprMonitor ? (isHyprlandFullscreen || isToplevelFullscreen) : (isOsdFullscreen || isToplevelFullscreen)
 
     readonly property bool isBarEffectivelyHidden: barAutohide || isFullscreenActive
     readonly property bool sameSideAsBar: (dockPosition === barPosition) && !isBarEffectivelyHidden

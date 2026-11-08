@@ -43,6 +43,9 @@ Dispatches layout, workspace, and overlay actions to the shell:
 - `serpantinum msg open <target> [subtarget]`: Open a panel or activate a subtab.
 - `serpantinum msg toggle <target> [subtarget]`: Toggle panel visibility.
 - `serpantinum msg close`: Close any open overlay.
+- `serpantinum msg notifications clear`: Clear all notifications.
+- `serpantinum msg network airplane`: Toggle airplane mode (WiFi and Bluetooth).
+- `serpantinum msg bar autohide`: Toggle bar autohide live.
 
 #### Targets
 
@@ -61,28 +64,21 @@ Dispatches layout, workspace, and overlay actions to the shell:
 - `wallpaper`: Wallpaper picker and live preview.
 - `notifications`: Notification history center.
 - `system`: System resource monitor and power controls.
-- `autohide`: Toggle bar autohide setting live.
-- `airplane` (alias: `flight`): Toggle airplane mode (WiFi and Bluetooth).
-- `clearNotifications` (aliases: `clear_notifications`, `clearNotifs`): Clear all notifications.
 
 ### `settings`
 
-Opens the settings. By default they open as a fixed-size panel inside the shell, like other popups. Enable **Make settings a separate window** in **General** (`general.settingsSeparateWindow`) to open them as a regular application window instead. The window runs as its own process, so it can be moved, resized and tiled like any other window. The settings are also available from your application launcher as **Serpantinum settings**.
+Opens the settings as a panel inside the shell, like other popups.
 
-- `serpantinum settings`: Open the settings, or focus them if they are already open.
+- `serpantinum settings`: Open the settings.
 - `serpantinum settings <tab> [subtab]`: Open directly on a tab, for example `serpantinum settings theme`.
 - `serpantinum settings toggle [tab]`: Close the settings if they are open, otherwise open them.
 - `serpantinum settings close`: Close the settings.
-
-In separate window mode, the window class is `serpantinum-settings`. To open it floating and centered, add a window rule for the class `serpantinum-settings` in your compositor configuration.
 
 ### `launch`
 
 Runs standalone interface components in runner mode:
 
 - `serpantinum launch start [args...]`: Launch first-time setup and onboarding wizard.
-- `serpantinum launch widgetredactor [args...]`: Launch desktop widget editor.
-- `serpantinum launch lock-redactor [toggle|open [monitor]|close]`: Toggle the lock screen layout editor in the running shell.
 
 ### `ipc`
 
@@ -94,10 +90,12 @@ Sends raw IPC calls directly to the running shell:
   - `ipc call main clearNotifications`: Purge all notification popups and history.
   - `ipc call lock activate`: Trigger lock screen immediately.
   - `ipc call screenshotOverlay toggle [args...]`: Toggle interactive screenshot overlay.
+  - `ipc call floating toggle`: Open the quick actions panel on the last used tab, or close it if it is open on any screen. Bind it to a key in your compositor, e.g. Hyprland: `hl.bind(mainMod .. " + SHIFT + A", hl.dsp.exec_cmd("serpantinum ipc call floating toggle"))`.
+  - `ipc call floating open` / `close`: Open the panel on the screen under the cursor, or close it on every screen. Opened this way, it stays until closed, Escape is pressed, or the pointer enters and leaves it.
 
 ### `kill`
 
-Stops the daemon and terminates all background shell workers (`focus_daemon.py`, `quickshell`, `serpantinumd`).
+Stops the daemon and terminates all background shell workers (`serpantinum-core screentime track`, `quickshell`, `serpantinumd`).
 
 ### `restart`
 
@@ -117,18 +115,14 @@ Reads and writes `settings.json`. Keys use dots to reach nested values and chang
 
 ### `info`
 
-Prints the current state of something. Switches print `on` or `off`:
+Prints the current state of a group as JSON. Add a key to print just that value, for example `serpantinum info dock autohide`. Lists print one item per line:
 
-- `serpantinum info dnd`: Do not disturb.
-- `serpantinum info caffeine`: Idle actions paused.
-- `serpantinum info dock`: Dock visibility.
-- `serpantinum info dock-autohide`: Dock autohide.
-- `serpantinum info sfx-mute`: Interface sound effects muted.
-- `serpantinum info matugen`: Wallpaper-derived colors.
-- `serpantinum info lang`: Active language code.
-- `serpantinum info languages`: Available language codes.
-- `serpantinum info theme`: Active theme preset.
-- `serpantinum info themes`: Bundled theme presets.
+- `serpantinum info notifications [dnd]`: Do not disturb.
+- `serpantinum info idle [key]`: Idle system state: whether idle is active, caffeine and its seconds remaining (`0` when it has no time limit), app and media inhibitors, and each action's timeout and status.
+- `serpantinum info dock [enabled|autohide]`: Dock visibility and autohide.
+- `serpantinum info sfx [mute]`: Interface sound effects muted.
+- `serpantinum info theme [preset|matugen|apps|presets]`: Active preset, wallpaper-derived colors, apps that follow the palette and bundled presets.
+- `serpantinum info lang [current|available]`: Active language code and available codes.
 - `serpantinum info wallpaper [screen]`: Current wallpaper path.
 - `serpantinum info monitors [--json]`: Active outputs, with width, height and refresh rate as JSON.
 - `serpantinum info updates [--json]`: Installed version compared with the latest release.
@@ -137,14 +131,15 @@ Prints the current state of something. Switches print `on` or `off`:
 
 Changes a setting. Switches take `on`, `off` or `toggle` and default to `toggle`:
 
-- `serpantinum set dnd [on|off|toggle]`
-- `serpantinum set caffeine [on|off|toggle]`
-- `serpantinum set dock [on|off|toggle]`
-- `serpantinum set dock-autohide [on|off|toggle]`
-- `serpantinum set sfx-mute [on|off|toggle]`
-- `serpantinum set matugen [on|off|toggle]`
+- `serpantinum set notifications dnd [on|off|toggle]`
+- `serpantinum set idle caffeine [on|off|toggle]`
+- `serpantinum set dock enabled [on|off|toggle]`
+- `serpantinum set dock autohide [on|off|toggle]`
+- `serpantinum set sfx mute [on|off|toggle]`
+- `serpantinum set theme matugen [on|off|toggle]`
+- `serpantinum set theme preset <name>`: Apply a bundled preset and turn Matugen off.
+- `serpantinum set theme app <id> [on|off|toggle]`: Recolor an app with the shell palette. See [App theming](../configure/AppTheming.md).
 - `serpantinum set lang <code>`
-- `serpantinum set theme <preset>`: Apply a bundled preset and turn Matugen off.
 - `serpantinum set wallpaper <path|random|next|prev|play|pause|clear> [screen]`: `screen` is a monitor name and defaults to `all`. A path may also take a transition after the screen.
 
 ### `trigger`
@@ -152,10 +147,10 @@ Changes a setting. Switches take `on`, `off` or `toggle` and default to `toggle`
 Runs a one-off action:
 
 - `serpantinum trigger idle <dim|dpms|lock|suspend>`: Run an idle action now.
-- `serpantinum trigger notifications-clear`: Clear all notifications.
+- `serpantinum trigger notifications clear`: Clear all notifications.
 - `serpantinum trigger firstlaunch <trigger|reset>`: Run or reset the first launch setup.
-- `serpantinum trigger theme-reload`: Reload colors.
-- `serpantinum trigger theme-generate <image> [mode] [scheme]`: Generate colors from an image.
+- `serpantinum trigger theme reload`: Reload colors.
+- `serpantinum trigger theme generate <image> [mode] [scheme]`: Generate colors from an image.
 
 ## Script shortcuts
 
@@ -232,33 +227,37 @@ Sets geographic coordinates manually:
 
 - `serpantinum location_manual <latitude> <longitude>`: Set coordinates, reverse-geocode city and country, resolve timezone, and save to settings.
 
-### `blue_light_filter`
+### `gamma`
 
-Controls color temperature and day/night schedule via DBus:
+Controls color temperature and the day/night schedule through [serpantinum-gamma](https://github.com/ilyamiro/serpantinum-gamma), which it starts when needed. Serpantinum stops it on exit, and the compositor then restores normal colors.
 
-- `serpantinum blue_light_filter set <temperature> [output] [mode] [latitude] [longitude]`: Set temperature (1000-10000K) manually (`mode=manual`) or automatically with solar schedule (`mode=auto`).
-- `serpantinum blue_light_filter reset [output]`: Reset color temperature to 6500K daylight neutral and stop auto loop.
-- `serpantinum blue_light_filter status [output]`: Print status (`running` or `stopped`).
-- `serpantinum blue_light_filter --verbose` (`-v`): Print verbose output with current Kelvin and brightness levels.
-
-### `monitors_detect`
-
-Queries active display outputs:
-
-- `serpantinum monitors_detect`: List connected display names line-by-line.
-- `serpantinum monitors_detect --verbose`: Output display specifications (`<name>|<resolution>|<refresh_rate>`).
-
-### `current_focus`
-
-Runs active window focus tracking daemon:
-
-- `serpantinum current_focus`: Monitor and log window focus changes across compositors to JSONL.
+- `serpantinum gamma set <temperature> [output] [mode] [latitude] [longitude]`: Set temperature (1000-10000K) manually (`mode=manual`), or use it as the night temperature of the solar schedule (`mode=auto`). Without coordinates, or with `0 0`, the schedule fades to night at 19:00 and to day at 06:30. Without an output, every output is changed.
+- `serpantinum gamma reset [output]`: Reset color temperature to 6500K daylight neutral and turn the schedule off.
+- `serpantinum gamma status [output]`: Print status (`running` or `stopped`).
+- `serpantinum gamma start`: Start serpantinum-gamma if it is not running.
+- `serpantinum gamma stop`: Stop serpantinum-gamma.
+- `serpantinum gamma --verbose` (`-v`): Print verbose output with current Kelvin, brightness and schedule state.
 
 ### `lock`
 
 Activates lock screen:
 
 - `serpantinum lock`: Trigger lock screen interface immediately.
+
+### `redactor`
+
+Opens the desktop widget layout editor in the running shell:
+
+- `serpantinum redactor`: Open the editor.
+- `serpantinum redactor <monitor> [widget]`: Open the editor on a monitor, optionally with a widget selected.
+
+### `lock-redactor`
+
+Opens the lock screen layout editor in the running shell:
+
+- `serpantinum lock-redactor`: Close the editor if it is open, otherwise open it.
+- `serpantinum lock-redactor open [monitor]`: Open the editor, optionally on a given monitor.
+- `serpantinum lock-redactor close`: Close the editor.
 
 ### `reload`
 
@@ -287,10 +286,10 @@ Panels and workspaces go through `msg`, everything else through `set`, `trigger`
 serpantinum msg toggle launcher
 serpantinum msg toggle clipboard
 serpantinum msg toggle calendar
-serpantinum set dnd toggle
+serpantinum set notifications dnd toggle
 serpantinum set wallpaper random
-serpantinum set caffeine toggle
-serpantinum trigger notifications-clear
+serpantinum set idle caffeine toggle
+serpantinum trigger notifications clear
 serpantinum volume raise
 serpantinum screenshot --full
 ```

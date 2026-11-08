@@ -32,38 +32,46 @@ singleton PolkitService 1.0 polkit/PolkitService.qml
 singleton NotificationManager 1.0 notifications/NotificationManager.qml
 
 singleton Audio 1.0 singletons/audio/Audio.qml
-singleton Cava 1.0 singletons/audio/Cava.qml
+singleton Spectrum 1.0 singletons/audio/Spectrum.qml
 singleton MprisController 1.0 singletons/audio/MprisController.qml
 singleton Sounds 1.0 singletons/audio/Sounds.qml
 singleton Lyrics 1.0 singletons/audio/Lyrics.qml
 
+singleton AppTheming 1.0 singletons/theme/AppTheming.qml
 singleton Matugen 1.0 singletons/theme/Matugen.qml
 singleton Scaler 1.0 singletons/theme/Scaler.qml
 singleton ThemeBackend 1.0 singletons/theme/ThemeBackend.qml
 singleton Wallpaper 1.0 singletons/theme/Wallpaper.qml
 
-singleton BlueLight 1.0 singletons/environment/BlueLight.qml
+singleton Gamma 1.0 singletons/environment/Gamma.qml
 singleton Location 1.0 singletons/environment/Location.qml
 singleton Weather 1.0 singletons/environment/Weather.qml
 
 singleton AppMatcher 1.0 singletons/system/AppMatcher.qml
 singleton Caching 1.0 singletons/system/Caching.qml
+singleton Compositor 1.0 singletons/system/Compositor.qml
 singleton Config 1.0 singletons/system/Config.qml
 singleton CurrentFocus 1.0 singletons/system/CurrentFocus.qml
 singleton DateTime 1.0 singletons/system/DateTime.qml
 singleton FirstLaunch 1.0 singletons/system/FirstLaunch.qml
 singleton I18n 1.0 singletons/system/I18n.qml
 singleton KeyboardLayout 1.0 singletons/system/KeyboardLayout.qml
+CompositorStateBase 1.0 singletons/system/CompositorStateBase.qml
 singleton MangoState 1.0 singletons/system/MangoState.qml
 singleton NiriState 1.0 singletons/system/NiriState.qml
+singleton SwayState 1.0 singletons/system/SwayState.qml
 singleton RecordingState 1.0 singletons/system/RecordingState.qml
 singleton SysNotif 1.0 singletons/system/SysNotif.qml
 singleton TimerState 1.0 singletons/system/TimerState.qml
 singleton Updater 1.0 singletons/system/Updater.qml
 singleton WindowTracker 1.0 singletons/system/WindowTracker.qml
+singleton ShellSurfaces 1.0 singletons/system/ShellSurfaces.qml
 
 singleton SysData 1.0 singletons/info/SysData.qml
 singleton SystemInfo 1.0 singletons/info/SystemInfo.qml
+
+ScreenToggleController 1.0 singletons/widgetcontrols/ScreenToggleController.qml
+HoverMenuController 1.0 singletons/widgetcontrols/HoverMenuController.qml
 
 singleton ClipboardController 1.0 singletons/widgetcontrols/ClipboardController.qml
 singleton FloatingController 1.0 singletons/widgetcontrols/FloatingController.qml

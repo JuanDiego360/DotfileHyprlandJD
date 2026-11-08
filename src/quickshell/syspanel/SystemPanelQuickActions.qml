@@ -111,8 +111,8 @@ Item {
 
             function updateState() {
                 let anyEnabled = false;
-                if (typeof BlueLight !== "undefined" && typeof BlueLight.isAnyEnabled === "function") {
-                    anyEnabled = BlueLight.isAnyEnabled();
+                if (typeof Gamma !== "undefined" && typeof Gamma.isAnyEnabled === "function") {
+                    anyEnabled = Gamma.isAnyEnabled();
                 } else if (typeof Config !== "undefined") {
                     let ds = Config.getSetting("display", {"monitors": {}});
                     let mons = (ds && ds.monitors) ? ds.monitors : {};
@@ -138,7 +138,7 @@ Item {
             }
 
             Connections {
-                target: typeof BlueLight !== "undefined" ? BlueLight : null
+                target: typeof Gamma !== "undefined" ? Gamma : null
                 enabled: view.panel.visible
                 ignoreUnknownSignals: true
                 function onSettingsChanged() {
@@ -170,17 +170,17 @@ Item {
 
                 if (monNames.length > 0) {
                     for (let i = 0; i < monNames.length; i++) {
-                        BlueLight.setEnabled(monNames[i], target);
+                        Gamma.setEnabled(monNames[i], target);
                     }
                 } else {
-                    BlueLight.setEnabled("", target);
+                    Gamma.setEnabled("", target);
                 }
                 nightLightBtn.updateState();
             }
 
             onRightClicked: {
                 view.panel.closeAnim.start();
-                Quickshell.execDetached(["bash", Caching.serpantinumDir + "/scripts/qs_manager.sh", "open", "settings", "display"]);
+                Quickshell.execDetached(["bash", Caching.serpantinumDir + "/scripts/qs_manager.sh", "toggle", "settings", "display"]);
             }
         }
 

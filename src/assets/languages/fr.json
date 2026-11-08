@@ -44,7 +44,12 @@
       "bar_modules": "Modules",
       "bar_side_modules": "Modules latéraux",
       "display_lockscreen": "Écran de verrouillage",
-      "screenshot": "Capture d'écran"
+      "screenshot": "Capture d'écran",
+      "theme_appearance": "Apparence",
+      "theme_apps": "Thème des applications",
+      "theme_wallpapers": "Fonds d'écran",
+      "general_main": "Général",
+      "general_presets": "Préréglages"
     },
     "launcher": {
       "position": {
@@ -144,7 +149,7 @@
       "warning_command": {
         "title": "Commande d'avertissement",
         "desc": "Délai et commande à exécuter avant l'action",
-        "placeholder": "ex. notify-send 'avertissement'"
+        "placeholder": "ex. serpantinum-core notify 'avertissement'"
       },
       "before_command": {
         "title": "Commande préalable",
@@ -154,7 +159,7 @@
       "resume_command": {
         "title": "Commande de reprise",
         "desc": "Exécutée lorsque l'activité utilisateur reprend",
-        "placeholder": "ex. notify-send 'reprise'"
+        "placeholder": "ex. serpantinum-core notify 'reprise'"
       },
       "dim": {
         "title": "Atténuer l'écran",
@@ -219,10 +224,6 @@
         "title": "Actions rapides",
         "desc": "Activer le volet flottant d'actions rapides"
       },
-      "separatewindow": {
-        "title": "Ouvrir les paramètres dans une fenêtre séparée",
-        "desc": "Ouvrir les paramètres comme une fenêtre d'application redimensionnable au lieu d'un panneau intégré au shell"
-      },
       "location": {
         "title": "Localisation",
         "desc": "Configurer la localisation pour le cycle solaire automatique et la météo",
@@ -251,10 +252,25 @@
       "screenshot_on_release": {
         "title": "Capturer la zone au relâchement de la souris",
         "desc": "Prendre la capture dès la fin de la sélection, sans cliquer sur le déclencheur"
+      },
+      "presets": {
+        "save": {
+          "title": "Enregistrer la configuration actuelle",
+          "desc": "Enregistrer tous les paramètres, widgets et fonds d'écran en tant que préréglage",
+          "button": "Enregistrer le préréglage"
+        },
+        "empty": "Aucun préréglage pour l'instant. Enregistrez votre configuration actuelle pour en créer un",
+        "confirm": {
+          "title": "Appliquer le préréglage ?",
+          "desc": "Voulez-vous vraiment appliquer ce préréglage sans enregistrer d'abord vos propres paramètres ? Il remplacera vos paramètres actuels et vous ne pourrez pas les récupérer.",
+          "dont_show": "Ne plus afficher",
+          "apply": "Appliquer",
+          "cancel": "Annuler"
+        }
       }
     },
     "display": {
-      "bluelight": {
+      "gamma": {
         "title": "Filtre de lumière bleue",
         "desc": "Activer l'éclairage chaud de l'écran"
       },
@@ -281,6 +297,10 @@
         "hide_bar": {
           "title": "Masquer la barre dans l'éditeur",
           "desc": "Masquer automatiquement la barre lors de l'édition des widgets en mode éditeur"
+        },
+        "show_distances": {
+          "title": "Afficher les distances",
+          "desc": "Afficher les distances entre les widgets lors de leur déplacement ou redimensionnement dans l'éditeur"
         },
         "hide_presets": "Masquer les préréglages",
         "choose_preset": "Choisir un préréglage",
@@ -326,7 +346,7 @@
     },
     "bar": {
       "modules": {
-        "vis": "Visualiseur (cava)",
+        "vis": "Visualiseur",
         "actions": "Actions",
         "workspaces": {
           "style": {
@@ -418,6 +438,7 @@
         "desc": "Clic droit sur un élément pour commencer un groupe, clic droit sur un autre pour l'ajouter. Clic droit sur un élément groupé pour le retirer.",
         "reset": "Réinitialiser",
         "available": "Disponible",
+        "shown": "Affichés",
         "left": "Gauche",
         "center": "Centre",
         "right": "Droite"
@@ -464,21 +485,13 @@
           "wave": "Onde",
           "circle": "Cercle"
         },
-        "cpu": {
-          "title": "Utilisation du processeur",
-          "desc": "Afficher l'anneau d'utilisation du processeur"
-        },
-        "ram": {
-          "title": "Utilisation de la mémoire",
-          "desc": "Afficher l'anneau d'utilisation de la mémoire vive (RAM)"
-        },
-        "temp": {
-          "title": "Température",
-          "desc": "Afficher l'anneau de température du système"
-        },
-        "disk": {
-          "title": "Utilisation du disque",
-          "desc": "Afficher l'anneau d'utilisation du disque de stockage"
+        "items": {
+          "title": "Statistiques",
+          "desc": "Faites glisser les statistiques pour les réorganiser, ou déplacez-les vers disponibles pour les masquer",
+          "cpu": "CPU",
+          "ram": "Mémoire",
+          "temp": "Température",
+          "disk": "Disque"
         }
       },
       "bat": {
@@ -598,6 +611,10 @@
           "title": "Afficher les commandes",
           "desc": "Afficher les boutons précédent, lecture et suivant"
         },
+        "hide_when_idle": {
+          "title": "Masquer quand rien n'est en lecture",
+          "desc": "Masquer le module de la barre tant qu'aucun média n'est actif"
+        },
         "preview": {
           "title": "Titre du morceau",
           "author": "Song author"
@@ -608,13 +625,14 @@
         "desc": "Modifier l'épaisseur de la barre, les modules s'adaptent"
       },
       "menu": {
-        "show_settings": {
-          "title": "Afficher l'icône des paramètres",
-          "desc": "Affiche le bouton qui ouvre les paramètres"
-        },
-        "show_launcher": {
-          "title": "Afficher l'icône du lanceur",
-          "desc": "Affiche le bouton de recherche qui ouvre le lanceur"
+        "items": {
+          "title": "Boutons",
+          "desc": "Faites glisser les boutons pour les réorganiser, ou déplacez-les vers disponibles pour les masquer",
+          "settings": "Paramètres",
+          "launcher": "Lanceur",
+          "night_light": "Lumière nocturne",
+          "caffeine": "Caféine",
+          "shuffle": "Fond d'écran aléatoire"
         },
         "style": {
           "title": "Style",
@@ -650,7 +668,58 @@
         "select_dir": "Sélectionner le dossier...",
         "select_wallpaper": "Sélectionner un fond d'écran",
         "no_wallpaper_selected": "Aucun fond d'écran sélectionné",
-        "select": "Fond d'écran"
+        "select": "Fond d'écran",
+        "transition": {
+          "mode": {
+            "title": "Transition",
+            "random": "Aléatoire",
+            "custom": "Sélection personnalisée",
+            "desc_random": "Utiliser une transition aléatoire à chaque changement de fond d'écran",
+            "desc_custom": "Choisir au hasard parmi les transitions sélectionnées. Cliquez sur les aperçus pour les ajouter ou les retirer"
+          },
+          "fade": {
+            "name": "Fondu",
+            "desc": "Fondu enchaîné vers le nouveau fond d'écran"
+          },
+          "wipe": {
+            "name": "Ouverture",
+            "desc": "S'ouvrir depuis le milieu de l'écran"
+          },
+          "circle": {
+            "name": "Cercle",
+            "desc": "Agrandir un cercle jusqu'à couvrir l'écran"
+          },
+          "swipe": {
+            "name": "Balayage",
+            "desc": "Balayer l'écran depuis un bord ou un coin"
+          },
+          "orientation": {
+            "title": "Orientation",
+            "desc": "Axe d'ouverture de la transition",
+            "random": "Aléatoire",
+            "horizontal": "Horizontale",
+            "vertical": "Verticale"
+          },
+          "origin": {
+            "title": "Origine",
+            "desc": "Point de départ du cercle. Le menu du bureau le lance toujours là où vous avez cliqué",
+            "random": "Aléatoire",
+            "center": "Centre"
+          },
+          "direction": {
+            "title": "Direction",
+            "desc": "Bord ou coin d'où part le balayage",
+            "random": "Aléatoire",
+            "left": "Depuis la gauche",
+            "right": "Depuis la droite",
+            "top": "Depuis le haut",
+            "bottom": "Depuis le bas",
+            "top_left": "Depuis le haut à gauche",
+            "top_right": "Depuis le haut à droite",
+            "bottom_left": "Depuis le bas à gauche",
+            "bottom_right": "Depuis le bas à droite"
+          }
+        }
       },
       "element_opacity": {
         "title": "Opacité des éléments",
@@ -663,6 +732,43 @@
           "blur": "Flou",
           "liquid": "Verre liquide"
         }
+      },
+      "apps": {
+        "loading": "Recherche des applications installées...",
+        "status": {
+          "error": "Impossible d'appliquer : {detail}"
+        },
+        "issue": {
+          "missing_config": "Configuration introuvable. Ajoutez ceci à {file} : {line}",
+          "system_config": "Votre configuration est {file}. Ajoutez-y ceci : {line}",
+          "read_only": "{file} est en lecture seule. Ajoutez-y ceci : {line}",
+          "manual": "Impossible de modifier la configuration en toute sécurité. Ajoutez ceci à {file} : {line}",
+          "no_theme": "Installez le thème {line} pour que les applications GTK 3 suivent aussi la palette",
+          "env": "Définissez {line} dans l'environnement de session",
+          "requires": "Installez {line} pour appliquer le thème aux applications Qt",
+          "failed": "Impossible de mettre à jour la configuration : {line}"
+        },
+        "hint": {
+          "select_in_app": "Choisissez le thème Serpantinum dans les paramètres de l'application",
+          "restart": "Redémarrez les fenêtres ouvertes pour voir les nouvelles couleurs",
+          "neovim": "Exécutez :colorscheme serpantinum pour l'utiliser",
+          "helix": "Exécutez :config-reload dans les éditeurs ouverts pour voir les nouvelles couleurs",
+          "fastfetch": "Exécutez fastfetch -c serpantinum pour l'utiliser",
+          "spicetify": "Exécutez spicetify config current_theme Serpantinum, puis spicetify apply",
+          "discord": "Activez Serpantinum dans les paramètres de thème du client",
+          "emacs": "Exécutez M-x load-theme serpantinum pour l'utiliser",
+          "steam": "Installez Material-Theme avec Millennium, puis choisissez Matugen dans ses réglages de couleurs",
+          "heroic": "Définissez le chemin des thèmes personnalisés de Heroic sur son dossier de thèmes, puis choisissez serpantinum",
+          "telegram": "Chargez le fichier de thème depuis les paramètres de discussion de Telegram"
+        },
+        "list": {
+          "title": "Applications thématisées",
+          "desc": "Applications qui suivent les couleurs du shell. Ajoutez-en d'autres depuis la liste"
+        },
+        "add": {
+          "title": "Ajouter une application"
+        },
+        "empty": "Aucune application thématisée pour l'instant. Ajoutez-en une depuis la liste"
       }
     },
     "file_picker": {
@@ -970,6 +1076,11 @@
         "failed": "Échec du téléchargement. Vérifiez votre connexion.",
         "offline": "Impossible d'accéder à la liste des langues. Seules les langues installées sont affichées.",
         "loading": "Chargement des langues..."
+      },
+      "directory": {
+        "title": "Dossier des captures d'écran",
+        "desc": "Dossier où les captures d'écran sont enregistrées",
+        "select_dir": "Sélectionner le dossier..."
       }
     }
   },
@@ -1423,7 +1534,9 @@
       "generating_thumbnails": "Génération des miniatures...",
       "no_wallpapers_found": "Aucun fond d'écran trouvé",
       "videos": "Vidéos",
-      "history": "Récemment appliqués"
+      "history": "Récemment appliqués",
+      "favorites": "Favoris",
+      "recently_added": "Récemment ajoutés"
     },
     "filters": {
       "all": "Tous",
@@ -1611,7 +1724,7 @@
     "description": "Un shell de bureau pour les gestionnaires de fenêtres Wayland.",
     "commands": "Commandes :",
     "script_commands": "Commandes de scripts :",
-    "launch_desc": "Lancer des composants autonomes (start, widgetredactor, lock-redactor)",
+    "launch_desc": "Lancer des composants autonomes (start)",
     "msg_desc": "Envoyer des commandes ou des changements d'espace de travail au gestionnaire d'interface",
     "ipc_desc": "Transférer les appels IPC directement au shell",
     "kill_desc": "Arrêter proprement le démon en cours d'exécution",
@@ -1625,18 +1738,16 @@
     "daemon_restarted": "Le démon Serpantinum est redémarré.",
     "starting_daemon": "Le démon n'est pas en cours d'exécution. Démarrage de serpantinumd en arrière-plan...",
     "error_missing_qml": "Erreur : cible de lancement manquante.",
-    "launch_usage": "Utilisation : serpantinum launch <start|widgetredactor|lock-redactor> [arguments...]",
+    "launch_usage": "Utilisation : serpantinum launch <start> [arguments...]",
     "error_qml_not_found": "Erreur : impossible de résoudre {NAME}.qml dans {DIR}",
     "error_shell_qml_not_found": "Erreur : impossible de résoudre le chemin vers shell.qml dans {DIR}",
     "error_unknown_command": "Erreur : commande inconnue '{CMD}'.",
     "error_unknown_target": "Erreur : cible inconnue '{TARGET}'.",
     "launch_help": {
-      "usage": "Utilisation : serpantinum launch <start|widgetredactor|lock-redactor> [arguments...]",
+      "usage": "Utilisation : serpantinum launch <start> [arguments...]",
       "description": "Lancer des composants autonomes directement en mode exécutable.",
       "available_targets": "Cibles disponibles :",
-      "target_start": "Lancer l'interface de configuration initiale",
-      "target_widgetredactor": "Lancer l'interface d'édition des widgets du bureau",
-      "target_lock_redactor": "Basculer, ouvrir ou fermer l'éditeur de disposition de l'écran de verrouillage"
+      "target_start": "Lancer l'interface de configuration initiale"
     },
     "msg_help": {
       "usage": "Utilisation : serpantinum msg <commande|espace_de_travail> [arguments...]",
@@ -1660,16 +1771,15 @@
       "location": "Récupérer et mettre à jour les coordonnées géographiques",
       "screenshot": "Capturer l'écran, enregistrer une vidéo ou analyser des codes QR",
       "brightness": "Ajuster la luminosité du rétroéclairage",
-      "current_focus": "Surveiller et enregistrer les changements de focus de la fenêtre active",
-      "monitors_detect": "Interroger les sorties d'affichage actives et les taux de rafraîchissement",
       "location_manual": "Définir manuellement les coordonnées géographiques et le fuseau horaire",
-      "blue_light_filter": "Ajuster la température de couleur et la planification jour/nuit automatique",
+      "gamma": "Ajuster la température de couleur et la planification jour/nuit automatique",
       "translate": "Traducteur instantané de texte et de sélection",
       "suspend": "Verrouiller l'écran et mettre le système en veille",
       "hibernate": "Mettre le système en hibernation",
       "reboot": "Redémarrer le système",
       "poweroff": "Éteindre le système",
-      "redactor": "Ouvrir ou basculer l'éditeur de disposition des widgets du bureau"
+      "redactor": "Ouvrir ou basculer l'éditeur de disposition des widgets du bureau",
+      "lock_redactor": "Basculer, ouvrir ou fermer l'éditeur de disposition de l'écran de verrouillage"
     },
     "usage_label": "Utilisation :",
     "config_desc": "Lire et modifier les paramètres (get, set, dump, path, edit)",
@@ -1681,10 +1791,11 @@
     "error_unknown_theme": "Erreur : thème inconnu '{NAME}'.",
     "error_no_wallpapers": "Erreur : aucun fond d'écran trouvé dans le dossier des fonds d'écran.",
     "error_file_not_found": "Erreur : fichier introuvable : {PATH}",
-    "info_desc": "Afficher l'état actuel d'un réglage (dnd, caffeine, dock, theme, wallpaper, monitors, updates...)",
-    "set_desc": "Modifier un réglage (dnd, caffeine, dock, sfx-mute, matugen, lang, theme, wallpaper)",
-    "trigger_desc": "Exécuter une action ponctuelle (idle, notifications-clear, firstlaunch, theme-reload, theme-generate)",
-    "settings_desc": "Ouvrir la fenêtre des paramètres (éventuellement sur un onglet)"
+    "info_desc": "Afficher l'état actuel d'un réglage (notifications, idle, dock, sfx, theme, lang, wallpaper, monitors, updates)",
+    "set_desc": "Modifier un réglage (notifications, idle, dock, sfx, theme, lang, wallpaper)",
+    "trigger_desc": "Exécuter une action ponctuelle (idle, notifications, theme, firstlaunch)",
+    "settings_desc": "Ouvrir la fenêtre des paramètres (éventuellement sur un onglet)",
+    "error_unknown_app": "Erreur : application inconnue '{ID}'."
   },
   "daemon": {
     "already_running": "Le démon est déjà en cours d'exécution. Arrêt...",

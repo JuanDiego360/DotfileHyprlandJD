@@ -44,7 +44,12 @@
       "bar_modules": "模块",
       "bar_side_modules": "侧边模块",
       "display_lockscreen": "锁屏",
-      "screenshot": "截图"
+      "screenshot": "截图",
+      "theme_appearance": "外观",
+      "theme_apps": "应用主题",
+      "theme_wallpapers": "壁纸",
+      "general_main": "通用",
+      "general_presets": "预设"
     },
     "launcher": {
       "position": {
@@ -144,7 +149,7 @@
       "warning_command": {
         "title": "预警命令",
         "desc": "操作触发前执行的偏移时间与命令",
-        "placeholder": "例如 notify-send '警告'"
+        "placeholder": "例如 serpantinum-core notify '警告'"
       },
       "before_command": {
         "title": "前置命令",
@@ -154,7 +159,7 @@
       "resume_command": {
         "title": "恢复命令",
         "desc": "用户活动恢复时执行的命令",
-        "placeholder": "例如 notify-send '已恢复'"
+        "placeholder": "例如 serpantinum-core notify '已恢复'"
       },
       "dim": {
         "title": "调暗屏幕",
@@ -219,10 +224,6 @@
         "title": "快捷操作",
         "desc": "启用悬浮快捷操作面板"
       },
-      "separatewindow": {
-        "title": "在单独窗口中打开设置",
-        "desc": "将设置作为可调整大小的普通应用窗口打开，而不是外壳内的面板"
-      },
       "location": {
         "title": "地理位置",
         "desc": "配置地理位置以用于日出日落计划和天气",
@@ -251,10 +252,25 @@
       "screenshot_on_release": {
         "title": "释放鼠标时截取区域",
         "desc": "完成拖选后立即截图，无需点击快门按钮"
+      },
+      "presets": {
+        "save": {
+          "title": "保存当前配置",
+          "desc": "将所有设置、小部件和壁纸保存为预设",
+          "button": "保存预设"
+        },
+        "empty": "暂无预设。保存当前配置即可创建一个",
+        "confirm": {
+          "title": "应用预设？",
+          "desc": "确定要在未保存当前设置的情况下应用此预设吗？它将覆盖你现有的设置，且无法恢复。",
+          "dont_show": "不再显示",
+          "apply": "应用",
+          "cancel": "取消"
+        }
       }
     },
     "display": {
-      "bluelight": {
+      "gamma": {
         "title": "防蓝光护眼",
         "desc": "切换暖色屏幕色温"
       },
@@ -281,6 +297,10 @@
         "hide_bar": {
           "title": "在编辑器中隐藏顶栏",
           "desc": "在小组件编辑模式下自动隐藏顶栏"
+        },
+        "show_distances": {
+          "title": "显示间距",
+          "desc": "在编辑器中移动或调整小组件大小时显示它们之间的间距"
         },
         "hide_presets": "隐藏预设",
         "choose_preset": "选择预设",
@@ -326,7 +346,7 @@
     },
     "bar": {
       "modules": {
-        "vis": "音频可视化 (cava)",
+        "vis": "音频可视化",
         "actions": "快捷操作",
         "workspaces": {
           "style": {
@@ -418,6 +438,7 @@
         "desc": "右键点击项目开始分组，右键点击另一项将其加入组中。右键点击已分组项目将其移出。",
         "reset": "重置",
         "available": "可用模块",
+        "shown": "已显示",
         "left": "左侧",
         "center": "居中",
         "right": "右侧"
@@ -464,21 +485,13 @@
           "wave": "波浪",
           "circle": "圆环"
         },
-        "cpu": {
-          "title": "CPU 使用率",
-          "desc": "显示处理器使用率环"
-        },
-        "ram": {
-          "title": "内存使用率",
-          "desc": "显示内存 (RAM) 使用率环"
-        },
-        "temp": {
-          "title": "温度",
-          "desc": "显示系统温度环"
-        },
-        "disk": {
-          "title": "磁盘使用率",
-          "desc": "显示存储磁盘使用率环"
+        "items": {
+          "title": "统计",
+          "desc": "拖动统计项以重新排序，或移到可用区域以隐藏",
+          "cpu": "CPU",
+          "ram": "内存",
+          "temp": "温度",
+          "disk": "磁盘"
         }
       },
       "bat": {
@@ -598,6 +611,10 @@
           "title": "显示控制按钮",
           "desc": "显示上一首、播放和下一首按钮"
         },
+        "hide_when_idle": {
+          "title": "无播放时隐藏",
+          "desc": "没有媒体播放时从栏中隐藏该组件"
+        },
         "preview": {
           "title": "歌曲标题",
           "author": "Song author"
@@ -608,13 +625,14 @@
         "desc": "更改栏的厚度，模块会随之调整"
       },
       "menu": {
-        "show_settings": {
-          "title": "显示设置图标",
-          "desc": "显示打开设置的按钮"
-        },
-        "show_launcher": {
-          "title": "显示启动器图标",
-          "desc": "显示打开启动器的搜索按钮"
+        "items": {
+          "title": "按钮",
+          "desc": "拖动按钮以重新排序，或移到可用区域以隐藏",
+          "settings": "设置",
+          "launcher": "启动器",
+          "night_light": "夜间模式",
+          "caffeine": "咖啡因",
+          "shuffle": "随机壁纸"
         },
         "style": {
           "title": "样式",
@@ -650,7 +668,58 @@
         "select_dir": "选择目录...",
         "select_wallpaper": "选择壁纸",
         "no_wallpaper_selected": "未选择壁纸",
-        "select": "壁纸"
+        "select": "壁纸",
+        "transition": {
+          "mode": {
+            "title": "过渡效果",
+            "random": "随机",
+            "custom": "自定义",
+            "desc_random": "每次更换壁纸时使用随机过渡效果",
+            "desc_custom": "从所选过渡效果中随机选择。点击预览以添加或移除"
+          },
+          "fade": {
+            "name": "淡入淡出",
+            "desc": "平滑地交叉淡入新壁纸"
+          },
+          "wipe": {
+            "name": "擦除",
+            "desc": "从屏幕中间展开"
+          },
+          "circle": {
+            "name": "圆形",
+            "desc": "让圆形不断扩大直到覆盖屏幕"
+          },
+          "swipe": {
+            "name": "滑动",
+            "desc": "从边缘或角落扫过屏幕"
+          },
+          "orientation": {
+            "title": "方向",
+            "desc": "擦除展开的轴向",
+            "random": "随机",
+            "horizontal": "水平",
+            "vertical": "垂直"
+          },
+          "origin": {
+            "title": "起点",
+            "desc": "圆形开始的位置。桌面菜单总是从你点击的位置开始",
+            "random": "随机",
+            "center": "中心"
+          },
+          "direction": {
+            "title": "方向",
+            "desc": "滑动开始的边缘或角落",
+            "random": "随机",
+            "left": "从左侧",
+            "right": "从右侧",
+            "top": "从顶部",
+            "bottom": "从底部",
+            "top_left": "从左上角",
+            "top_right": "从右上角",
+            "bottom_left": "从左下角",
+            "bottom_right": "从右下角"
+          }
+        }
       },
       "element_opacity": {
         "title": "元素不透明度",
@@ -663,6 +732,43 @@
           "blur": "模糊",
           "liquid": "液态玻璃"
         }
+      },
+      "apps": {
+        "loading": "正在查找已安装的应用...",
+        "status": {
+          "error": "无法应用：{detail}"
+        },
+        "issue": {
+          "missing_config": "未找到配置。请将以下内容添加到 {file}：{line}",
+          "system_config": "你的配置是 {file}。请添加：{line}",
+          "read_only": "{file} 为只读。请添加：{line}",
+          "manual": "无法安全地修改配置。请将以下内容添加到 {file}：{line}",
+          "no_theme": "安装 {line} 主题，让 GTK 3 应用也跟随调色板",
+          "env": "请在会话环境中设置 {line}",
+          "requires": "安装 {line} 以为 Qt 应用应用主题",
+          "failed": "无法更新配置：{line}"
+        },
+        "hint": {
+          "select_in_app": "在应用设置中选择 Serpantinum 主题",
+          "restart": "重新启动已打开的窗口以查看新颜色",
+          "neovim": "运行 :colorscheme serpantinum 以使用",
+          "helix": "在已打开的编辑器中运行 :config-reload 以查看新颜色",
+          "fastfetch": "运行 fastfetch -c serpantinum 以使用",
+          "spicetify": "运行 spicetify config current_theme Serpantinum，然后运行 spicetify apply",
+          "discord": "在客户端的主题设置中启用 Serpantinum",
+          "emacs": "运行 M-x load-theme serpantinum 即可使用",
+          "steam": "使用 Millennium 安装 Material-Theme，然后在其颜色设置中选择 Matugen",
+          "heroic": "将 Heroic 的自定义主题路径设为其主题文件夹，然后选择 serpantinum",
+          "telegram": "在 Telegram 的聊天设置中加载主题文件"
+        },
+        "list": {
+          "title": "已应用主题的应用",
+          "desc": "跟随桌面颜色的应用。可从列表中添加更多"
+        },
+        "add": {
+          "title": "添加应用"
+        },
+        "empty": "还没有应用主题。请从列表中添加"
       }
     },
     "file_picker": {
@@ -970,6 +1076,11 @@
         "failed": "下载失败。请检查网络连接。",
         "offline": "无法访问语言列表。仅显示已安装的语言。",
         "loading": "正在加载语言..."
+      },
+      "directory": {
+        "title": "截图文件夹",
+        "desc": "保存截图的文件夹",
+        "select_dir": "选择目录..."
       }
     }
   },
@@ -1423,7 +1534,9 @@
       "generating_thumbnails": "正在生成缩略图...",
       "no_wallpapers_found": "未找到壁纸",
       "videos": "视频",
-      "history": "最近应用"
+      "history": "最近应用",
+      "favorites": "收藏",
+      "recently_added": "最近添加"
     },
     "filters": {
       "all": "全部",
@@ -1611,7 +1724,7 @@
     "description": "专为 Wayland 合成器打造的桌面 Shell。",
     "commands": "命令：",
     "script_commands": "脚本命令：",
-    "launch_desc": "启动独立组件（start、widgetredactor, lock-redactor）",
+    "launch_desc": "启动独立组件（start）",
     "msg_desc": "向界面管理器发送命令或工作区切换",
     "ipc_desc": "直接向 Shell 转发 IPC 调用",
     "kill_desc": "干净地停止正在运行的守护进程",
@@ -1625,18 +1738,16 @@
     "daemon_restarted": "Serpantinum 守护进程已重启。",
     "starting_daemon": "守护进程未运行。正在后台启动 serpantinumd...",
     "error_missing_qml": "错误：缺少要启动的目标。",
-    "launch_usage": "Usage: serpantinum launch <start|widgetredactor|lock-redactor> [args...]",
+    "launch_usage": "Usage: serpantinum launch <start> [args...]",
     "error_qml_not_found": "Error: could not resolve {NAME}.qml in {DIR}",
     "error_shell_qml_not_found": "Error: could not resolve path to shell.qml in {DIR}",
     "error_unknown_command": "Error: unknown command '{CMD}'.",
     "error_unknown_target": "Error: unknown target '{TARGET}'.",
     "launch_help": {
-      "usage": "Usage: serpantinum launch <start|widgetredactor|lock-redactor> [arguments...]",
+      "usage": "Usage: serpantinum launch <start> [arguments...]",
       "description": "直接在运行器模式下启动独立组件。",
       "available_targets": "可用目标：",
-      "target_start": "启动初始设置引导界面",
-      "target_widgetredactor": "启动桌面小组件编辑器界面",
-      "target_lock_redactor": "切换、打开或关闭锁屏布局编辑器"
+      "target_start": "启动初始设置引导界面"
     },
     "msg_help": {
       "usage": "Usage: serpantinum msg <command|workspace> [arguments...]",
@@ -1660,16 +1771,15 @@
       "location": "检索并更新地理坐标",
       "screenshot": "截取屏幕图片、录制视频或识别二维码",
       "brightness": "调节屏幕背光亮度",
-      "current_focus": "监视并记录活动窗口焦点变动",
-      "monitors_detect": "查询活动显示输出及刷新率",
       "location_manual": "手动设置地理坐标与时区",
-      "blue_light_filter": "调节色温及自动昼夜计划",
+      "gamma": "调节色温及自动昼夜计划",
       "translate": "即时文本与选中文本翻译",
       "suspend": "锁定屏幕并挂起系统",
       "hibernate": "休眠系统",
       "reboot": "重启系统",
       "poweroff": "关闭系统",
-      "redactor": "打开或切换桌面小部件布局编辑器"
+      "redactor": "打开或切换桌面小部件布局编辑器",
+      "lock_redactor": "切换、打开或关闭锁屏布局编辑器"
     },
     "usage_label": "用法:",
     "config_desc": "读取和更改设置 (get, set, dump, path, edit)",
@@ -1681,10 +1791,11 @@
     "error_unknown_theme": "错误：未知主题“{NAME}”。",
     "error_no_wallpapers": "错误：壁纸目录中未找到壁纸。",
     "error_file_not_found": "错误：未找到文件：{PATH}",
-    "info_desc": "显示设置的当前状态 (dnd, caffeine, dock, theme, wallpaper, monitors, updates...)",
-    "set_desc": "更改设置 (dnd, caffeine, dock, sfx-mute, matugen, lang, theme, wallpaper)",
-    "trigger_desc": "执行一次性操作 (idle, notifications-clear, firstlaunch, theme-reload, theme-generate)",
-    "settings_desc": "打开设置窗口（可指定标签页）"
+    "info_desc": "显示设置的当前状态 (notifications, idle, dock, sfx, theme, lang, wallpaper, monitors, updates)",
+    "set_desc": "更改设置 (notifications, idle, dock, sfx, theme, lang, wallpaper)",
+    "trigger_desc": "执行一次性操作 (idle, notifications, theme, firstlaunch)",
+    "settings_desc": "打开设置窗口（可指定标签页）",
+    "error_unknown_app": "错误：未知应用 '{ID}'。"
   },
   "daemon": {
     "already_running": "守护进程已在运行。正在退出...",

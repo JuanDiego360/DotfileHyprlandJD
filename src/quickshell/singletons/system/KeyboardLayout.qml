@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Hyprland
 import "../../"
 
 Singleton {
@@ -12,10 +13,7 @@ Singleton {
     property int subscribers: 0
     readonly property bool active: subscribers > 0
 
-    readonly property bool isNiri: NiriState.isNiri
-    readonly property bool isMango: MangoState.isMango
-    readonly property bool isSway: SystemInfo.desktopEnv ? SystemInfo.desktopEnv.toLowerCase().indexOf("sway") !== -1 : false
-    readonly property string compositor: isMango ? "mango" : (isSway ? "sway" : "hyprland")
+    property string mainKeyboard: ""
 
     function subscribe() {
         subscribers++;
@@ -29,37 +27,54 @@ Singleton {
     }
 
     function start() {
-        if (isNiri) {
+        if (Compositor.name === "niri") {
             NiriState.subscribe();
             applyNiriLayout();
             return;
         }
-        kbPoller.running = false;
-        kbPoller.running = true;
+        if (Compositor.name === "sway") {
+            SwayState.subscribeKeyboard();
+            applySwayLayout();
+            return;
+        }
+        if (Compositor.name === "mango") {
+            MangoState.subscribeKeyboard();
+            applyMangoLayout();
+            return;
+        }
+        if (Compositor.name !== "hyprland") return;
+        devicesPoller.running = false;
+        devicesPoller.running = true;
     }
 
     function stop() {
-        if (isNiri) {
+        if (Compositor.name === "niri") {
             NiriState.unsubscribe();
             return;
         }
-        kbPoller.running = false;
-        kbWaiter.running = false;
+        if (Compositor.name === "sway") {
+            SwayState.unsubscribeKeyboard();
+            return;
+        }
+        if (Compositor.name === "mango") {
+            MangoState.unsubscribeKeyboard();
+            return;
+        }
+        devicesPoller.running = false;
     }
 
     function refresh() {
-        if (!active || isNiri) return;
-        kbWaiter.running = false;
-        kbPoller.running = false;
-        kbPoller.running = true;
+        if (!active || Compositor.name !== "hyprland") return;
+        devicesPoller.running = false;
+        devicesPoller.running = true;
     }
 
     function switchNext() {
-        if (isNiri) {
+        if (Compositor.name === "niri") {
             Quickshell.execDetached(["niri", "msg", "action", "switch-layout", "next"]);
-        } else if (isSway) {
+        } else if (Compositor.name === "sway") {
             Quickshell.execDetached(["swaymsg", "input", "type:keyboard", "xkb_switch_layout", "next"]);
-        } else if (isMango) {
+        } else if (Compositor.name === "mango") {
             Quickshell.execDetached(["mmsg", "dispatch", "switch_keyboard_layout"]);
         } else {
             Quickshell.execDetached(["hyprctl", "switchxkblayout", "main", "next"]);
@@ -75,38 +90,70 @@ Singleton {
 
     Connections {
         target: NiriState
-        enabled: root.isNiri && root.active
+        enabled: Compositor.name === "niri" && root.active
         function onShortKeyboardLayoutChanged() { root.applyNiriLayout(); }
         function onKeyboardReadyChanged() { root.applyNiriLayout(); }
     }
 
-    Process {
-        id: kbPoller
-        command: [
-            "bash",
-            "-c",
-            root.isMango
-                ? "layout=$(mmsg get keyboardlayout 2>/dev/null | jq -r '.layout // empty' | head -n1); [[ -z \"$layout\" || \"$layout\" == \"null\" ]] && layout=\"US\"; echo \"${layout:0:2}\" | tr '[:lower:]' '[:upper:]'"
-                : root.isSway
-                ? "layout=$(swaymsg -t get_inputs 2>/dev/null | jq -r '[.[] | select(.type == \"keyboard\" and .xkb_active_layout_name != null)] | .[0].xkb_active_layout_name // empty' | head -n1); [[ -z \"$layout\" || \"$layout\" == \"null\" ]] && layout=\"US\"; echo \"${layout:0:2}\" | tr '[:lower:]' '[:upper:]'"
-                : "layout=$(LC_ALL=C hyprctl devices -j 2>/dev/null | jq -r '(.keyboards[] | select(.main == true) | .active_keymap) // .keyboards[0].active_keymap // empty' | head -n1); [[ -z \"$layout\" || \"$layout\" == \"null\" ]] && layout=\"US\"; echo \"${layout:0:2}\" | tr '[:lower:]' '[:upper:]'"
-        ]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                let txt = this.text.trim();
-                if (txt !== "") root.layout = txt;
-                root.ready = true;
-                if (root.active && !root.isNiri && !kbWaiter.running) kbWaiter.running = true;
+    function applySwayLayout() {
+        if (!SwayState.keyboardReady) return;
+        root.layout = SwayState.shortKeyboardLayout;
+        root.ready = true;
+    }
+
+    Connections {
+        target: SwayState
+        enabled: Compositor.name === "sway" && root.active
+        function onShortKeyboardLayoutChanged() { root.applySwayLayout(); }
+        function onKeyboardReadyChanged() { root.applySwayLayout(); }
+    }
+
+    function applyMangoLayout() {
+        if (!MangoState.keyboardReady) return;
+        root.applyLayoutName(MangoState.keyboardLayout);
+    }
+
+    Connections {
+        target: MangoState
+        enabled: Compositor.name === "mango" && root.active
+        function onKeyboardLayoutChanged() { root.applyMangoLayout(); }
+        function onKeyboardReadyChanged() { root.applyMangoLayout(); }
+    }
+
+    function applyLayoutName(name) {
+        let txt = (name && name !== "null") ? String(name) : "US";
+        root.layout = txt.substring(0, 2).toUpperCase();
+        root.ready = true;
+    }
+
+    Connections {
+        target: Compositor.name === "hyprland" ? Hyprland : null
+        enabled: Compositor.name === "hyprland" && root.active
+        function onRawEvent(event) {
+            if (!event || event.name !== "activelayout") return;
+            let args = event.parse(2);
+            if (args.length === 2 && root.mainKeyboard !== "" && args[0] === root.mainKeyboard) {
+                root.applyLayoutName(args[1]);
+            } else if (!devicesPoller.running) {
+                devicesPoller.running = true;
             }
         }
     }
 
     Process {
-        id: kbWaiter
-        command: ["bash", Caching.qsDir + "/watchers/kb_wait.sh", root.compositor]
-        onExited: {
-            kbPoller.running = false;
-            if (root.active && !root.isNiri) kbPoller.running = true;
+        id: devicesPoller
+        command: ["hyprctl", "devices", "-j"]
+        environment: ({ "LC_ALL": "C" })
+        stdout: StdioCollector {
+            onStreamFinished: {
+                let keyboards = [];
+                try {
+                    keyboards = JSON.parse(this.text).keyboards || [];
+                } catch (e) {}
+                let kb = keyboards.find(k => k.main === true) || keyboards[0] || null;
+                root.mainKeyboard = kb ? String(kb.name || "") : "";
+                root.applyLayoutName(kb ? kb.active_keymap : "");
+            }
         }
     }
 }

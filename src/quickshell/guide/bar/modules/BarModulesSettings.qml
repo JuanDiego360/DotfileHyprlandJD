@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell.Io
 import Quickshell.Services.UPower
 import "../../"
 import "../../../"
@@ -33,6 +34,38 @@ GuideTab {
         let bs = Config.getSetting("bar", {});
         if (bs && bs.hideEmptyWorkspaces !== undefined) return Boolean(bs.hideEmptyWorkspaces);
         return false;
+    }
+
+    property bool perMonitorNumbering: {
+        let bs = Config.getSetting("bar", {});
+        return !!(bs && bs.workspaces && bs.workspaces.perMonitorNumbering === true);
+    }
+
+    property var workspaceMonitorNames: []
+
+    property var workspaceMonitorCounts: {
+        let bs = Config.getSetting("bar", {});
+        return (bs && bs.workspaces && bs.workspaces.monitors) ? bs.workspaces.monitors : {};
+    }
+
+    Process {
+        id: workspaceMonitorDetector
+        running: false
+        command: ["serpantinum-core", "monitors"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    barModulesRoot.workspaceMonitorNames = JSON.parse(this.text).map(m => m.name);
+                } catch (e) {
+                    barModulesRoot.workspaceMonitorNames = [];
+                }
+            }
+        }
+    }
+
+    function reloadWorkspaceMonitors() {
+        workspaceMonitorDetector.running = false;
+        workspaceMonitorDetector.running = true;
     }
 
     property string timeStyle: {
@@ -109,17 +142,7 @@ GuideTab {
         return "button";
     }
 
-    property bool menuShowSettings: {
-        let bs = Config.getSetting("bar", {});
-        if (bs && bs.menuShowSettings !== undefined) return Boolean(bs.menuShowSettings);
-        return true;
-    }
-
-    property bool menuShowLauncher: {
-        let bs = Config.getSetting("bar", {});
-        if (bs && bs.menuShowLauncher !== undefined) return Boolean(bs.menuShowLauncher);
-        return true;
-    }
+    property var menuItems: BarModuleRegistry.menuItemsFromSettings(Config.getSetting("bar", {}))
 
     property string wifiStyle: {
         let bs = Config.getSetting("bar", {});
@@ -211,6 +234,12 @@ GuideTab {
         return true;
     }
 
+    property bool mediaHideWhenIdle: {
+        let bs = Config.getSetting("bar", {});
+        if (bs && bs.mediaHideWhenIdle !== undefined) return Boolean(bs.mediaHideWhenIdle);
+        return false;
+    }
+
     property string batStyle: {
         let bs = Config.getSetting("bar", {});
         if (bs && bs.batStyle) return bs.batStyle;
@@ -252,6 +281,9 @@ GuideTab {
         } else {
             barModulesRoot.hideEmptyWorkspaces = false;
         }
+
+        barModulesRoot.perMonitorNumbering = !!(bs && bs.workspaces && bs.workspaces.perMonitorNumbering === true);
+        barModulesRoot.workspaceMonitorCounts = (bs && bs.workspaces && bs.workspaces.monitors) ? bs.workspaces.monitors : {};
 
         if (bs && bs.timeStyle) {
             barModulesRoot.timeStyle = bs.timeStyle;
@@ -329,11 +361,7 @@ GuideTab {
         }
 
         barModulesRoot.menuStyle = (bs && bs.menuStyle) ? bs.menuStyle : "button";
-        barModulesRoot.menuShowSettings = (bs && bs.menuShowSettings !== undefined) ? Boolean(bs.menuShowSettings) : true;
-        barModulesRoot.menuShowLauncher = (bs && bs.menuShowLauncher !== undefined) ? Boolean(bs.menuShowLauncher) : true;
-        if (!barModulesRoot.menuShowSettings && !barModulesRoot.menuShowLauncher) {
-            barModulesRoot.menuShowSettings = true;
-        }
+        barModulesRoot.menuItems = BarModuleRegistry.menuItemsFromSettings(bs);
 
         if (bs && bs.wifiStyle) {
             barModulesRoot.wifiStyle = bs.wifiStyle;
@@ -416,6 +444,8 @@ GuideTab {
             barModulesRoot.mediaShowControls = true;
         }
 
+        barModulesRoot.mediaHideWhenIdle = (bs && bs.mediaHideWhenIdle !== undefined) ? Boolean(bs.mediaHideWhenIdle) : false;
+
         if (!barModulesRoot.batShowPercent && !barModulesRoot.batShowIcon) {
             barModulesRoot.batShowIcon = true;
         }
@@ -448,6 +478,38 @@ GuideTab {
         barModulesRoot.hideEmptyWorkspaces = val;
         let current = Config.getSetting("bar", {});
         current.hideEmptyWorkspaces = val;
+        Config.setSetting("bar", current);
+    }
+
+    function setPerMonitorNumbering(val) {
+        barModulesRoot.perMonitorNumbering = val;
+        let current = Config.getSetting("bar", {});
+        current.workspaces = Object.assign({}, current.workspaces, { perMonitorNumbering: val });
+        Config.setSetting("bar", current);
+        let names = barModulesRoot.workspaceMonitorNames;
+        if (val && names.length > 0 && !barModulesRoot.workspaceMonitorCounts[names[0]]) {
+            barModulesRoot.setMonitorWorkspaceCount(names[0], barModulesRoot.workspaceCountFor(names[0]));
+        }
+    }
+
+    function workspaceCountFor(name) {
+        let entry = barModulesRoot.workspaceMonitorCounts[name];
+        let n = entry ? Math.floor(Number(entry.count)) : 0;
+        return n >= 1 ? n : 10;
+    }
+
+    function setMonitorWorkspaceCount(name, count) {
+        let monitors = {};
+        let first = 1;
+        for (let i = 0; i < barModulesRoot.workspaceMonitorNames.length; i++) {
+            let mon = barModulesRoot.workspaceMonitorNames[i];
+            let n = mon === name ? count : barModulesRoot.workspaceCountFor(mon);
+            monitors[mon] = { "first": first, "count": n };
+            first += n;
+        }
+        barModulesRoot.workspaceMonitorCounts = monitors;
+        let current = Config.getSetting("bar", {});
+        current.workspaces = Object.assign({}, current.workspaces, { monitors: monitors });
         Config.setSetting("bar", current);
     }
 
@@ -502,27 +564,10 @@ GuideTab {
         Config.setSetting("bar", current);
     }
 
-    function isSysmonStatEnabled(stat) {
-        return barModulesRoot.sysmonStats && barModulesRoot.sysmonStats.indexOf(stat) !== -1;
-    }
-
-    function toggleSysmonStat(stat, enabled) {
-        let list = barModulesRoot.sysmonStats ? barModulesRoot.sysmonStats.slice() : ["cpu", "ram", "temp"];
-        let allStats = ["cpu", "ram", "temp", "disk"];
-        let set = {};
-        for (let i = 0; i < list.length; i++) set[list[i]] = true;
-        if (enabled) {
-            set[stat] = true;
-        } else {
-            delete set[stat];
-        }
-        let res = [];
-        for (let i = 0; i < allStats.length; i++) {
-            if (set[allStats[i]]) res.push(allStats[i]);
-        }
-        barModulesRoot.sysmonStats = res;
+    function setSysmonStats(list) {
+        barModulesRoot.sysmonStats = list;
         let current = Config.getSetting("bar", {});
-        current.sysmonStats = res;
+        current.sysmonStats = list;
         Config.setSetting("bar", current);
     }
 
@@ -556,19 +601,11 @@ GuideTab {
         Config.setSetting("bar", current);
     }
 
-    function setMenuShowSettings(val) {
-        if (!val && !barModulesRoot.menuShowLauncher) return;
-        barModulesRoot.menuShowSettings = val;
+    function setMenuItems(list) {
+        if (!list || list.length === 0) return;
+        barModulesRoot.menuItems = list;
         let current = Config.getSetting("bar", {});
-        current.menuShowSettings = val;
-        Config.setSetting("bar", current);
-    }
-
-    function setMenuShowLauncher(val) {
-        if (!val && !barModulesRoot.menuShowSettings) return;
-        barModulesRoot.menuShowLauncher = val;
-        let current = Config.getSetting("bar", {});
-        current.menuShowLauncher = val;
+        current.menuItems = list;
         Config.setSetting("bar", current);
     }
 
@@ -682,6 +719,13 @@ GuideTab {
         Config.setSetting("bar", current);
     }
 
+    function setMediaHideWhenIdle(val) {
+        barModulesRoot.mediaHideWhenIdle = val;
+        let current = Config.getSetting("bar", {});
+        current.mediaHideWhenIdle = val;
+        Config.setSetting("bar", current);
+    }
+
     onVisibleChanged: {
         if (visible) {
             syncSettings();
@@ -690,6 +734,7 @@ GuideTab {
 
     Component.onCompleted: {
         syncSettings();
+        reloadWorkspaceMonitors();
     }
 
     Connections {

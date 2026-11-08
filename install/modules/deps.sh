@@ -46,15 +46,15 @@ SUPPORTED_DISTROS=(
 )
 
 REQUIRED_PKGS=(
-    "kitty" "cava" "zbar" "tesseract" "tesseract-data-eng" "pavucontrol" "alsa-utils"
-    "wl-clipboard" "fd" "qt6-multimedia" "qt6-5compat" "ripgrep"
-    "cliphist" "jq" "socat" "inotify-tools" "pamixer" "brightnessctl" "ddcutil" "acpi" "iw"
-    "bluez" "bluez-utils" "libnotify" "networkmanager" "lm_sensors" "bc" "matugen"
+    "kitty" "zbar" "tesseract" "tesseract-data-eng"
+    "wl-clipboard" "qt6-multimedia"
+    "cliphist" "jq" "ddcutil"
+    "bluez" "networkmanager" "matugen"
     "pipewire" "wireplumber" "pipewire-pulse" "pipewire-alsa" "libpulse" "python"
-    "imagemagick" "wget" "file" "git" "psmisc"
-    "ffmpeg" "fastfetch" "quickshell" "unzip" "python-websockets" "python-jeepney" "qt6-websockets"
-    "grim" "playerctl" "satty" "xdg-desktop-portal-gtk" "slurp" "wmctrl" "power-profiles-daemon" "qt5-wayland" "qt5-quickcontrols" "qt5-quickcontrols2" "qt5-graphicaleffects" "qt6-wayland"
-    "qt5ct" "qt6ct" "adwaita-icon-theme" "gpu-screen-recorder" "wf-recorder" "adw-gtk-theme" "wl-gammarelay-rs"
+    "imagemagick" "file"
+    "ffmpeg" "fastfetch" "quickshell"
+    "grim" "playerctl" "satty" "xdg-desktop-portal-gtk" "power-profiles-daemon" "qt6-wayland"
+    "qt6ct" "adwaita-icon-theme" "gpu-screen-recorder" "wf-recorder" "adw-gtk-theme"
 )
 
 FAILED_PKGS=()
@@ -144,7 +144,7 @@ configure_qt_icon_theme() {
     local config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
     local qtct
 
-    for qtct in qt5ct qt6ct; do
+    for qtct in qt6ct; do
         local conf="$config_home/$qtct/$qtct.conf"
         [ -d "$config_home/$qtct" ] || mkdir -p "$config_home/$qtct" 2>/dev/null || continue
         if [ ! -f "$conf" ]; then
@@ -204,7 +204,7 @@ sddm_packages() {
 MIN_QUICKSHELL_VERSION="0.3.0"
 
 quickshell_version() {
-    quickshell --version 2>/dev/null | sed -n 's/^Quickshell \([0-9][0-9.]*\).*/\1/p' | head -n 1
+    quickshell --version 2>/dev/null | sed -n 's/^[Qq]uickshell \([0-9][0-9.]*\).*/\1/p' | head -n 1
 }
 
 quickshell_is_current() {

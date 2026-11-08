@@ -18,8 +18,6 @@ VOID_SDDM_SESSION_WRAPPER="/usr/local/share/serpantinum/sddm-wayland-session"
 declare -A PM_PKG_MAP=(
     [tesseract]="tesseract-ocr"
     [tesseract-data-eng]="tesseract-ocr-eng"
-    [qt6-5compat]="qt6-qt5compat"
-    [bluez-utils]="bluez"
     [networkmanager]="NetworkManager"
     [pipewire-pulse]="pipewire"
     [pipewire-alsa]="alsa-pipewire"
@@ -27,8 +25,6 @@ declare -A PM_PKG_MAP=(
     [python]="python3"
     [imagemagick]="ImageMagick"
     [ffmpeg]="ffmpeg|ffmpeg6"
-    [python-websockets]="python3-websockets"
-    [python-jeepney]="python3-jeepney"
     [mangowm]="mangowc"
 )
 
@@ -329,5 +325,9 @@ pm_remove_conflicting_pkg() {
 }
 
 pm_upgrade_quickshell() {
-    sudo xbps-install -Suy quickshell || true
+    sudo xbps-install -Suy xbps || true
+    if sudo xbps-install -Suy quickshell && quickshell_is_current; then
+        return 0
+    fi
+    sudo xbps-install -Suy || true
 }

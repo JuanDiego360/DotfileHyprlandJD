@@ -8,6 +8,12 @@ import "../../widgets"
 QtObject {
     id: root
 
+    signal redactorOpenRequested(string monitor)
+
+    function openRedactor(monitor) {
+        root.redactorOpenRequested(monitor || "");
+    }
+
     readonly property real screenW: Quickshell.screens.length > 0 ? Quickshell.screens[0].width : 1920
     readonly property real screenH: Quickshell.screens.length > 0 ? Quickshell.screens[0].height : 1080
 
@@ -426,11 +432,7 @@ QtObject {
         saveTimer.stop();
         let text = root.serialize();
         root.lastWrittenText = text;
-        Quickshell.execDetached([
-            "bash", "-c",
-            "mkdir -p \"$1\" && printf '%s' \"$2\" > \"$1/layout.json.tmp\" && mv \"$1/layout.json.tmp\" \"$1/layout.json\"",
-            "bash", root.stateDir, text
-        ]);
+        layoutWriter.setText(text);
     }
 
     function flush() {
@@ -463,7 +465,7 @@ QtObject {
     }
 
     property Process fingerprintProbe: Process {
-        command: ["bash", Caching.serpantinumDir + "/scripts/system/fingerprint_available.sh"]
+        command: ["serpantinum-core", "system", "fingerprint"]
         running: true
         onExited: (exitCode) => root.setFingerprintSupported(exitCode === 0)
     }
@@ -472,6 +474,13 @@ QtObject {
         interval: 250
         repeat: false
         onTriggered: root.saveNow()
+    }
+
+    property FileView layoutWriter: FileView {
+        path: root.filePath
+        printErrors: false
+        watchChanges: true
+        onFileChanged: reload()
     }
 
     property FileView fileView: FileView {

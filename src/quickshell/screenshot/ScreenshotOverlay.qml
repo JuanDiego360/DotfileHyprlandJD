@@ -74,7 +74,7 @@ PanelWindow {
 
     function toggleOverlay(img, editMode, audioPrefs, cGeom, cGeomVideo, cMode, cBackend, targetMon) {
         if (root.isActive) {
-            if (img && img !== "") Quickshell.execDetached(["bash", "-c", "rm -f " + img]);
+            if (img && img !== "") Quickshell.execDetached(["rm", "-f", img]);
             root.deactivate();
         } else {
             root.activate(img, editMode, audioPrefs, cGeom, cGeomVideo, cMode, cBackend, targetMon);
@@ -86,7 +86,7 @@ PanelWindow {
             root.grabKeyboardFocus();
             Qt.callLater(root.grabKeyboardFocus);
         } else {
-            if (root.freezeImg !== "") Quickshell.execDetached(["bash", "-c", "rm -f " + root.freezeImg]);
+            if (root.freezeImg !== "") Quickshell.execDetached(["rm", "-f", root.freezeImg]);
         }
     }
 
@@ -107,7 +107,7 @@ PanelWindow {
         onExited: (exitCode) => {
             if (exitCode === 0) {
                 if (root.freezeImg !== "" && root.freezeImg !== targetFile) {
-                    Quickshell.execDetached(["bash", "-c", "rm -f " + root.freezeImg]);
+                    Quickshell.execDetached(["rm", "-f", root.freezeImg]);
                 }
                 root.freezeImg = targetFile;
             }
@@ -185,7 +185,7 @@ PanelWindow {
         root.videoBackend = (cBackend === "wf-recorder") ? "wf-recorder" : "gpu-screen-recorder";
 
         if (root.isVideoMode) {
-            if (img && img !== "") Quickshell.execDetached(["bash", "-c", "rm -f " + img]);
+            if (img && img !== "") Quickshell.execDetached(["rm", "-f", img]);
             root.freezeImg = "";
         } else {
             root.freezeImg = img || "";
@@ -249,7 +249,7 @@ PanelWindow {
         refreezeProcess.running = false;
         root.isRefreezing = false;
         root.animateChanges = false;
-        if (root.freezeImg !== "") Quickshell.execDetached(["bash", "-c", "rm -f " + root.freezeImg]);
+        if (root.freezeImg !== "") Quickshell.execDetached(["rm", "-f", root.freezeImg]);
         root.freezeImg = "";
         root.isActive = false;
         root.showQrPopup = false;
@@ -265,7 +265,7 @@ PanelWindow {
 
     onIsVideoModeChanged: {
         if (!root.isInitialized || root.isLoading) return;
-        Quickshell.execDetached(["bash", "-c", "echo '" + (root.isVideoMode ? "true" : "false") + "' > " + Caching.getCacheDir("screenshot") + "/video_mode"]);
+        videoModeFile.setText((root.isVideoMode ? "true" : "false") + "\n");
 
         root.isMaximized = false;
         let screenW = root.screen ? root.screen.width : root.width;
@@ -278,7 +278,7 @@ PanelWindow {
             root.preEndY = root.endY;
 
             if (root.freezeImg !== "") {
-                Quickshell.execDetached(["bash", "-c", "rm -f " + root.freezeImg]);
+                Quickshell.execDetached(["rm", "-f", root.freezeImg]);
                 root.freezeImg = "";
             }
 
@@ -332,7 +332,7 @@ PanelWindow {
 
     onVideoBackendChanged: {
         if (!root.isInitialized || root.isLoading) return;
-        Quickshell.execDetached(["bash", "-c", "echo '" + root.videoBackend + "' > " + Caching.getCacheDir("screenshot") + "/video_backend"]);
+        videoBackendFile.setText(root.videoBackend + "\n");
         if (root.isVideoMode) {
             let screenW = root.screen ? root.screen.width : root.width;
             let screenH = root.screen ? root.screen.height : root.height;
@@ -404,7 +404,32 @@ PanelWindow {
 
     function saveAudioPrefs() {
         let data = `${root.deskVol},${root.deskMute},${root.micVol},${root.micMute},${root.micDevice}`;
-        Quickshell.execDetached(["bash", "-c", `echo '${data}' > ${Caching.getStateDir("screenshot")}/audio_prefs`]);
+        audioPrefsWriter.setText(data + "\n");
+    }
+
+    FileView {
+        id: audioPrefsWriter
+        path: Caching.getStateDir("screenshot") + "/audio_prefs"
+    }
+
+    FileView {
+        id: videoModeFile
+        path: Caching.getCacheDir("screenshot") + "/video_mode"
+    }
+
+    FileView {
+        id: videoBackendFile
+        path: Caching.getCacheDir("screenshot") + "/video_backend"
+    }
+
+    FileView {
+        id: geometryFile
+        path: Caching.getCacheDir("screenshot") + "/geometry"
+    }
+
+    FileView {
+        id: geometryVideoFile
+        path: Caching.getCacheDir("screenshot") + "/geometry_video"
     }
 
     Connections {
@@ -465,14 +490,14 @@ PanelWindow {
                 root.vidEndX = root.selX + root.selW;
                 root.vidEndY = root.selY + root.selH;
                 root.vidHasSelection = true;
-                Quickshell.execDetached(["bash", "-c", "echo '" + data + "' > " + Caching.getCacheDir("screenshot") + "/geometry_video"]);
+                geometryVideoFile.setText(data + "\n");
             } else {
                 root.imgStartX = root.selX;
                 root.imgStartY = root.selY;
                 root.imgEndX = root.selX + root.selW;
                 root.imgEndY = root.selY + root.selH;
                 root.imgHasSelection = true;
-                Quickshell.execDetached(["bash", "-c", "echo '" + data + "' > " + Caching.getCacheDir("screenshot") + "/geometry"]);
+                geometryFile.setText(data + "\n");
             }
         }
     }
@@ -1495,19 +1520,19 @@ PanelWindow {
         }
     }
 
-    Process {
+    FileView {
         id: qrReaderProcess
-        property string accumulated: ""
-        command: ["cat", Caching.getRunDir("screenshot") + "/qr_result"]
-        stdout: SplitParser { splitMarker: ""; onRead: data => qrReaderProcess.accumulated += data }
+        path: Caching.getRunDir("screenshot") + "/qr_result"
 
-        onExited: (exitCode) => {
-            let res = qrReaderProcess.accumulated.trim();
-            qrReaderProcess.accumulated = "";
+        onLoaded: handleResult(text().trim())
+        onLoadFailed: handleResult("")
+
+        function handleResult(res) {
+            if (!root.isScanningQr) return;
             root.isScanningQr = false;
             qrModel.clear();
 
-            if (exitCode !== 0 || res === "") {
+            if (res === "") {
                 qrModel.append({ 
                     qX: root.selX + (root.selW / 2), qY: root.selY + (root.selH / 2), qW: 0, qH: 0, 
                     qText: I18n.t("screenshot.qr_timeout"), qSuccess: false,
@@ -1593,7 +1618,7 @@ PanelWindow {
 
             root.isQrSuccess = anySuccess;
             root.showQrPopup = true;
-            Quickshell.execDetached(["bash", "-c", "rm -f " + Caching.getRunDir("screenshot") + "/qr_result"]);
+            Quickshell.execDetached(["rm", "-f", Caching.getRunDir("screenshot") + "/qr_result"]);
         }
     }
 
@@ -1601,11 +1626,11 @@ PanelWindow {
         id: qrWaitTimer
         interval: 1200
         repeat: false
-        onTriggered: qrReaderProcess.running = true
+        onTriggered: qrReaderProcess.reload()
     }
 
     function performQrScan() {
-        Quickshell.execDetached(["bash", "-c", "rm -f " + Caching.getRunDir("screenshot") + "/qr_result"]);
+        Quickshell.execDetached(["rm", "-f", Caching.getRunDir("screenshot") + "/qr_result"]);
         root.isScanningQr = true; root.showQrPopup = false; qrModel.clear();
         let cmd = `bash ${Caching.serpantinumDir}/scripts/screenshot.sh --geometry "${root.geometryString}" --scan-qr`;
         cmd += root.frozenSourceArgs();

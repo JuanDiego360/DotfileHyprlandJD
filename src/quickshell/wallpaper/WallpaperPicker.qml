@@ -155,10 +155,13 @@ Item {
     property bool jumpToLastOnFilterChange: false
 
     property var historyList: []
+    property string recentMode: "applied"
+    onRecentModeChanged: if (window.currentFilter === "History") window.applyFilters(true)
     property int _lastSearchFolderCount: 0
 
     readonly property var filterData: [
         { name: "All", hex: "", label: I18n.t("wallpaper.filters.all") },
+        { name: "Favorites", hex: "", label: "" },
         { name: "History", hex: "", label: I18n.t("wallpaper.filters.history") },
         { name: "Video", hex: "", label: I18n.t("wallpaper.filters.vid") },
         { name: "Red", hex: "#FF4500", label: "" },
@@ -176,11 +179,14 @@ Item {
     Process {
         id: monitorDetector
         running: false
-        command: ["bash", Caching.serpantinumDir + "/scripts/monitors_detect.sh"]
+        command: ["serpantinum-core", "monitors"]
         stdout: StdioCollector {
             onStreamFinished: {
-                let lines = this.text.trim().split("\n").map(s => s.trim()).filter(s => s.length > 0);
-                window.updateMonitorsFromList(lines);
+                let names = [];
+                try {
+                    names = JSON.parse(this.text).map(m => m.name);
+                } catch (e) {}
+                window.updateMonitorsFromList(names);
             }
         }
     }
@@ -192,12 +198,77 @@ Item {
             let raw = typeof text === "function" ? text() : text;
             let lines = (raw || "").trim().split("\n").map(s => s.trim()).filter(s => s.length > 0);
             window.historyList = lines;
-            if (window.currentFilter === "History") {
+            if (window.currentFilter === "History" && window.recentMode === "applied") {
                 if (!window.reorderHistory()) {
                     window.applyFilters(false);
                 }
             }
         }
+    }
+
+    property var favoritesList: []
+    property var favoriteKeys: ({})
+
+    FileView {
+        id: favoritesStore
+        path: Caching.getCacheDir("wallpaper") + "/favorites.txt"
+        onLoaded: {
+            let raw = typeof text === "function" ? text() : text;
+            window.setFavorites((raw || "").trim().split("\n").map(s => s.trim()).filter(s => s.length > 0), false);
+            if (window.currentFilter === "Favorites") window.applyFilters(false);
+        }
+    }
+
+    function setFavorites(list, persist) {
+        let keys = {};
+        for (let i = 0; i < list.length; i++) keys[window.getCleanBaseName(list[i])] = true;
+        window.favoritesList = list;
+        window.favoriteKeys = keys;
+        if (persist) favoritesStore.setText(list.join("\n") + "\n");
+    }
+
+    property string removingFavoriteKey: ""
+    property bool collapsingFavorite: false
+
+    function indexOfDisplayed(key) {
+        for (let i = 0; i < displayModel.count; i++) {
+            if (window.getCleanBaseName(displayModel.get(i).fileName) === key) return i;
+        }
+        return -1;
+    }
+
+    Timer {
+        id: favoriteRemoveTimer
+        interval: window.collapsingFavorite ? 300 : 220
+        onTriggered: {
+            let idx = window.indexOfDisplayed(window.removingFavoriteKey);
+            if (!window.collapsingFavorite && idx !== -1) {
+                window.collapsingFavorite = true;
+                if (displayModel.count > 1) view.currentIndex = idx < displayModel.count - 1 ? idx + 1 : idx - 1;
+                favoriteRemoveTimer.restart();
+                return;
+            }
+            if (idx !== -1) {
+                displayModel.remove(idx);
+                window.updateVisibleCount();
+            }
+            window.collapsingFavorite = false;
+            window.removingFavoriteKey = "";
+        }
+    }
+
+    function toggleFavorite(fileName) {
+        let key = window.getCleanBaseName(fileName);
+        if (!key) return;
+        let list = window.favoritesList.filter(n => window.getCleanBaseName(n) !== key);
+        if (list.length === window.favoritesList.length) {
+            list.unshift(window.getCleanName(fileName));
+        } else if (window.currentFilter === "Favorites") {
+            if (window.removingFavoriteKey !== "") return;
+            window.removingFavoriteKey = key;
+            favoriteRemoveTimer.restart();
+        }
+        window.setFavorites(list, true);
     }
 
     Process {
@@ -405,7 +476,7 @@ Item {
     }
 
     function reorderHistory() {
-        if (window.currentFilter !== "History" || displayModel.count === 0 || !window.targetWallName) {
+        if (window.currentFilter !== "History" || window.recentMode !== "applied" || displayModel.count === 0 || !window.targetWallName) {
             return false;
         }
 
@@ -557,8 +628,13 @@ Item {
                 lastName: searchState.lastName,
                 sessionId: searchState.sessionId
             });
-            Quickshell.execDetached(["sh", "-c", "printf '%s\\n' \"$1\" > \"$2\"", "_", data, filePath]);
+            searchStateFile.setText(data + "\n");
         }
+    }
+
+    FileView {
+        id: searchStateFile
+        path: searchState.filePath
     }
 
     onIsSearchPausedChanged: {
@@ -587,7 +663,7 @@ Item {
                 window._silentFilterChange = true;
                 window.currentFilter = "All";
                 window._silentFilterChange = false;
-            } else if (window.currentFilter !== "All" && window.currentFilter !== "History") {
+            } else if (window.currentFilter !== "All" && window.currentFilter !== "History" && window.currentFilter !== "Favorites") {
                 let b = window.bucketMap[window.targetWallName] || window.bucketMap[window.getCleanName(window.targetWallName)] || window.bucketMap[window.getCleanBaseName(window.targetWallName)] || "";
                 if (b && b !== window.currentFilter) {
                     window._silentFilterChange = true;
@@ -688,8 +764,8 @@ Item {
         }
         if (isLoading) return I18n.t("wallpaper.notifications.generating_thumbnails");
         if (window.visibleItemCount === 0) return I18n.t("wallpaper.notifications.no_wallpapers_found");
-        if (window.currentFilter === "All") return "";
-        if (window.currentFilter === "History") return I18n.t("wallpaper.notifications.history");
+        if (window.currentFilter === "All" || window.currentFilter === "History") return "";
+        if (window.currentFilter === "Favorites") return I18n.t("wallpaper.notifications.favorites", "Favorites");
         if (window.currentFilter === "Video") return I18n.t("wallpaper.notifications.videos");
         return window.currentFilter;
     }
@@ -827,6 +903,59 @@ Item {
         return items;
     }
 
+    function getRecentlyAddedItems() {
+        let entries = [];
+        for (let i = 0; i < srcModel.count; i++) {
+            let fn = srcModel.get(i, "fileName");
+            if (fn) entries.push({ "name": String(fn), "time": +srcModel.get(i, "fileModified") });
+        }
+        entries.sort((a, b) => b.time - a.time);
+
+        let items = [];
+        let seen = {};
+        for (let i = 0; i < entries.length; i++) {
+            let name = entries[i].name;
+            let lookup = window.thumbLookup[name] || window.thumbLookup[window.getCleanBaseName(name)];
+            if (!lookup || !lookup.fileName || seen[lookup.fileName]) continue;
+            seen[lookup.fileName] = true;
+            items.push({
+                "fileName": lookup.fileName,
+                "filePath": lookup.filePath,
+                "fileUrl": String(lookup.fileUrl),
+                "posterPath": lookup.posterPath || "",
+                "posterUrl": String(lookup.posterUrl || ""),
+                "isVideo": !!lookup.isVideo,
+                "hex": lookup.hex || "#808080",
+                "bucket": "History"
+            });
+        }
+        return items;
+    }
+
+    function getFavoriteItems() {
+        let items = [];
+        let seen = {};
+        for (let i = 0; i < window.favoritesList.length; i++) {
+            let name = window.favoritesList[i];
+            let clean = window.getCleanBaseName(name);
+            if (!clean || seen[clean]) continue;
+            let lookup = window.thumbLookup[clean] || window.thumbLookup[name];
+            if (!lookup || !lookup.fileName) continue;
+            seen[clean] = true;
+            items.push({
+                "fileName": lookup.fileName,
+                "filePath": lookup.filePath,
+                "fileUrl": String(lookup.fileUrl),
+                "posterPath": lookup.posterPath || "",
+                "posterUrl": String(lookup.posterUrl || ""),
+                "isVideo": !!lookup.isVideo,
+                "hex": lookup.hex || "#808080",
+                "bucket": "Favorites"
+            });
+        }
+        return items;
+    }
+
     function syncFromSrcModel() {
         if (srcModel.status !== FolderListModel.Ready || srcModel.count === 0) return;
 
@@ -934,53 +1063,45 @@ Item {
         onTriggered: window.triggerIndexer()
     }
 
-    Process {
+    FileView {
         id: searchStateReader
-        running: false
-        command: ["sh", "-c", "[ -f \"$1\" ] && cat \"$1\"", "_", Caching.getCacheDir("wallpaper") + "/search_state.json"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                let trimmed = this.text ? this.text.trim() : "";
-                if (trimmed.length > 0) {
-                    try {
-                        let data = JSON.parse(trimmed);
-                        if (data && typeof data === "object") {
-                            searchState.query = data.query || "";
-                            searchState.searched = !!data.searched;
-                            searchState.lastName = data.lastName || "";
-                            searchState.sessionId = data.sessionId || 0;
+        printErrors: false
+        onLoaded: {
+            let trimmed = text().trim();
+            if (trimmed.length === 0) return;
+            try {
+                let data = JSON.parse(trimmed);
+                if (data && typeof data === "object") {
+                    searchState.query = data.query || "";
+                    searchState.searched = !!data.searched;
+                    searchState.lastName = data.lastName || "";
+                    searchState.sessionId = data.sessionId || 0;
 
-                            if (searchState.searched) {
-                                searchInput.text = searchState.query;
-                                window.searchQuery = searchState.query;
-                                window.hasSearched = true;
-                                window.lastSearchName = searchState.lastName;
-                                window.searchSessionId = searchState.sessionId;
-                                window.isSearchPaused = true;
-                            }
-                        }
-                    } catch(e) {}
+                    if (searchState.searched) {
+                        searchInput.text = searchState.query;
+                        window.searchQuery = searchState.query;
+                        window.hasSearched = true;
+                        window.lastSearchName = searchState.lastName;
+                        window.searchSessionId = searchState.sessionId;
+                        window.isSearchPaused = true;
+                    }
                 }
-            }
+            } catch(e) {}
         }
     }
 
-    Process {
+    FileView {
         id: indexDiskReader
-        running: false
-        command: ["cat", Caching.getCacheDir("wallpaper") + "/current_index.json"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                let trimmed = this.text ? this.text.trim() : "";
-                if (trimmed.length > 0) {
-                    try {
-                        let data = JSON.parse(trimmed);
-                        if (data && data.srcDir === window.srcDir) {
-                            window.loadIndexData(data);
-                        }
-                    } catch(e) {}
+        printErrors: false
+        onLoaded: {
+            let trimmed = text().trim();
+            if (trimmed.length === 0) return;
+            try {
+                let data = JSON.parse(trimmed);
+                if (data && data.srcDir === window.srcDir) {
+                    window.loadIndexData(data);
                 }
-            }
+            } catch(e) {}
         }
     }
 
@@ -988,8 +1109,9 @@ Item {
         id: indexProcess
         running: false
         command: [
-            "python3",
-            window.scriptDir + "/indexer.py",
+            "serpantinum-core",
+            "wallpaper",
+            "index",
             window.srcDir,
             Caching.getCacheDir("wallpaper"),
             Caching.getRunDir("wallpaper")
@@ -1205,7 +1327,7 @@ Item {
         if (displayModel.count > 0 && window._lastProxyVersion === window.cacheVersion) {
             if (isLocalMode && wasLocalMode) {
                 canReuseDisplay = true;
-            } else if (window.currentFilter === window._lastFilterApplied && window.currentFilter !== "History") {
+            } else if (window.currentFilter === window._lastFilterApplied && window.currentFilter !== "History" && window.currentFilter !== "Favorites") {
                 canReuseDisplay = true;
             }
         }
@@ -1308,8 +1430,8 @@ Item {
                     anchorIndex = currentIndex;
                 }
             }
-        } else if (window.currentFilter === "History") {
-            let histItems = window.getHistoryItems();
+        } else if (window.currentFilter === "History" || window.currentFilter === "Favorites") {
+            let histItems = window.currentFilter !== "History" ? window.getFavoriteItems() : (window.recentMode === "added" ? window.getRecentlyAddedItems() : window.getHistoryItems());
             for (let h = 0; h < histItems.length; h++) {
                 let fname = histItems[h].fileName;
                 if (!fname || seenNames[fname]) continue;
@@ -1323,7 +1445,7 @@ Item {
                     "posterUrl": histItems[h].posterUrl || "",
                     "isVideo": !!histItems[h].isVideo,
                     "hex": histItems[h].hex || "#808080",
-                    "bucket": "History"
+                    "bucket": window.currentFilter
                 });
 
                 let currentIndex = newItems.length - 1;
@@ -1407,6 +1529,7 @@ Item {
         window._lastFilterApplied = window.currentFilter;
         window._lastProxyVersion = window.cacheVersion;
 
+        if (window.currentFilter === "History" && window.recentMode === "added") targetIndex = firstValidIndex;
         let indexToFocus = targetIndex !== -1 ? targetIndex : (window.jumpToLastOnFilterChange && lastValidIndex !== -1 ? lastValidIndex : (displayModel.count > 0 ? (view.currentIndex >= 0 && view.currentIndex < displayModel.count ? view.currentIndex : 0) : -1));
         window.jumpToLastOnFilterChange = false;
 
@@ -1455,6 +1578,16 @@ Item {
             if (view.currentIndex >= 0 && view.currentIndex < displayModel.count) {
                 let item = displayModel.get(view.currentIndex);
                 if (item && item.fileName) window.applyWallpaper(String(item.fileName), !!item.isVideo);
+            }
+        }
+    }
+    Shortcut {
+        sequence: "F"
+        enabled: window.visible && !searchInput.hasFocus && !window.isScrollingBlocked && !window.isApplying && window.currentFilter !== "Search"
+        onActivated: {
+            if (view.currentIndex >= 0 && view.currentIndex < displayModel.count) {
+                let item = displayModel.get(view.currentIndex);
+                if (item && item.fileName) window.toggleFavorite(String(item.fileName));
             }
         }
     }
@@ -1734,7 +1867,8 @@ Item {
                 }
             }
 
-            width: isFailed ? 0 : cellWidth
+            readonly property bool isRemoving: window.removingFavoriteKey !== "" && window.getCleanBaseName(safeFileName) === window.removingFavoriteKey
+            width: (isFailed || (isRemoving && window.collapsingFavorite)) ? 0 : cellWidth
             visible: (opacity > 0.01) && !isFailed
             opacity: isFailed ? 0.0 : sideOpacity
             height: isFailed ? 0 : targetHeight
@@ -1743,7 +1877,7 @@ Item {
             z: isVisuallyEnlarged ? 100 : Math.max(1, 50 - dist)
 
             Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
-            Behavior on width { enabled: window.initialFocusSet && !window.isModelChanging && !window.isFilterAnimating; NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
+            Behavior on width { enabled: window.initialFocusSet && !window.isModelChanging && !window.isFilterAnimating; NumberAnimation { duration: isRemoving ? 280 : 400; easing.type: Easing.OutCubic } }
             Behavior on height { enabled: window.initialFocusSet && !window.isModelChanging && !window.isFilterAnimating; NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
 
             Item {
@@ -1758,6 +1892,10 @@ Item {
 
                 width: parent.width - targetPadding
                 height: parent ? parent.height : 0
+                opacity: delegateRoot.isRemoving ? 0.0 : 1.0
+                scale: delegateRoot.isRemoving ? 0.85 : 1.0
+                Behavior on opacity { NumberAnimation { duration: 220; easing.type: Easing.InOutQuad } }
+                Behavior on scale { NumberAnimation { duration: 220; easing.type: Easing.InOutQuad } }
                 transform: Matrix4x4 { property real s: window.skewFactor; matrix: Qt.matrix4x4(1, s, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1) }
 
                 MouseArea {
@@ -1866,6 +2004,40 @@ Item {
                             enabled: !window.isApplying
                             onClicked: delegateRoot.toggleVideoPlay()
                             transform: Matrix4x4 { property real s: -window.skewFactor; matrix: Qt.matrix4x4(1, s, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1) }
+                        }
+                    }
+
+                    Item {
+                        id: favoriteButton
+                        readonly property bool isFavorite: window.favoriteKeys[window.getCleanBaseName(delegateRoot.safeFileName)] === true
+                        visible: window.currentFilter !== "Search" && delegateRoot.isCurrent
+                        anchors.left: parent ? parent.left : undefined
+                        anchors.top: parent ? parent.top : undefined
+                        anchors.leftMargin: window.s(4)
+                        anchors.topMargin: window.s(8)
+                        width: window.s(30)
+                        height: window.s(30)
+                        scale: favoriteMouse.pressed ? 0.9 : (favoriteMouse.containsMouse ? 1.15 : 1.0)
+                        Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutQuint } }
+                        transform: Matrix4x4 { property real s: -window.skewFactor; matrix: Qt.matrix4x4(1, s, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1) }
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: favoriteButton.isFavorite ? "󰓎" : "󰓒"
+                            font.family: ThemeBackend.iconFont
+                            font.pixelSize: window.s(20)
+                            color: favoriteButton.isFavorite ? ThemeBackend.primary : ThemeBackend.text
+                            style: Text.Outline
+                            styleColor: Qt.rgba(0, 0, 0, 0.45)
+                        }
+
+                        MouseArea {
+                            id: favoriteMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            enabled: !window.isApplying
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: window.toggleFavorite(delegateRoot.safeFileName)
                         }
                     }
 
@@ -2000,85 +2172,110 @@ Item {
             Repeater {
                 model: window.filterData
                 delegate: Item {
-                    width: (modelData.name === "Video" || modelData.name === "All" || modelData.name === "History") ? window.s(34) : (modelData.hex === "" ? filterText.contentWidth + window.s(16) : window.s(34))
+                    width: (modelData.name === "Video" || modelData.name === "All" || modelData.name === "Favorites") ? window.s(34) : (modelData.name === "History" ? window.s(34) + recentModeContainer.width : (modelData.hex === "" ? filterText.contentWidth + window.s(16) : window.s(34)))
                     height: window.s(34); anchors.verticalCenter: parent ? parent.verticalCenter : undefined
 
-                    CanvasIconButton {
+                    IconButton {
                         glassShadow: 0
                         visible: modelData.name === "All"
                         anchors.fill: parent
                         size: window.s(34)
                         cornerRadius: window.s(10)
-                        iconSize: window.s(14)
+                        buttonIcon: "󰕰"
+                        iconFontSize: window.s(15)
                         accentColor: window.currentFilter === modelData.name ? ThemeBackend.surface2 : ThemeBackend.surface0
                         bgOpacity: ThemeBackend.elementOpacity
                         textColor: window.currentFilter === modelData.name ? ThemeBackend.text : ThemeBackend.subtext0
                         action_highlight: window.currentFilter === modelData.name
-                        paintCanvas: function(ctx, canvas) {
-                            var s = window.s;
-                            ctx.fillStyle = textColor;
-                            ctx.fillRect(0, 0, s(5), s(5));
-                            ctx.fillRect(s(7), 0, s(5), s(5));
-                            ctx.fillRect(0, s(7), s(5), s(5));
-                            ctx.fillRect(s(7), s(7), s(5), s(5));
-                        }
                         onClicked: window.setFilter(modelData.name)
                     }
 
-                    CanvasIconButton {
+                    IconButton {
                         glassShadow: 0
-                        visible: modelData.name === "History"
+                        visible: modelData.name === "Favorites"
                         anchors.fill: parent
                         size: window.s(34)
                         cornerRadius: window.s(10)
-                        iconSize: window.s(14)
+                        buttonIcon: "󰓎"
+                        iconFontSize: window.s(16)
                         accentColor: window.currentFilter === modelData.name ? ThemeBackend.surface2 : ThemeBackend.surface0
                         bgOpacity: ThemeBackend.elementOpacity
                         textColor: window.currentFilter === modelData.name ? ThemeBackend.text : ThemeBackend.subtext0
                         action_highlight: window.currentFilter === modelData.name
-                        paintCanvas: function(ctx, canvas) {
-                            var s = window.s;
-                            ctx.strokeStyle = textColor;
-                            ctx.lineWidth = s(1.5);
-                            ctx.lineCap = "round";
-                            ctx.beginPath();
-                            ctx.arc(s(6), s(6), s(4.5), 0, Math.PI * 2);
-                            ctx.stroke();
-                            ctx.beginPath();
-                            ctx.moveTo(s(6), s(3));
-                            ctx.lineTo(s(6), s(6));
-                            ctx.lineTo(s(8.5), s(6));
-                            ctx.stroke();
-                        }
                         onClicked: window.setFilter(modelData.name)
                     }
 
-                    CanvasIconButton {
+                    IconButton {
+                        glassShadow: 0
+                        visible: modelData.name === "History"
+                        anchors.left: parent.left
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: window.s(34)
+                        height: window.s(34)
+                        size: window.s(34)
+                        cornerRadius: window.s(10)
+                        buttonIcon: "󰦛"
+                        iconFontSize: window.s(16)
+                        accentColor: window.currentFilter === modelData.name ? ThemeBackend.surface2 : ThemeBackend.surface0
+                        bgOpacity: ThemeBackend.elementOpacity
+                        textColor: window.currentFilter === modelData.name ? ThemeBackend.text : ThemeBackend.subtext0
+                        action_highlight: window.currentFilter === modelData.name
+                        onClicked: window.setFilter(modelData.name)
+                    }
+
+                    Item {
+                        id: recentModeContainer
+                        property bool shouldShow: modelData.name === "History" && window.currentFilter === "History"
+                        width: shouldShow ? window.s(8) + recentModeSwitch.width : 0
+                        height: window.s(34)
+                        clip: true
+                        visible: width > 0.1
+                        anchors.right: parent.right
+                        anchors.verticalCenter: parent.verticalCenter
+                        Behavior on width { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
+
+                        Switch {
+                            id: recentModeSwitch
+                            anchors.right: parent.right
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: implicitWidth
+                            height: window.s(34)
+                            horizontalPadding: window.s(12)
+                            opacity: recentModeContainer.shouldShow ? 1.0 : 0.0
+                            Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
+                            options: [I18n.t("wallpaper.notifications.history"), I18n.t("wallpaper.notifications.recently_added", "Recently added")]
+                            currentIndex: window.recentMode === "added" ? 1 : 0
+                            enabled: !window.isApplying
+                            cornerRadius: ThemeBackend.borderRadius
+                            fontPixelSize: window.s(12)
+                            baseColor: ThemeBackend.surface0
+                            bgOpacity: ThemeBackend.elementOpacity
+                            accentColor: ThemeBackend.mauve
+                            textColor: ThemeBackend.subtext0
+                            activeTextColor: ThemeBackend.crust
+                            onValueChanged: function(index, value) {
+                                window.recentMode = index === 1 ? "added" : "applied";
+                            }
+                        }
+                    }
+
+                    IconButton {
                         glassShadow: 0
                         visible: modelData.name === "Video"
                         anchors.fill: parent
                         size: window.s(34)
                         cornerRadius: window.s(10)
-                        iconSize: window.s(12)
+                        buttonIcon: "󰐊"
+                        iconFontSize: window.s(14)
                         accentColor: window.currentFilter === modelData.name ? ThemeBackend.surface2 : ThemeBackend.surface0
                         bgOpacity: ThemeBackend.elementOpacity
                         textColor: window.currentFilter === modelData.name ? ThemeBackend.text : ThemeBackend.subtext0
                         action_highlight: window.currentFilter === modelData.name
-                        paintCanvas: function(ctx, canvas) {
-                            var s = window.s;
-                            ctx.fillStyle = textColor;
-                            ctx.beginPath();
-                            ctx.moveTo(0, 0);
-                            ctx.lineTo(s(10), s(6));
-                            ctx.lineTo(0, s(12));
-                            ctx.closePath();
-                            ctx.fill();
-                        }
                         onClicked: window.setFilter(modelData.name)
                     }
 
                     Rectangle {
-                        visible: modelData.hex === "" && modelData.name !== "Video" && modelData.name !== "All" && modelData.name !== "History"
+                        visible: modelData.hex === "" && modelData.name !== "Video" && modelData.name !== "All" && modelData.name !== "Favorites" && modelData.name !== "History"
                         anchors.fill: parent
                         radius: ThemeBackend.borderRadius
                         color: Qt.alpha(window.currentFilter === modelData.name ? ThemeBackend.surface2 : (filterMouse.containsMouse ? ThemeBackend.surface1 : ThemeBackend.surface0), ThemeBackend.elementOpacity)
@@ -2294,8 +2491,8 @@ Item {
     Component.onCompleted: {
         Quickshell.execDetached(["bash", "-c", "mkdir -p '" + decodeURIComponent(window.searchDir.replace("file://", "")) + "'"]);
 
-        searchStateReader.running = true;
-        indexDiskReader.running = true;
+        searchStateReader.path = Caching.getCacheDir("wallpaper") + "/search_state.json";
+        indexDiskReader.path = Caching.getCacheDir("wallpaper") + "/current_index.json";
         window.syncFromSrcModel();
         window.triggerIndexer();
 

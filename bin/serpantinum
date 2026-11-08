@@ -103,16 +103,15 @@ show_help() {
     echo "  reboot                       $(t "cli.scripts.reboot")"
     echo "  poweroff                     $(t "cli.scripts.poweroff")"
     echo "  redactor [monitor] [widget]  $(t "cli.scripts.redactor")"
+    echo "  lock-redactor [action]       $(t "cli.scripts.lock_redactor")"
     echo "  volume                       $(t "cli.scripts.volume")"
     echo "  reload                       $(t "cli.scripts.reload")"
     echo "  weather                      $(t "cli.scripts.weather")"
     echo "  location                     $(t "cli.scripts.location")"
     echo "  screenshot                   $(t "cli.scripts.screenshot")"
     echo "  brightness                   $(t "cli.scripts.brightness")"
-    echo "  current_focus                $(t "cli.scripts.current_focus")"
-    echo "  monitors_detect              $(t "cli.scripts.monitors_detect")"
     echo "  location_manual              $(t "cli.scripts.location_manual")"
-    echo "  blue_light_filter            $(t "cli.scripts.blue_light_filter")"
+    echo "  gamma                        $(t "cli.scripts.gamma")"
     echo ""
     echo "$(t "cli.options")"
     echo "  -v, --verbose                $(t "cli.verbose_desc")"
@@ -121,7 +120,6 @@ show_help() {
     echo ""
     echo "$(t "cli.examples")"
     echo "  serpantinum launch start"
-    echo "  serpantinum launch widgetredactor"
     echo "  serpantinum settings theme"
     echo "  serpantinum msg workspace 1"
     echo "  serpantinum msg workspace 2 move"
@@ -141,8 +139,6 @@ show_launch_help() {
     echo ""
     echo "$(t "cli.launch_help.available_targets")"
     echo "  start            $(t "cli.launch_help.target_start")"
-    echo "  widgetredactor  $(t "cli.launch_help.target_widgetredactor")"
-    echo "  lock-redactor   $(t "cli.launch_help.target_lock_redactor")"
     echo ""
     echo "$(t "cli.options")"
     echo "  -h, --help      $(t "cli.help_desc")"
@@ -236,17 +232,20 @@ stop_daemon() {
     if [ -n "$pid" ] && is_alive "$pid"; then
         terminate_and_wait "$pid" 3
     else
-        pkill -TERM -f "focus_daemon.py" 2>/dev/null
+        pkill -TERM -f "serpantinum-core screentime track" 2>/dev/null
         if [ -n "$MAIN_QML" ]; then
             pkill -TERM -f "quickshell.*$MAIN_QML" 2>/dev/null
         fi
         sleep 0.2
     fi
 
-    pkill -KILL -f "focus_daemon.py" 2>/dev/null
+    pkill -KILL -f "serpantinum-core screentime track" 2>/dev/null
     if [ -n "$MAIN_QML" ]; then
         pkill -KILL -f "quickshell.*$MAIN_QML" 2>/dev/null
     fi
+    bash "$SERPANTINUM_DIR/scripts/gamma.sh" stop >/dev/null 2>&1
+    command -v serpantinum-core >/dev/null 2>&1 && serpantinum-core quit >/dev/null 2>&1
+    command -v serpantinum-audio >/dev/null 2>&1 && serpantinum-audio ctl quit >/dev/null 2>&1
 
     rm -f "/tmp/serpantinumd.pid" 2>/dev/null
     rm -f "/tmp/serpantinumd.lock" 2>/dev/null
@@ -267,7 +266,7 @@ cli_lock_redactor() {
     case "$action" in
         toggle|close) cli_ipc lock-redactor "$action" ;;
         open) cli_ipc lock-redactor open "${2:-}" ;;
-        *) cli_usage "launch lock-redactor [toggle|open [monitor]|close]" ;;
+        *) cli_usage "lock-redactor [toggle|open [monitor]|close]" ;;
     esac
 }
 
@@ -377,11 +376,10 @@ cli_theme_find() {
 }
 
 cli_monitors() {
-    local script="$SERPANTINUM_DIR/scripts/monitors_detect.sh"
     if [[ "$1" == "--json" ]]; then
-        "$script" --verbose | jq -Rn '[inputs | split("|") | (.[1] | split("x")) as $res | {name: .[0], width: ($res[0] | tonumber? // null), height: ($res[1] | tonumber? // null), refreshRate: (.[2] | tonumber? // null)}]'
+        serpantinum-core monitors | jq '[.[] | {name, width, height, refreshRate}]'
     else
-        "$script"
+        serpantinum-core monitors | jq -r '.[].name'
     fi
 }
 
@@ -404,7 +402,7 @@ cli_check_updates() {
 }
 
 cli_caffeine() {
-    cli_switch idle.manualInhibit "$1" false caffeine
+    cli_switch idle.manualInhibit "$1" false "set idle caffeine"
     if [[ "${1:-toggle}" != "status" && "$(cli_cfg_get idle.manualInhibit false)" != "true" ]]; then
         cli_cfg_apply '.idle = ((.idle // {}) + {caffeineStartTime: 0, caffeineEndTime: 0})'
     fi
@@ -417,7 +415,7 @@ cli_matugen() {
         on) mode=true ;;
         off) mode=false ;;
         toggle) [ "$current" = "true" ] && mode=false || mode=true ;;
-        *) cli_usage "set matugen <on|off|toggle>" ;;
+        *) cli_usage "set theme matugen [on|off|toggle]" ;;
     esac
     if [ "$mode" = true ]; then
         cli_cfg_apply '.theme = ((.theme // {}) + {activePreset: "Matugen", matugen: true})'
@@ -430,7 +428,7 @@ cli_matugen() {
 
 cli_set_theme() {
     local file name colors mode
-    [ -n "$1" ] || cli_usage "set theme <preset>"
+    [ -n "$1" ] || cli_usage "set theme preset <name>"
     if ! file="$(cli_theme_find "$1")"; then
         echo "$(t "cli.error_unknown_theme" NAME="$1")" >&2
         exit 1
@@ -442,6 +440,28 @@ cli_set_theme() {
     cli_cfg_apply '.theme = ((.theme // {}) + {activePreset: $n, matugen: false, colors: $c})' --arg n "$name" --argjson c "$colors"
     cli_ipc matugen generateFromStatic "$colors" "$mode"
     cli_ipc theme reloadColors
+}
+
+cli_app_theme() {
+    local id="$1" listing current next enabled
+    local engine="$SERPANTINUM_DIR/scripts/theming/apptheme.py"
+    [ -n "$id" ] || cli_usage "set theme app <id> [on|off|toggle]"
+    export QS_STATE_DIR="${QS_STATE_DIR:-$HOME/.local/state/serpantinum}" QS_SETTINGS="$CONFIG_SETTINGS_JSON"
+    listing="$(python3 "$engine" list)" || exit 1
+    if ! jq -e --arg i "$id" '.apps | any(.id == $i)' <<< "$listing" >/dev/null; then
+        echo "$(t "cli.error_unknown_app" ID="$id")" >&2
+        exit 1
+    fi
+    current="$(jq -r --arg i "$id" '.apps[] | select(.id == $i) | .enabled' <<< "$listing")"
+    case "${2:-toggle}" in
+        on) next=true ;;
+        off) next=false ;;
+        toggle) [ "$current" = "true" ] && next=false || next=true ;;
+        *) cli_usage "set theme app <id> [on|off|toggle]" ;;
+    esac
+    enabled="$(jq -c --arg i "$id" --argjson on "$next" '[.apps[] | select(.enabled and .id != $i) | .id] + (if $on then [$i] else [] end) | sort' <<< "$listing")"
+    cli_cfg_apply '.theme = ((.theme // {}) + {apps: $a})' --argjson a "$enabled"
+    python3 "$engine" apply --enabled="$(jq -r 'join(",")' <<< "$enabled")" >/dev/null || true
 }
 
 cli_set_lang() {
@@ -497,52 +517,96 @@ cli_set_wallpaper() {
     esac
 }
 
+cli_settings_json() {
+    _config_ensure_settings
+    jq -c "$@" "$CONFIG_SETTINGS_JSON"
+}
+
+cli_list_json() {
+    local file
+    for file in "$@"; do
+        [ -f "$file" ] && basename "$file" .json
+    done | jq -Rsc 'split("\n") | map(select(length > 0))'
+}
+
+cli_info_group() {
+    local json
+    case "$1" in
+        notifications) json="$(cli_settings_json '{dnd: (.notifications.dnd == true)}')" ;;
+        idle) json="$(cli_ipc idle status)" ;;
+        dock) json="$(cli_settings_json '{enabled: (.dock.enabled != false), autohide: (.dock.autohide == true)}')" ;;
+        sfx) json="$(cli_settings_json '{mute: (.general.muteSfx == true)}')" ;;
+        theme)
+            json="$(cli_settings_json --argjson p "$(cli_list_json "$SERPANTINUM_DIR"/assets/themes/*.json)" \
+                '{preset: (.theme.activePreset // "Matugen"), matugen: (.theme.matugen != false), apps: (.theme.apps // ["cava", "gtk", "kitty", "qt"]), presets: $p}')"
+            ;;
+        lang)
+            json="$(jq -nc --arg c "$(get_current_language)" --argjson a "$(cli_list_json "$I18N_DIR"/*.json)" \
+                '{current: $c, available: $a}')"
+            ;;
+    esac
+    if [ -z "$2" ]; then
+        jq . <<< "$json"
+    elif jq -e --arg k "$2" 'has($k)' <<< "$json" >/dev/null 2>&1; then
+        jq -r --arg k "$2" '.[$k] | if type == "array" then .[] else . end' <<< "$json"
+    else
+        cli_usage "info $1 [$(jq -r 'keys_unsorted | join("|")' <<< "$json")]"
+    fi
+}
+
 cli_info() {
     local topic="${1:-}"
-    local file
     case "$topic" in
-        dnd) cli_switch notifications.dnd status false dnd ;;
-        caffeine) cli_switch idle.manualInhibit status false caffeine ;;
-        dock) cli_switch dock.enabled status true dock ;;
-        dock-autohide) cli_switch dock.autohide status false dock-autohide ;;
-        sfx-mute) cli_switch general.muteSfx status false sfx-mute ;;
-        matugen) cli_switch theme.matugen status true matugen ;;
-        lang)
-            get_current_language
-            echo
-            ;;
-        languages)
-            for file in "$I18N_DIR"/*.json; do
-                basename "$file" .json
-            done
-            ;;
-        theme) cli_cfg_get theme.activePreset Matugen ;;
-        themes)
-            for file in "$SERPANTINUM_DIR"/assets/themes/*.json; do
-                basename "$file" .json
-            done
-            ;;
+        notifications|idle|dock|sfx|theme|lang) cli_info_group "$topic" "${2:-}" ;;
         wallpaper) cli_ipc wallpaper getWallpaperPath "${2:-}" ;;
         monitors) cli_monitors "$2" ;;
         updates) cli_check_updates "$2" ;;
-        *) cli_usage "info <dnd|caffeine|dock|dock-autohide|sfx-mute|matugen|lang|languages|theme|themes|wallpaper|monitors|updates>" ;;
+        *) cli_usage "info <notifications|idle|dock|sfx|theme|lang> [key] | info <wallpaper [screen]|monitors [--json]|updates [--json]>" ;;
     esac
 }
 
 cli_set() {
-    local topic="${1:-}"
-    shift
-    case "$topic" in
-        dnd) cli_switch notifications.dnd "$1" false dnd ;;
-        caffeine) cli_caffeine "$1" ;;
-        dock) cli_switch dock.enabled "$1" true dock ;;
-        dock-autohide) cli_switch dock.autohide "$1" false dock-autohide ;;
-        sfx-mute) cli_switch general.muteSfx "$1" false sfx-mute ;;
-        matugen) cli_matugen "$1" ;;
-        lang) cli_set_lang "$1" ;;
-        theme) cli_set_theme "$1" ;;
-        wallpaper) cli_set_wallpaper "$@" ;;
-        *) cli_usage "set <dnd|caffeine|dock|dock-autohide|sfx-mute> [on|off|toggle] | set <matugen> [on|off|toggle] | set lang <code> | set theme <preset> | set wallpaper <value> [screen]" ;;
+    local group="${1:-}" key="${2:-}"
+    case "$group" in
+        notifications)
+            case "$key" in
+                dnd) cli_switch notifications.dnd "$3" false "set notifications dnd" ;;
+                *) cli_usage "set notifications dnd [on|off|toggle]" ;;
+            esac
+            ;;
+        idle)
+            case "$key" in
+                caffeine) cli_caffeine "$3" ;;
+                *) cli_usage "set idle caffeine [on|off|toggle]" ;;
+            esac
+            ;;
+        dock)
+            case "$key" in
+                enabled) cli_switch dock.enabled "$3" true "set dock enabled" ;;
+                autohide) cli_switch dock.autohide "$3" false "set dock autohide" ;;
+                *) cli_usage "set dock <enabled|autohide> [on|off|toggle]" ;;
+            esac
+            ;;
+        sfx)
+            case "$key" in
+                mute) cli_switch general.muteSfx "$3" false "set sfx mute" ;;
+                *) cli_usage "set sfx mute [on|off|toggle]" ;;
+            esac
+            ;;
+        theme)
+            case "$key" in
+                preset) cli_set_theme "$3" ;;
+                matugen) cli_matugen "$3" ;;
+                app) cli_app_theme "$3" "$4" ;;
+                *) cli_usage "set theme <preset <name>|matugen [on|off|toggle]|app <id> [on|off|toggle]>" ;;
+            esac
+            ;;
+        lang) cli_set_lang "$2" ;;
+        wallpaper)
+            shift
+            cli_set_wallpaper "$@"
+            ;;
+        *) cli_usage "set <notifications dnd|idle caffeine|dock <enabled|autohide>|sfx mute> [on|off|toggle] | set theme <preset <name>|matugen [on|off|toggle]|app <id> [on|off|toggle]> | set lang <code> | set wallpaper <value> [screen]" ;;
     esac
 }
 
@@ -554,8 +618,11 @@ cli_trigger() {
                 *) cli_usage "trigger idle <dim|dpms|lock|suspend>" ;;
             esac
             ;;
-        notifications-clear)
-            cli_ipc main clearNotifications
+        notifications)
+            case "${2:-}" in
+                clear) cli_ipc main clearNotifications ;;
+                *) cli_usage "trigger notifications clear" ;;
+            esac
             ;;
         firstlaunch)
             case "${2:-}" in
@@ -563,19 +630,22 @@ cli_trigger() {
                 *) cli_usage "trigger firstlaunch <trigger|reset>" ;;
             esac
             ;;
-        theme-reload)
-            cli_ipc theme reloadColors
-            ;;
-        theme-generate)
-            [ -n "$2" ] || cli_usage "trigger theme-generate <image> [mode] [scheme]"
-            if [ ! -f "$2" ]; then
-                echo "$(t "cli.error_file_not_found" PATH="$2")" >&2
-                exit 1
-            fi
-            cli_ipc matugen generate "$(realpath "$2")" "${3:-}" "${4:-}"
+        theme)
+            case "${2:-}" in
+                reload) cli_ipc theme reloadColors ;;
+                generate)
+                    [ -n "$3" ] || cli_usage "trigger theme generate <image> [mode] [scheme]"
+                    if [ ! -f "$3" ]; then
+                        echo "$(t "cli.error_file_not_found" PATH="$3")" >&2
+                        exit 1
+                    fi
+                    cli_ipc matugen generate "$(realpath "$3")" "${4:-}" "${5:-}"
+                    ;;
+                *) cli_usage "trigger theme <reload|generate <image> [mode] [scheme]>" ;;
+            esac
             ;;
         *)
-            cli_usage "trigger <idle <dim|dpms|lock|suspend>|notifications-clear|firstlaunch <trigger|reset>|theme-reload|theme-generate <image> [mode] [scheme]>"
+            cli_usage "trigger <idle <dim|dpms|lock|suspend>|notifications clear|firstlaunch <trigger|reset>|theme <reload|generate <image> [mode] [scheme]>>"
             ;;
     esac
 }
@@ -609,14 +679,6 @@ if [[ "$1" == "launch" ]]; then
         start)
             QML_NAME="Start"
             ;;
-        widgetredactor)
-            QML_NAME="WidgetRedactor"
-            ;;
-        lock-redactor)
-            shift 2
-            cli_lock_redactor "$@"
-            exit $?
-            ;;
         *)
             echo "$(t "cli.error_unknown_target" TARGET="$2")"
             show_launch_help
@@ -637,6 +699,12 @@ if [[ "$1" == "launch" ]]; then
         echo "$(t "cli.error_qml_not_found" NAME="${QML_NAME}" DIR="$SERPANTINUM_DIR/quickshell/")"
         exit 1
     fi
+fi
+
+if [[ "$1" == "lock-redactor" ]]; then
+    shift
+    cli_lock_redactor "$@"
+    exit $?
 fi
 
 if [[ "$1" == "settings" ]]; then
@@ -701,6 +769,10 @@ case "$1" in
         cli_trigger "$@"
         exit $?
         ;;
+    brightness)
+        shift
+        exec serpantinum-core brightness "$@"
+        ;;
 esac
 
 ALLOWED_SCRIPTS=(
@@ -716,11 +788,8 @@ ALLOWED_SCRIPTS=(
     "weather"
     "location"
     "screenshot"
-    "brightness"
-    "current_focus"
-    "monitors_detect"
     "location_manual"
-    "blue_light_filter"
+    "gamma"
 )
 
 COMMAND="$1"

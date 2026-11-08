@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import "../"
 import "../../"
+import "../../lock/redactor"
 
 GuideTab {
     id: displayLockscreenRoot
@@ -41,7 +42,7 @@ GuideTab {
 
     Process {
         id: fingerprintProbe
-        command: ["bash", (Caching.serpantinumDir ? Caching.serpantinumDir : "") + "/scripts/system/fingerprint_available.sh"]
+        command: ["serpantinum-core", "system", "fingerprint"]
         onExited: (exitCode) => displayLockscreenRoot.fingerprintSupported = exitCode === 0
     }
 
@@ -63,7 +64,7 @@ GuideTab {
     }
 
     function openRedactor() {
-        Quickshell.execDetached(["quickshell", "-p", Caching.mainQml, "ipc", "call", "lock-redactor", "open", ""]);
+        LockLayoutStore.openRedactor("");
         if (rootObj && typeof rootObj.closePopup === "function") {
             rootObj.closePopup();
         } else {

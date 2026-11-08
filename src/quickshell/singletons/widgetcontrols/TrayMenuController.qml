@@ -1,81 +1,39 @@
 pragma Singleton
 import QtQuick
-import Quickshell
 import "../../"
 
-Item {
+HoverMenuController {
     id: controller
 
-    property bool isVisible: false
     property string activeItemId: ""
-    property real targetX: 0
-    property real targetY: 0
-    property bool alignRight: false
-    property bool alignBottom: false
-    property bool isSideBar: false
-    property var screen: null
-    property bool menuHovered: false
-    property int hoveredItems: 0
-    readonly property bool itemHovered: hoveredItems > 0
+    property real barSpanStart: 0
+    property real barSpanEnd: 0
 
-    Timer {
-        id: hideTimer
-        interval: 500
-        repeat: false
-        onTriggered: {
-            if (!controller.menuHovered && controller.hoveredItems <= 0) {
-                controller.isVisible = false;
-            }
-        }
-    }
-
-    function itemEntered(itemId, scr, posX, posY, isRight, isBottom, isSide) {
+    function itemEntered(itemId, scr, posX, posY, isRight, isBottom, isSide, spanStart, spanEnd) {
         hoveredItems++;
-        hideTimer.stop();
-        show(itemId, scr, posX, posY, isRight, isBottom, isSide);
+        cancelHide();
+        show(itemId, scr, posX, posY, isRight, isBottom, isSide, spanStart, spanEnd);
     }
 
-    function itemExited() {
-        hoveredItems = Math.max(0, hoveredItems - 1);
-        if (hoveredItems <= 0 && !menuHovered) {
-            requestHide();
-        }
-    }
-
-    function show(itemId, scr, posX, posY, isRight, isBottom, isSide) {
-        hideTimer.stop();
-        controller.screen = scr;
-        controller.targetX = posX;
-        controller.targetY = posY;
-        controller.alignRight = isRight;
-        controller.alignBottom = isBottom;
-        controller.isSideBar = isSide;
+    function show(itemId, scr, posX, posY, isRight, isBottom, isSide, spanStart, spanEnd) {
+        controller.barSpanStart = spanStart !== undefined ? spanStart : 0;
+        controller.barSpanEnd = spanEnd !== undefined ? spanEnd : 0;
+        place(scr, posX, posY, isRight, isBottom, isSide);
         controller.activeItemId = itemId;
         controller.isVisible = true;
     }
 
     function hide() {
-        hideTimer.stop();
-        hoveredItems = 0;
+        resetHover();
         controller.activeItemId = "";
         controller.isVisible = false;
     }
 
-    function requestHide() {
-        if (!controller.menuHovered && controller.hoveredItems <= 0) {
-            hideTimer.restart();
-        }
-    }
-
-    function cancelHide() {
-        hideTimer.stop();
-    }
-
-    function toggle(itemId, scr, posX, posY, isRight, isBottom, isSide) {
+    function toggle(itemId, scr, posX, posY, isRight, isBottom, isSide, spanStart, spanEnd) {
         if (controller.isVisible && controller.activeItemId === itemId) {
             controller.hide();
         } else {
-            controller.show(itemId, scr, posX, posY, isRight, isBottom, isSide);
+            controller.show(itemId, scr, posX, posY, isRight, isBottom, isSide, spanStart, spanEnd);
         }
     }
 }

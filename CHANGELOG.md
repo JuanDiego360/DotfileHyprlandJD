@@ -1,3 +1,144 @@
+### 2.4.2
+
+- chore: pin serpantinum-core 0.2.0 and drop brightnessctl and python-jeepney dependencies
+- feat: move launcher ranking, file search and the hibernate and fingerprint checks to serpantinum-core
+- feat: track screen time and read wellbeing stats through serpantinum-core instead of the Python focus daemon
+- feat: replace the Python idle helper with serpantinum-core watch idle
+- feat: read and set brightness through serpantinum-core and drop brightness.sh
+- feat: read Sway, Niri and Mango state from serpantinum-core instead of compositor CLI processes
+- chore: bump serpantinum-gamma to 0.7.0
+- fix: update serpantinum-core to 0.1.2 for event-driven lock detection and the Hyprland LED check
+- feat: read system usage, keyboard locks and clipboard history from serpantinum-core
+- feat(guide): animate search view, add section labels, faint highlights and upfront search indexing
+- revert(guide): restore original settings tab spacing and row styling
+- refactor(guide): tidy settings layout and sidebar, fix search ids for non-Latin titles
+- fix(i18n): show the fallback string when a translation key is missing
+- docs: trim marketing phrasing and padding in the README and docs
+- fix(quickactions): keep calculator dropdowns inside the panel by bounding their height
+- fix(guide): drop uninstalled dock apps when applying settings presets
+- fix(guide): show widget rotation correctly in preset previews
+- fix(guide): keep preset widget previews in their saved theme without flicker
+- fix(guide): restore widgets when applying settings presets and preview them live
+- feat(guide): preview settings presets with captured bar and dock
+- chore(aur): bundle Ski 0.6.2
+- feat(guide): add settings presets tab to save and apply full setups
+- feat(reusables): add shader-animated checkbox
+- chore(aur): bundle Ski 0.6.1
+- fix(wallpaper): shuffle from the configured wallpaper directory
+
+### 2.4.1
+
+- chore: remove qylock license and credit
+- fix(wallpaper): freeze the current frame when a transition is interrupted
+- feat(guide): add wallpapers tab with configurable wallpaper transitions
+- fix(dropdown): open upward and reverse the list when there is no room below
+- fix(bar): avoid implicitWidth binding loop in menu face
+- chore(aur): bundle Ski 0.6.0
+- refactor(compositor): add CompositorStateBase for shared workspace index state
+- refactor(reusables): add SubscriptionGate and replace hand-rolled subscription bookkeeping
+- refactor(bar): add BarFaceBase and migrate bat, bt, kb, vol and wifi faces
+- feat(bar): add shuffle wallpaper button to the menu module
+- feat(guide): add reusable drag chip editor for menu buttons and sysmon stats
+- feat(bar): add night light and caffeine toggles to the menu module
+- fix(lock): mirror password input across all monitors
+- fix(inputs): keep bound error state in password input
+- fix(wallpaper): guard search cleanup against empty paths (#460)
+- feat: add favorites tab and star toggle to the wallpaper picker
+- fix: install matugen 4.x from upstream release on Fedora
+- refactor: extract collapsible section and revealable row from dock tab
+- refactor: extract shared usage face base components
+- refactor: share screen-toggle and hover-menu logic across widget controllers
+- feat: add a show distances toggle for the widget redactor and fix sentence case in widget settings
+- feat: add widget distance labels, spacing and resize snapping, and arrow key nudging to the widget redactor
+
+### 2.4.0
+
+- fix: listen to Compositor.name changes instead of the removed isSway handlers
+- refactor: report unknown compositors instead of falling back to Hyprland
+- refactor: replace the compositor flags with Compositor.name comparisons
+- refactor: detect the compositor in one Compositor singleton
+- feat(workspaces): add optional per-monitor workspace numbering on Hyprland
+- fix(dock): hide over hyprland special workspaces and check fullscreen per monitor (#542)
+- fix(weather): show 0.0 instead of -0.0 for temperatures that round to zero (#541)
+- chore: bump serpantinum-gamma to 0.6.0
+- refactor(theme): move telegram and obs into .backup
+- refactor(theme): move discord and steam into .backup
+- fix(zen): set the background variables on the element Zen paints the sidebar with
+- refactor(theme): move zed, tilix, xfce terminal, fcitx5 and spicetify into .backup
+- refactor(theme): move app themes that could not be verified into .backup
+- docs(audio): split the audio engine page and document excluded voice chat apps
+- fix(audio): update serpantinum-audio to 0.3.1 to keep voice chat apps off the engine
+- fix(theme): restore the original JSON bytes on undo
+- fix(theme): remove the padding blank line added before a block on undo
+- fix(theme): remove ini config files created by app theming when switching off
+- fix(lsd): point color.theme at the generated file so lsd loads it
+- fix(wofi): import the theme by absolute path so GTK can resolve it
+- fix(spotify-player): use a valid color name for the playing track
+- refactor(bluelight): drive serpantinum-gamma through its own CLI instead of busctl
+- feat(bluelight): replace wl-gammarelay-rs with serpantinum-gamma
+- fix(weather): retranslate cached forecast on language change without refetching
+- feat(theme): add 42 themed apps and json, each and lines_from integrations
+- feat(theme): pick themed apps from a searchable popup instead of a dropdown
+- refactor(theme): drop custom app creation, show app theming issues in a popup
+- feat(theme): app theming for GTK, Qt, terminals and other apps without overwriting their configs
+- chore: remove unused matugen_reload script
+- feat(sddm): redesign theme with Material clock, lock-style password input, dark mode and animated theme toggle
+- chore: drop Qt5 and qt5compat dependencies, port SDDM theme to MultiEffect
+- feat(screenshot): choose the screenshot save directory in settings
+- flake.lock update
+
+### 2.3.4
+
+- fix: quote-safe wallpaper apply command and load saved draw palettes
+- fix: silence missing-file warnings from new FileViews and skip preloading write-only ones
+- fix(widgets): refresh the open redactor when a preset is applied
+- perf: replace shell-based file reads and writes with FileView
+- fix(screenshot): only require the tools the chosen mode uses (#538)
+- perf(screenshot): drop shell spawns for file removal and QR result read
+- perf(niri): rely on the event stream's initial state instead of polling on subscribe
+- perf(wellbeing): skip unchanged live data, slow per-app polling and roll over at midnight
+- refactor(cli): move lock-redactor from launch to a top-level command
+- refactor(cli): remove the launch widgetredactor runner mode
+- refactor(settings): call shell singletons directly instead of spawning quickshell ipc
+- refactor(settings): remove the separate settings window
+- feat(idle): log screensaver inhibitors and simulated activity to the journal
+- fix(niri): clear stale focus when an opened window takes focus
+- perf(bar): track focus and keyboard layout in-process and drop kb_wait.sh
+- perf(wellbeing): drive focus tracking from compositor events and cut disk syncs
+- fix(msg): keep msg toggle autohide working as a deprecated alias
+- refactor(msg): group notifications clear, network airplane and bar autohide under parents
+- refactor(cli): group info, set and trigger commands under logical parents
+- refactor(cli): fold info dock-autohide into info dock
+- refactor(cli): fold info caffeine into info idle
+- feat(cli): add serpantinum info idle to print idle system status
+- feat(idle): add idle status IPC call reporting gate and action state
+- feat(workspaces): track the active workspace per monitor on Hyprland and Sway
+- perf(sway): share one IPC event stream through a SwayState singleton
+- fix(website): link Arch card to the distro list in docs instead of the overflowing popout
+- docs(nix): install Ski alongside the package when skipping the system module
+- fix(notifications): keep live notification after popup closes so center actions invoke
+- fix(install): deploy an up-to-date version.txt so updates stop reporting a stale version
+- perf: drop redundant polling, duplicate reads and shell-spawned file writes
+- chore(aur): bundle Ski 0.5.1
+- fix(settings): toggle embedded settings from the desktop menu and system panel
+- fix(settings): toggle embedded settings from the bar and user widget buttons
+- fix(idle): keep idle locking active in performance mode
+- feat(install): remember SDDM and wallpaper preferences between runs
+- chore(aur): bundle Ski 0.5.0
+- feat(bar): add option to hide the media widget when nothing is playing
+- chore(aur): bundle Ski 0.4.8
+- fix(network): clear stuck connect state when the popup closes
+- feat(lock): reveal the wallpaper behind curvier, layered intro waves
+- chore: update flake.lock
+- fix(nix): keep the saved version in sync with the installed package so updates show the new version
+- chore: bump bundled Ski to 0.4.6 in the AUR packages and flake lock
+- chore: bump bundled serpantinum-audio to 0.3.0
+- fix(install): fall back to a full system upgrade when Quickshell can't be upgraded alone on Void
+- fix(install): parse lowercase Quickshell versions and upgrade Fedora installs from the COPR
+- fix(music): size device and source pills from the popup width so they no longer collapse to ellipses
+- chore: update flake.lock
+- chore: bump bundled Ski to 0.4.5 in the AUR packages
+
 ### 2.3.3
 
 - feat(widgets): remember the last picker category, thicken the dock and strengthen the redactor dim

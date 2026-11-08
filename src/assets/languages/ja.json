@@ -449,7 +449,9 @@
       "generating_thumbnails": "サムネイルを生成中...",
       "no_wallpapers_found": "壁紙が見つかりませんでした",
       "videos": "動画",
-      "history": "最近適用した壁紙"
+      "history": "最近適用した壁紙",
+      "favorites": "お気に入り",
+      "recently_added": "最近追加した壁紙"
     },
     "filters": {
       "all": "すべて",
@@ -637,7 +639,7 @@
     "description": "Wayland コンポジター向けデスクトップシェル。",
     "commands": "コマンド:",
     "script_commands": "スクリプトコマンド:",
-    "launch_desc": "スタンドアロンコンポーネントの起動 (start, widgetredactor, lock-redactor)",
+    "launch_desc": "スタンドアロンコンポーネントの起動 (start)",
     "msg_desc": "UI マネージャーへのコマンドやワークスペース切り替えの送信",
     "ipc_desc": "シェルへの直接 IPC 呼び出しの転送",
     "kill_desc": "実行中のデーモンを安全に停止",
@@ -651,18 +653,16 @@
     "daemon_restarted": "Serpantinum デーモンを再起動しました。",
     "starting_daemon": "デーモンが実行されていません。バックグラウンドで serpantinumd を起動中...",
     "error_missing_qml": "エラー: 起動対象が指定されていません。",
-    "launch_usage": "使用法: serpantinum launch <start|widgetredactor|lock-redactor> [引数...]",
+    "launch_usage": "使用法: serpantinum launch <start> [引数...]",
     "error_qml_not_found": "エラー: {DIR} 内で {NAME}.qml を解決できませんでした",
     "error_shell_qml_not_found": "エラー: {DIR} 内で shell.qml へのパスを解決できませんでした",
     "error_unknown_command": "エラー: 不明なコマンド '{CMD}' です。",
     "error_unknown_target": "エラー: 不明な対象 '{TARGET}' です。",
     "launch_help": {
-      "usage": "使用法: serpantinum launch <start|widgetredactor|lock-redactor> [引数...]",
+      "usage": "使用法: serpantinum launch <start> [引数...]",
       "description": "ランナーモードでスタンドアロンコンポーネントを直接起動します。",
       "available_targets": "利用可能な対象:",
-      "target_start": "初期設定インターフェースを起動",
-      "target_widgetredactor": "デスクトップウィジェット編集インターフェースを起動",
-      "target_lock_redactor": "ロック画面のレイアウトエディターを切り替え、開く、または閉じる"
+      "target_start": "初期設定インターフェースを起動"
     },
     "msg_help": {
       "usage": "使用法: serpantinum msg <command|workspace> [引数...]",
@@ -686,16 +686,15 @@
       "location": "地理座標の取得と更新",
       "screenshot": "画面キャプチャ、動画録画、またはQRコード読み取り",
       "brightness": "ディスプレイバックライトの輝度調整",
-      "current_focus": "アクティブウィンドウのフォーカス変化を監視・記録",
-      "monitors_detect": "アクティブなディスプレイ出力とリフレッシュレートを照会",
       "location_manual": "地理座標とタイムゾーンを手動で設定",
-      "blue_light_filter": "色温度と昼夜の自動スケジュールを調整",
+      "gamma": "色温度と昼夜の自動スケジュールを調整",
       "translate": "テキストおよび選択範囲の即時翻訳",
       "suspend": "画面をロックしてシステムをサスペンドする",
       "hibernate": "システムをハイバネートする",
       "reboot": "システムを再起動する",
       "poweroff": "システムの電源を切る",
-      "redactor": "デスクトップウィジェットのレイアウトエディターを開く、または切り替える"
+      "redactor": "デスクトップウィジェットのレイアウトエディターを開く、または切り替える",
+      "lock_redactor": "ロック画面のレイアウトエディターを切り替え、開く、または閉じる"
     },
     "usage_label": "使い方:",
     "config_desc": "設定の読み取りと変更 (get, set, dump, path, edit)",
@@ -707,10 +706,11 @@
     "error_unknown_theme": "エラー: 不明なテーマ '{NAME}' です。",
     "error_no_wallpapers": "エラー: 壁紙ディレクトリに壁紙が見つかりません。",
     "error_file_not_found": "エラー: ファイルが見つかりません: {PATH}",
-    "info_desc": "設定の現在の状態を表示 (dnd, caffeine, dock, theme, wallpaper, monitors, updates...)",
-    "set_desc": "設定を変更 (dnd, caffeine, dock, sfx-mute, matugen, lang, theme, wallpaper)",
-    "trigger_desc": "単発のアクションを実行 (idle, notifications-clear, firstlaunch, theme-reload, theme-generate)",
-    "settings_desc": "設定ウィンドウを開く（タブの指定も可能）"
+    "info_desc": "設定の現在の状態を表示 (notifications, idle, dock, sfx, theme, lang, wallpaper, monitors, updates)",
+    "set_desc": "設定を変更 (notifications, idle, dock, sfx, theme, lang, wallpaper)",
+    "trigger_desc": "単発のアクションを実行 (idle, notifications, theme, firstlaunch)",
+    "settings_desc": "設定ウィンドウを開く（タブの指定も可能）",
+    "error_unknown_app": "エラー: 不明なアプリ '{ID}'。"
   },
   "daemon": {
     "already_running": "デーモンは既に実行中です。終了します...",
@@ -897,7 +897,12 @@
       "bar_modules": "モジュール",
       "bar_side_modules": "サイドモジュール",
       "display_lockscreen": "ロック画面",
-      "screenshot": "スクリーンショット"
+      "screenshot": "スクリーンショット",
+      "theme_appearance": "外観",
+      "theme_apps": "アプリのテーマ",
+      "theme_wallpapers": "壁紙",
+      "general_main": "一般",
+      "general_presets": "プリセット"
     },
     "launcher": {
       "position": {
@@ -997,7 +1002,7 @@
       "warning_command": {
         "title": "警告コマンド",
         "desc": "アクションの前に実行するオフセットとコマンド",
-        "placeholder": "例: notify-send 'warning'"
+        "placeholder": "例: serpantinum-core notify 'warning'"
       },
       "before_command": {
         "title": "直前コマンド",
@@ -1007,7 +1012,7 @@
       "resume_command": {
         "title": "復帰時コマンド",
         "desc": "ユーザーのアクティビティが再開されたときに実行されます",
-        "placeholder": "例: notify-send 'resumed'"
+        "placeholder": "例: serpantinum-core notify 'resumed'"
       },
       "dim": {
         "title": "画面の減光",
@@ -1072,10 +1077,6 @@
         "title": "クイックアクション",
         "desc": "フローティングクイックアクションオーバーレイを有効にします"
       },
-      "separatewindow": {
-        "title": "設定を別ウィンドウで開く",
-        "desc": "シェル内のパネルではなく、サイズ変更可能な通常のアプリウィンドウとして設定を開きます"
-      },
       "location": {
         "title": "位置情報",
         "desc": "日の出・日の入りの自動スケジュールと天気のための位置情報を設定します",
@@ -1104,10 +1105,25 @@
       "screenshot_on_release": {
         "title": "マウスを離したときに領域をキャプチャ",
         "desc": "シャッターをクリックせず、ドラッグ終了時に即座にスクリーンショットを撮影します"
+      },
+      "presets": {
+        "save": {
+          "title": "現在の設定を保存",
+          "desc": "すべての設定、ウィジェット、壁紙をプリセットとして保存",
+          "button": "プリセットを保存"
+        },
+        "empty": "プリセットはまだありません。現在の設定を保存して作成しましょう",
+        "confirm": {
+          "title": "プリセットを適用しますか？",
+          "desc": "現在の設定を保存せずにこのプリセットを適用してもよろしいですか？既存の設定は上書きされ、復元できなくなります。",
+          "dont_show": "今後表示しない",
+          "apply": "適用",
+          "cancel": "キャンセル"
+        }
       }
     },
     "display": {
-      "bluelight": {
+      "gamma": {
         "title": "ブルーライトフィルター",
         "desc": "画面の暖色照明を切り替えます"
       },
@@ -1134,6 +1150,10 @@
         "hide_bar": {
           "title": "エディター内でバーを非表示",
           "desc": "エディターモードでウィジェット編集中にバーを自動的に非表示にします"
+        },
+        "show_distances": {
+          "title": "距離を表示",
+          "desc": "エディターでウィジェットを移動またはサイズ変更する際に、ウィジェット間の距離を表示します"
         },
         "hide_presets": "プリセットを非表示",
         "choose_preset": "プリセットを選択",
@@ -1179,7 +1199,7 @@
     },
     "bar": {
       "modules": {
-        "vis": "ビジュアライザー (cava)",
+        "vis": "ビジュアライザー",
         "actions": "アクション",
         "workspaces": {
           "style": {
@@ -1271,6 +1291,7 @@
         "desc": "右クリックでグループ化を開始し、別の項目を右クリックして追加します。グループ化された項目を右クリックすると削除されます。",
         "reset": "リセット",
         "available": "利用可能",
+        "shown": "表示中",
         "left": "左",
         "center": "中央",
         "right": "右"
@@ -1317,21 +1338,13 @@
           "wave": "ウェーブ",
           "circle": "サークル"
         },
-        "cpu": {
-          "title": "CPU使用率",
-          "desc": "プロセッサ使用率リングを表示します"
-        },
-        "ram": {
-          "title": "メモリ使用率",
-          "desc": "メモリ (RAM) 使用率リングを表示します"
-        },
-        "temp": {
-          "title": "温度",
-          "desc": "システムの温度リングを表示します"
-        },
-        "disk": {
-          "title": "ディスク使用率",
-          "desc": "ストレージディスク使用率リングを表示します"
+        "items": {
+          "title": "統計",
+          "desc": "統計をドラッグして並べ替えるか、利用可能に移動して非表示にします",
+          "cpu": "CPU",
+          "ram": "メモリ",
+          "temp": "温度",
+          "disk": "ディスク"
         }
       },
       "bat": {
@@ -1451,6 +1464,10 @@
           "title": "コントロールを表示",
           "desc": "前へ・再生・次へボタンを表示します"
         },
+        "hide_when_idle": {
+          "title": "何も再生していないときは非表示",
+          "desc": "メディアが再生されていない間はバーからウィジェットを隠す"
+        },
         "preview": {
           "title": "曲のタイトル",
           "author": "Song author"
@@ -1461,13 +1478,14 @@
         "desc": "バーの太さを変更します。モジュールも合わせて調整されます"
       },
       "menu": {
-        "show_settings": {
-          "title": "設定アイコンを表示",
-          "desc": "設定を開くボタンを表示します"
-        },
-        "show_launcher": {
-          "title": "ランチャーアイコンを表示",
-          "desc": "ランチャーを開く検索ボタンを表示します"
+        "items": {
+          "title": "ボタン",
+          "desc": "ボタンをドラッグして並べ替えるか、利用可能に移動して非表示にします",
+          "settings": "設定",
+          "launcher": "ランチャー",
+          "night_light": "夜間モード",
+          "caffeine": "カフェイン",
+          "shuffle": "壁紙をシャッフル"
         },
         "style": {
           "title": "スタイル",
@@ -1503,7 +1521,58 @@
         "select_dir": "ディレクトリを選択...",
         "select_wallpaper": "壁紙を選択",
         "no_wallpaper_selected": "壁紙が選択されていません",
-        "select": "壁紙"
+        "select": "壁紙",
+        "transition": {
+          "mode": {
+            "title": "トランジション",
+            "random": "ランダム",
+            "custom": "カスタム",
+            "desc_random": "壁紙が変わるたびにランダムなトランジションを使用します",
+            "desc_custom": "選択したトランジションからランダムに選びます。プレビューをクリックして追加・削除します"
+          },
+          "fade": {
+            "name": "フェード",
+            "desc": "新しい壁紙へなめらかにクロスフェードします"
+          },
+          "wipe": {
+            "name": "ワイプ",
+            "desc": "画面の中央から開きます"
+          },
+          "circle": {
+            "name": "円",
+            "desc": "画面を覆うまで円を広げます"
+          },
+          "swipe": {
+            "name": "スワイプ",
+            "desc": "端または角から画面を横切ります"
+          },
+          "orientation": {
+            "title": "向き",
+            "desc": "ワイプが開く軸",
+            "random": "ランダム",
+            "horizontal": "水平",
+            "vertical": "垂直"
+          },
+          "origin": {
+            "title": "起点",
+            "desc": "円の開始位置。デスクトップメニューでは常にクリックした位置から始まります",
+            "random": "ランダム",
+            "center": "中央"
+          },
+          "direction": {
+            "title": "方向",
+            "desc": "スワイプが始まる端または角",
+            "random": "ランダム",
+            "left": "左から",
+            "right": "右から",
+            "top": "上から",
+            "bottom": "下から",
+            "top_left": "左上から",
+            "top_right": "右上から",
+            "bottom_left": "左下から",
+            "bottom_right": "右下から"
+          }
+        }
       },
       "element_opacity": {
         "title": "要素の不透明度",
@@ -1516,6 +1585,43 @@
           "blur": "ぼかし",
           "liquid": "リキッドグラス"
         }
+      },
+      "apps": {
+        "loading": "インストール済みのアプリを検索中...",
+        "status": {
+          "error": "適用できませんでした: {detail}"
+        },
+        "issue": {
+          "missing_config": "設定が見つかりません。{file} にこれを追加してください: {line}",
+          "system_config": "設定ファイルは {file} です。これを追加してください: {line}",
+          "read_only": "{file} は読み取り専用です。これを追加してください: {line}",
+          "manual": "設定を安全に編集できませんでした。{file} にこれを追加してください: {line}",
+          "no_theme": "GTK 3 アプリもパレットに従うように {line} テーマをインストールしてください",
+          "env": "セッション環境で {line} を設定してください",
+          "requires": "Qt アプリにテーマを適用するには {line} をインストールしてください",
+          "failed": "設定を更新できませんでした: {line}"
+        },
+        "hint": {
+          "select_in_app": "アプリの設定で Serpantinum テーマを選択してください",
+          "restart": "新しい色を反映するには開いているウィンドウを再起動してください",
+          "neovim": ":colorscheme serpantinum を実行すると使えます",
+          "helix": "新しい色を反映するには開いているエディターで :config-reload を実行してください",
+          "fastfetch": "fastfetch -c serpantinum を実行すると使えます",
+          "spicetify": "spicetify config current_theme Serpantinum を実行してから spicetify apply を実行してください",
+          "discord": "クライアントのテーマ設定で Serpantinum を有効にしてください",
+          "emacs": "M-x load-theme serpantinum を実行すると使えます",
+          "steam": "Millennium で Material-Theme をインストールし、その色設定で Matugen を選択してください",
+          "heroic": "Heroic のカスタムテーマのパスをテーマフォルダーに設定し、serpantinum を選択してください",
+          "telegram": "Telegram のチャット設定からテーマファイルを読み込んでください"
+        },
+        "list": {
+          "title": "テーマ適用中のアプリ",
+          "desc": "シェルの色に従うアプリです。リストから追加できます"
+        },
+        "add": {
+          "title": "アプリを追加"
+        },
+        "empty": "テーマ適用中のアプリはまだありません。リストから追加してください"
       }
     },
     "file_picker": {
@@ -1823,6 +1929,11 @@
         "failed": "ダウンロードに失敗しました。接続を確認してください。",
         "offline": "言語リストに接続できません。インストール済みの言語のみ表示しています。",
         "loading": "言語を読み込み中..."
+      },
+      "directory": {
+        "title": "スクリーンショットの保存先",
+        "desc": "スクリーンショットを保存するフォルダー",
+        "select_dir": "ディレクトリを選択..."
       }
     }
   }
