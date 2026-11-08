@@ -38,3 +38,11 @@ hl.window_rule({
   float = true,
   no_anim = true,
 })
+
+-- ───────── Picture-in-Picture (Videos Flotantes) ─────────
+hl.window_rule({
+  name = "pip_floating",
+  match = { title = "^([Pp]icture[- ][Ii]n[- ][Pp]icture)$" },
+  float = true,
+  pin = true,
+})

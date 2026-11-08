@@ -11,7 +11,9 @@ hl.bind(mainMod .. " + Q", hl.dsp.window.close())
 hl.bind("ALT + F4", hl.dsp.window.close())
 hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen())
 hl.bind("ALT + Tab", hl.dsp.window.cycle_next())
-hl.bind(mainMod .. " + ALT + space", hl.dsp.exec_cmd('hyprctl --batch "dispatch togglefloating ; dispatch centerwindow ; dispatch resizeactive exact 500 350"'))
+hl.bind(mainMod .. " + ALT + space", hl.dsp.window.float())
+hl.bind(mainMod .. " + SHIFT + F", hl.dsp.window.float())
+hl.bind(mainMod .. " + SHIFT + space", hl.dsp.window.float())
 hl.bind(mainMod .. " + H", hl.dsp.layout("togglesplit"))
 
 -- Focus window in direction:
