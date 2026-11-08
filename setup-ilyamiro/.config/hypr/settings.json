@@ -100,7 +100,7 @@
     "monitors": {
       "DP-2": {
         "enabled": false,
-        "temperature": 58
+        "temperature": 57
       }
     }
   },
