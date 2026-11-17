@@ -25,16 +25,16 @@ PanelWindow {
             item: (trayMenuWindow.isVisible || menuContainer.animProgress > 0.001) ? menuContainer : null
         }
         Region {
-            item: (trayMenuWindow.isVisible || menuContainer.animProgress > 0.001) && submenuRepeater.count > 0 && submenuRepeater.itemAt(0) ? submenuRepeater.itemAt(0) : null
+            item: submenuRepeater.count > 0 && submenuRepeater.itemAt(0) && submenuRepeater.itemAt(0).visible ? submenuRepeater.itemAt(0) : null
         }
         Region {
-            item: (trayMenuWindow.isVisible || menuContainer.animProgress > 0.001) && submenuRepeater.count > 1 && submenuRepeater.itemAt(1) ? submenuRepeater.itemAt(1) : null
+            item: submenuRepeater.count > 1 && submenuRepeater.itemAt(1) && submenuRepeater.itemAt(1).visible ? submenuRepeater.itemAt(1) : null
         }
         Region {
-            item: (trayMenuWindow.isVisible || menuContainer.animProgress > 0.001) && submenuRepeater.count > 2 && submenuRepeater.itemAt(2) ? submenuRepeater.itemAt(2) : null
+            item: submenuRepeater.count > 2 && submenuRepeater.itemAt(2) && submenuRepeater.itemAt(2).visible ? submenuRepeater.itemAt(2) : null
         }
         Region {
-            item: (trayMenuWindow.isVisible || menuContainer.animProgress > 0.001) && submenuRepeater.count > 3 && submenuRepeater.itemAt(3) ? submenuRepeater.itemAt(3) : null
+            item: submenuRepeater.count > 3 && submenuRepeater.itemAt(3) && submenuRepeater.itemAt(3).visible ? submenuRepeater.itemAt(3) : null
         }
     }
 
@@ -71,6 +71,32 @@ PanelWindow {
     property bool alignRight: TrayMenuController.alignRight
     property bool alignBottom: TrayMenuController.alignBottom
     property bool isSideBar: TrayMenuController.isSideBar
+
+    property bool snapPlacement: false
+    readonly property string placementKey: (TrayMenuController.screen ? TrayMenuController.screen.name : "") + "|" + alignRight + "|" + alignBottom + "|" + isSideBar
+    function releaseSnap() { snapPlacement = false; }
+    onPlacementKeyChanged: {
+        snapPlacement = true;
+        Qt.callLater(releaseSnap);
+    }
+
+    readonly property bool glidePlacement: isVisible && menuContainer.animProgress > 0.5 && !snapPlacement
+
+    Behavior on targetX {
+        enabled: trayMenuWindow.glidePlacement
+        NumberAnimation {
+            duration: 180
+            easing.type: Easing.OutCubic
+        }
+    }
+
+    Behavior on targetY {
+        enabled: trayMenuWindow.glidePlacement
+        NumberAnimation {
+            duration: 180
+            easing.type: Easing.OutCubic
+        }
+    }
 
     property int configRevision: 0
 
@@ -123,7 +149,29 @@ PanelWindow {
 
     property real menuMargin: isSolid ? 0 : s(20)
 
-    visible: isVisible || menuContainer.animProgress > 0.001
+    readonly property bool hasBarSpan: TrayMenuController.barSpanEnd > TrayMenuController.barSpanStart
+    readonly property real spanStart: hasBarSpan ? TrayMenuController.barSpanStart : 0
+    readonly property real spanEnd: hasBarSpan ? TrayMenuController.barSpanEnd : (isSideBar ? height : width)
+    readonly property real barInset: barEndRadius + cornerRadius
+    readonly property bool fitsBar: isSolid && cornerRadius > 0.5 && (isSideBar ? targetMenuHeight : menuWidth) <= spanEnd - spanStart - 2 * barInset
+
+    function fitToBar(pos, len, lo, hi) {
+        if (fitsBar) return Math.max(spanStart + barInset, Math.min(spanEnd - barInset - len, pos));
+        if (!isSolid || !hasBarSpan) return pos;
+        let r = barEndRadius;
+        if (pos + len > spanEnd - r && pos + len < spanEnd) pos = spanEnd - len;
+        if (pos > spanStart && pos < spanStart + r) pos = spanStart;
+        return Math.max(lo, Math.min(hi, pos));
+    }
+
+    SpringProgress {
+        id: reveal
+        open: trayMenuWindow.isVisible
+        openDuration: 520
+        closeDuration: 150
+    }
+
+    visible: reveal.active
 
     function closeMenu() {
         clearSubmenus();
@@ -183,15 +231,26 @@ PanelWindow {
 
     property real menuWidth: s(200)
     property real itemHeight: s(32)
-    property int menuCount: {
-        if (!menuOpener.children) return 0;
-        if (menuOpener.children.values) return menuOpener.children.values.length;
-        if (menuOpener.children.count !== undefined) return menuOpener.children.count;
-        if (menuOpener.children.length !== undefined) return menuOpener.children.length;
-        return 0;
+    property real separatorHeight: s(9)
+    property var menuEntries: (menuOpener.children && menuOpener.children.values) ? menuOpener.children.values : []
+
+    function isHiddenSeparator(entries, i) {
+        if (!entries[i] || !entries[i].isSeparator) return false;
+        return i === 0 || i === entries.length - 1 || (entries[i - 1] && entries[i - 1].isSeparator);
     }
 
-    property real rawHeight: (menuCount * itemHeight) + s(16)
+    function entryHeight(entries, i) {
+        if (!entries[i] || !entries[i].isSeparator) return itemHeight;
+        return isHiddenSeparator(entries, i) ? 0 : separatorHeight;
+    }
+
+    function entriesHeight(entries) {
+        let h = 0;
+        for (let i = 0; i < entries.length; i++) h += entryHeight(entries, i);
+        return h;
+    }
+
+    property real rawHeight: entriesHeight(menuEntries) + s(16)
     property real targetMenuHeight: Math.max(s(40), rawHeight)
     property real menuHeight: targetMenuHeight
 
@@ -218,7 +277,9 @@ PanelWindow {
             x = targetX - (w / 2);
         }
         let edgeBound = (isSolid && !isSideBar) ? (cornerRadius + s(4)) : s(8);
-        return Math.max(edgeBound, Math.min(trayMenuWindow.width - w - edgeBound, x));
+        x = Math.max(edgeBound, Math.min(trayMenuWindow.width - w - edgeBound, x));
+        if (!isSideBar) x = fitToBar(x, w, edgeBound, trayMenuWindow.width - w - edgeBound);
+        return Math.round(x);
     }
 
     property real clampedY: {
@@ -236,8 +297,50 @@ PanelWindow {
             }
         }
         let edgeBound = (isSolid && isSideBar) ? (cornerRadius + s(4)) : s(8);
-        return Math.max(edgeBound, Math.min(trayMenuWindow.height - h - edgeBound, y));
+        y = Math.max(edgeBound, Math.min(trayMenuWindow.height - h - edgeBound, y));
+        if (isSideBar) y = fitToBar(y, h, edgeBound, trayMenuWindow.height - h - edgeBound);
+        return Math.round(y);
     }
+
+    readonly property real barEndRadius: Math.min(isFill ? s(12) : ThemeBackend.borderRadius, barHeight / 2)
+    function surfaceRect(item, box) {
+        const sc = item.scale;
+        let ox = item.width / 2;
+        let oy = item.height / 2;
+        const o = item.transformOrigin;
+        if (o === Item.Top) oy = 0;
+        else if (o === Item.Bottom) oy = item.height;
+        else if (o === Item.Left) ox = 0;
+        else if (o === Item.Right) ox = item.width;
+        return {
+            x: item.x + ox * (1 - sc),
+            y: item.y + oy * (1 - sc),
+            w: item.width * sc,
+            h: item.height * sc,
+            r: [box.topLeftRadius * sc, box.topRightRadius * sc, box.bottomRightRadius * sc, box.bottomLeftRadius * sc]
+        };
+    }
+
+    readonly property var surfaceGroups: {
+        const groups = [];
+        for (let i = 0; i < 5; i++) groups.push({ rects: [], opacity: 1 });
+        if (menuContainer.animProgress > 0.001) {
+            groups[0].rects.push(surfaceRect(menuContainer, menuBox));
+            groups[0].opacity = menuContainer.opacity;
+        }
+        let g = 0;
+        for (let i = 0; i < submenuRepeater.count; i++) {
+            const sub = submenuRepeater.itemAt(i);
+            if (!sub || !sub.visible) continue;
+            g = sub.attached ? g : i + 1;
+            groups[g].rects.push(surfaceRect(sub, sub.box));
+            if (g === i + 1) groups[g].opacity = sub.opacity;
+        }
+        return groups;
+    }
+
+    readonly property bool startOnBar: (isSideBar ? clampedY : clampedX) >= spanStart + barEndRadius - 1
+    readonly property bool endOnBar: (isSideBar ? clampedY + menuHeight : clampedX + menuWidth) <= spanEnd - barEndRadius + 1
 
     readonly property bool rootExpandRight: {
         if (isSideBar) {
@@ -248,7 +351,7 @@ PanelWindow {
 
     property var submenuStack: []
 
-    function openSubmenu(level, itemData, gx, gy, gw, gh) {
+    function openSubmenu(level, itemData, gx, gy, gw, gh, boxTop, boxBottom) {
         if (!itemData) return;
         let newStack = submenuStack.slice(0, level);
         newStack.push({
@@ -257,6 +360,8 @@ PanelWindow {
             "parentY": gy,
             "parentWidth": gw,
             "parentHeight": gh,
+            "boxTop": boxTop,
+            "boxBottom": boxBottom,
             "level": level
         });
         submenuStack = newStack;
@@ -276,18 +381,26 @@ PanelWindow {
         id: rootContainer
         anchors.fill: parent
 
+        Repeater {
+            model: 5
+
+            AttachedSurface {
+                required property int index
+                readonly property var group: trayMenuWindow.surfaceGroups[index]
+                rects: group.rects
+                visible: rects.length > 0
+                opacity: group.opacity
+                kind: "traymenu"
+                attachTo: index === 0 && trayMenuWindow.isSolid ? ["bar"] : []
+                publishShape: index === 0 && trayMenuWindow.isSolid
+                filletRadius: trayMenuWindow.cornerRadius
+            }
+        }
+
         Item {
             id: menuContainer
 
-            property real animProgress: trayMenuWindow.isVisible ? 1.0 : 0.0
-            Behavior on animProgress {
-                NumberAnimation {
-                    duration: trayMenuWindow.isVisible ? 280 : 220
-                    easing.type: Easing.OutCubic
-                }
-            }
-
-            property real dynamicCornerRadius: trayMenuWindow.isSolid ? Math.max(0, Math.min(trayMenuWindow.cornerRadius, (trayMenuWindow.isSideBar ? width : height))) : 0
+            readonly property real animProgress: reveal.value
 
             x: {
                 if (trayMenuWindow.isSolid) {
@@ -337,7 +450,7 @@ PanelWindow {
                 return trayMenuWindow.menuHeight;
             }
 
-            opacity: animProgress
+            opacity: trayMenuWindow.isSolid ? ((trayMenuWindow.isVisible || animProgress > 0.001) ? 1.0 : 0.0) : Math.max(0.0, Math.min(1.0, animProgress * 1.5))
             scale: !trayMenuWindow.isSolid ? (0.92 + (0.08 * animProgress)) : 1.0
 
             transformOrigin: {
@@ -347,91 +460,17 @@ PanelWindow {
                 return trayMenuWindow.alignBottom ? Item.Bottom : Item.Top;
             }
 
-            GlassFillets {
-                id: rootFillets
-                card: menuBox
-                filletRadius: (trayMenuWindow.isSolid && menuContainer.dynamicCornerRadius > 0.5) ? menuContainer.dynamicCornerRadius : 0
-                filletDir: trayMenuWindow.isSideBar
-                    ? (trayMenuWindow.alignRight ? Qt.vector2d(1, 0) : Qt.vector2d(-1, 0))
-                    : (trayMenuWindow.alignBottom ? Qt.vector2d(0, 1) : Qt.vector2d(0, -1))
-            }
-
-            ShaderEffect {
-                visible: trayMenuWindow.isSolid && menuContainer.dynamicCornerRadius > 0.5
-                x: {
-                    if (trayMenuWindow.isSideBar) {
-                        return trayMenuWindow.alignRight ? (parent.width - menuContainer.dynamicCornerRadius) : 0;
-                    }
-                    return -menuContainer.dynamicCornerRadius;
-                }
-                y: {
-                    if (trayMenuWindow.isSideBar) {
-                        return -menuContainer.dynamicCornerRadius;
-                    }
-                    return trayMenuWindow.alignBottom ? (parent.height - menuContainer.dynamicCornerRadius) : 0;
-                }
-                width: menuContainer.dynamicCornerRadius
-                height: menuContainer.dynamicCornerRadius
-                property vector2d itemSize: Qt.vector2d(width, height)
-                property real cornerIndex: {
-                    if (trayMenuWindow.isSideBar) {
-                        return trayMenuWindow.alignRight ? 3.0 : 2.0;
-                    }
-                    return trayMenuWindow.alignBottom ? 3.0 : 1.0;
-                }
-                property color color: Qt.alpha(ThemeBackend.base, ThemeBackend.elementOpacity)
-                fragmentShader: "file://" + Caching.serpantinumDir + "/assets/shaders/ui/corner_cutout.frag.qsb"
-            }
-
-            ShaderEffect {
-                visible: trayMenuWindow.isSolid && menuContainer.dynamicCornerRadius > 0.5
-                x: {
-                    if (trayMenuWindow.isSideBar) {
-                        return trayMenuWindow.alignRight ? (parent.width - menuContainer.dynamicCornerRadius) : 0;
-                    }
-                    return parent.width;
-                }
-                y: {
-                    if (trayMenuWindow.isSideBar) {
-                        return parent.height;
-                    }
-                    return trayMenuWindow.alignBottom ? (parent.height - menuContainer.dynamicCornerRadius) : 0;
-                }
-                width: menuContainer.dynamicCornerRadius
-                height: menuContainer.dynamicCornerRadius
-                property vector2d itemSize: Qt.vector2d(width, height)
-                property real cornerIndex: {
-                    if (trayMenuWindow.isSideBar) {
-                        return trayMenuWindow.alignRight ? 1.0 : 0.0;
-                    }
-                    return trayMenuWindow.alignBottom ? 2.0 : 0.0;
-                }
-                property color color: Qt.alpha(ThemeBackend.base, ThemeBackend.elementOpacity)
-                fragmentShader: "file://" + Caching.serpantinumDir + "/assets/shaders/ui/corner_cutout.frag.qsb"
-            }
-
             Rectangle {
                 id: menuBox
                 anchors.fill: parent
-                color: Qt.alpha(ThemeBackend.base, ThemeBackend.elementOpacity)
+                color: "transparent"
                 radius: trayMenuWindow.cornerRadius
                 readonly property bool flatCorners: trayMenuWindow.isSolid
-                topLeftRadius: (flatCorners && (trayMenuWindow.isSideBar ? !trayMenuWindow.alignRight : !trayMenuWindow.alignBottom)) ? 0 : trayMenuWindow.cornerRadius
-                topRightRadius: (flatCorners && (trayMenuWindow.isSideBar ? trayMenuWindow.alignRight : !trayMenuWindow.alignBottom)) ? 0 : trayMenuWindow.cornerRadius
-                bottomLeftRadius: (flatCorners && (trayMenuWindow.isSideBar ? !trayMenuWindow.alignRight : trayMenuWindow.alignBottom)) ? 0 : trayMenuWindow.cornerRadius
-                bottomRightRadius: (flatCorners && (trayMenuWindow.isSideBar ? trayMenuWindow.alignRight : trayMenuWindow.alignBottom)) ? 0 : trayMenuWindow.cornerRadius
+                topLeftRadius: (flatCorners && trayMenuWindow.startOnBar && (trayMenuWindow.isSideBar ? !trayMenuWindow.alignRight : !trayMenuWindow.alignBottom)) ? 0 : trayMenuWindow.cornerRadius
+                topRightRadius: (flatCorners && (trayMenuWindow.isSideBar ? trayMenuWindow.startOnBar && trayMenuWindow.alignRight : trayMenuWindow.endOnBar && !trayMenuWindow.alignBottom)) ? 0 : trayMenuWindow.cornerRadius
+                bottomLeftRadius: (flatCorners && (trayMenuWindow.isSideBar ? trayMenuWindow.endOnBar && !trayMenuWindow.alignRight : trayMenuWindow.startOnBar && trayMenuWindow.alignBottom)) ? 0 : trayMenuWindow.cornerRadius
+                bottomRightRadius: (flatCorners && trayMenuWindow.endOnBar && (trayMenuWindow.isSideBar ? trayMenuWindow.alignRight : trayMenuWindow.alignBottom)) ? 0 : trayMenuWindow.cornerRadius
                 clip: true
-
-                WallpaperBlur {
-                    z: -1
-                    anchors.fill: parent
-                    topLeftRadius: parent.topLeftRadius
-                    topRightRadius: parent.topRightRadius
-                    bottomLeftRadius: parent.bottomLeftRadius
-                    bottomRightRadius: parent.bottomRightRadius
-                    filletRadius: rootFillets.filletRadius
-                    filletDir: rootFillets.filletDir
-                }
 
                 HoverHandler {
                     id: menuHoverHandler
@@ -480,7 +519,7 @@ PanelWindow {
                     delegate: Item {
                         id: rootItemDelegate
                         width: menuList.width
-                        height: trayMenuWindow.itemHeight
+                        height: trayMenuWindow.entryHeight(trayMenuWindow.menuEntries, index)
                         readonly property bool pressed: itemMouse.pressed
                         readonly property bool lensWanted: itemMouse.containsMouse
 
@@ -562,7 +601,7 @@ PanelWindow {
                                     TrayMenuController.menuHovered = true;
                                     if (rootItemDelegate.hasChildren) {
                                         let pos = rootItemDelegate.mapToItem(rootContainer, 0, 0);
-                                        trayMenuWindow.openSubmenu(0, modelData, menuContainer.x, pos.y, menuContainer.width, rootItemDelegate.height);
+                                        trayMenuWindow.openSubmenu(0, modelData, menuContainer.x, pos.y, menuContainer.width, rootItemDelegate.height, trayMenuWindow.clampedY, trayMenuWindow.clampedY + trayMenuWindow.menuHeight);
                                     } else {
                                         trayMenuWindow.closeSubmenusFrom(0);
                                     }
@@ -576,7 +615,7 @@ PanelWindow {
                                         trayMenuWindow.closeMenu();
                                     } else if (modelData && modelData.hasChildren) {
                                         let pos = rootItemDelegate.mapToItem(rootContainer, 0, 0);
-                                        trayMenuWindow.openSubmenu(0, modelData, menuContainer.x, pos.y, menuContainer.width, rootItemDelegate.height);
+                                        trayMenuWindow.openSubmenu(0, modelData, menuContainer.x, pos.y, menuContainer.width, rootItemDelegate.height, trayMenuWindow.clampedY, trayMenuWindow.clampedY + trayMenuWindow.menuHeight);
                                     }
                                 }
                             }
@@ -587,7 +626,7 @@ PanelWindow {
                             height: 1
                             color: ThemeBackend.surface0
                             anchors.centerIn: parent
-                            visible: rootItemDelegate.isSep
+                            visible: rootItemDelegate.isSep && rootItemDelegate.height > 0
                         }
                     }
                 }
@@ -596,12 +635,16 @@ PanelWindow {
 
         Repeater {
             id: submenuRepeater
-            model: trayMenuWindow.submenuStack.length
+            model: 4
 
             Item {
                 id: submenuPopout
                 property int stackIndex: index
-                property var stackData: (trayMenuWindow.submenuStack && trayMenuWindow.submenuStack.length > index) ? trayMenuWindow.submenuStack[index] : null
+                readonly property Item box: subMenuBox
+                readonly property bool active: trayMenuWindow.submenuStack.length > index
+                readonly property var liveData: active ? trayMenuWindow.submenuStack[index] : null
+                property var stackData: null
+                onLiveDataChanged: if (liveData) stackData = liveData
 
                 property real parentItemX: stackData ? stackData.parentX : 0
                 property real parentItemY: stackData ? stackData.parentY : 0
@@ -609,6 +652,10 @@ PanelWindow {
                 property real parentItemHeight: stackData ? stackData.parentHeight : trayMenuWindow.itemHeight
 
                 property real subCornerRadius: trayMenuWindow.cornerRadius
+                property real parentBoxTop: (stackData && stackData.boxTop !== undefined) ? stackData.boxTop : parentItemY
+                property real parentBoxBottom: (stackData && stackData.boxBottom !== undefined) ? stackData.boxBottom : (parentItemY + parentItemHeight)
+                readonly property bool attached: subCornerRadius > 0.5 && subMenuTargetHeight <= parentBoxBottom - parentBoxTop - 2 * subCornerRadius
+                readonly property real detachGap: trayMenuWindow.s(6)
 
                 readonly property bool shouldExpandRight: {
                     if (trayMenuWindow.isSideBar) {
@@ -639,99 +686,78 @@ PanelWindow {
                     menu: (submenuPopout.stackData && submenuPopout.stackData.menu) ? (submenuPopout.stackData.menu.menu || submenuPopout.stackData.menu) : null
                 }
 
-                property int subMenuCount: {
-                    if (!subMenuOpener.children) return 0;
-                    if (subMenuOpener.children.values) return subMenuOpener.children.values.length;
-                    if (subMenuOpener.children.count !== undefined) return subMenuOpener.children.count;
-                    if (subMenuOpener.children.length !== undefined) return subMenuOpener.children.length;
-                    return 0;
-                }
+                property var subMenuEntries: (subMenuOpener.children && subMenuOpener.children.values) ? subMenuOpener.children.values : []
 
-                property real subMenuRawHeight: (subMenuCount * trayMenuWindow.itemHeight) + trayMenuWindow.s(16)
+                property real subMenuRawHeight: trayMenuWindow.entriesHeight(subMenuEntries) + trayMenuWindow.s(16)
                 property real subMenuTargetHeight: Math.max(trayMenuWindow.s(40), subMenuRawHeight)
                 property real subMenuHeight: subMenuTargetHeight
+                readonly property bool settled: active && popoutProgress > 0.95
 
-                width: trayMenuWindow.menuWidth
-                height: subMenuHeight
-
-                property real popoutProgress: (trayMenuWindow.isVisible && menuContainer.animProgress > 0.001) ? 1.0 : 0.0
-                Behavior on popoutProgress {
+                Behavior on subMenuHeight {
+                    enabled: submenuPopout.settled
                     NumberAnimation {
-                        duration: (trayMenuWindow.isVisible && menuContainer.animProgress > 0.001) ? 220 : 160
+                        duration: 160
                         easing.type: Easing.OutCubic
                     }
                 }
 
-                visible: (trayMenuWindow.isVisible || menuContainer.animProgress > 0.001) && popoutProgress > 0.001
+                readonly property real fullWidth: trayMenuWindow.menuWidth
+                width: fullWidth * popoutProgress
+                height: subMenuHeight
 
-                x: {
-                    let base = expandRight ? (parentItemX + parentItemWidth) : (parentItemX - width);
-                    let slide = trayMenuWindow.s(10) * (1.0 - popoutProgress);
-                    return expandRight ? (base - slide) : (base + slide);
+                readonly property bool shown: active && trayMenuWindow.isVisible
+                property real popoutProgress: shown ? 1.0 : 0.0
+                Behavior on popoutProgress {
+                    NumberAnimation {
+                        duration: submenuPopout.shown ? 170 : 120
+                        easing.type: Easing.OutCubic
+                    }
+                }
+                onPopoutProgressChanged: if (popoutProgress <= 0.001 && !active) stackData = null
+
+                visible: popoutProgress > 0.001
+
+                readonly property real restX: {
+                    let gap = attached ? 0 : detachGap;
+                    return Math.round(expandRight ? (parentItemX + parentItemWidth + gap) : (parentItemX - fullWidth - gap));
                 }
 
-                y: {
-                    let h = height;
+                readonly property real restY: {
                     let target = parentItemY - trayMenuWindow.s(8);
-                    return Math.max(trayMenuWindow.s(8), Math.min(trayMenuWindow.height - h - trayMenuWindow.s(8), target));
+                    if (attached) {
+                        return Math.round(Math.max(parentBoxTop + subCornerRadius, Math.min(parentBoxBottom - subCornerRadius - subMenuTargetHeight, target)));
+                    }
+                    return Math.round(Math.max(trayMenuWindow.s(8), Math.min(trayMenuWindow.height - subMenuTargetHeight - trayMenuWindow.s(8), target)));
+                }
+
+                x: {
+                    let slide = attached ? 0 : detachGap * (1.0 - popoutProgress);
+                    return expandRight ? (restX - slide) : (restX + slide + fullWidth - width);
+                }
+
+                y: restY
+
+                Behavior on y {
+                    enabled: submenuPopout.settled
+                    NumberAnimation {
+                        duration: 160
+                        easing.type: Easing.OutCubic
+                    }
                 }
 
                 opacity: popoutProgress * menuContainer.animProgress
-                scale: 0.94 + (0.06 * popoutProgress)
-                transformOrigin: expandRight ? Item.Left : Item.Right
-
-                GlassFillets {
-                    id: subFillets
-                    card: subMenuBox
-                    filletRadius: submenuPopout.subCornerRadius > 0.5 ? submenuPopout.subCornerRadius : 0
-                    filletDir: submenuPopout.expandRight ? Qt.vector2d(-1, 0) : Qt.vector2d(1, 0)
-                }
-
-                ShaderEffect {
-                    visible: submenuPopout.subCornerRadius > 0.5
-                    x: submenuPopout.expandRight ? 0 : (parent.width - submenuPopout.subCornerRadius)
-                    y: -submenuPopout.subCornerRadius
-                    width: submenuPopout.subCornerRadius
-                    height: submenuPopout.subCornerRadius
-                    property vector2d itemSize: Qt.vector2d(width, height)
-                    property real cornerIndex: submenuPopout.expandRight ? 2.0 : 3.0
-                    property color color: Qt.alpha(ThemeBackend.base, ThemeBackend.elementOpacity)
-                    fragmentShader: "file://" + Caching.serpantinumDir + "/assets/shaders/ui/corner_cutout.frag.qsb"
-                }
-
-                ShaderEffect {
-                    visible: submenuPopout.subCornerRadius > 0.5
-                    x: submenuPopout.expandRight ? 0 : (parent.width - submenuPopout.subCornerRadius)
-                    y: parent.height
-                    width: submenuPopout.subCornerRadius
-                    height: submenuPopout.subCornerRadius
-                    property vector2d itemSize: Qt.vector2d(width, height)
-                    property real cornerIndex: submenuPopout.expandRight ? 0.0 : 1.0
-                    property color color: Qt.alpha(ThemeBackend.base, ThemeBackend.elementOpacity)
-                    fragmentShader: "file://" + Caching.serpantinumDir + "/assets/shaders/ui/corner_cutout.frag.qsb"
-                }
 
                 Rectangle {
                     id: subMenuBox
                     anchors.fill: parent
-                    color: Qt.alpha(ThemeBackend.base, ThemeBackend.elementOpacity)
+                    enabled: submenuPopout.active
+                    color: "transparent"
                     radius: trayMenuWindow.cornerRadius
-                    topLeftRadius: submenuPopout.expandRight ? 0 : trayMenuWindow.cornerRadius
-                    bottomLeftRadius: submenuPopout.expandRight ? 0 : trayMenuWindow.cornerRadius
-                    topRightRadius: !submenuPopout.expandRight ? 0 : trayMenuWindow.cornerRadius
-                    bottomRightRadius: !submenuPopout.expandRight ? 0 : trayMenuWindow.cornerRadius
+                    topLeftRadius: (submenuPopout.attached && submenuPopout.expandRight) ? 0 : trayMenuWindow.cornerRadius
+                    bottomLeftRadius: (submenuPopout.attached && submenuPopout.expandRight) ? 0 : trayMenuWindow.cornerRadius
+                    topRightRadius: (submenuPopout.attached && !submenuPopout.expandRight) ? 0 : trayMenuWindow.cornerRadius
+                    bottomRightRadius: (submenuPopout.attached && !submenuPopout.expandRight) ? 0 : trayMenuWindow.cornerRadius
                     clip: true
-
-                    WallpaperBlur {
-                        z: -1
-                        anchors.fill: parent
-                        topLeftRadius: parent.topLeftRadius
-                        topRightRadius: parent.topRightRadius
-                        bottomLeftRadius: parent.bottomLeftRadius
-                        bottomRightRadius: parent.bottomRightRadius
-                        filletRadius: subFillets.filletRadius
-                        filletDir: subFillets.filletDir
-                    }
 
                     HoverHandler {
                         id: subHoverHandler
@@ -752,8 +778,10 @@ PanelWindow {
 
                     ListView {
                         id: subListView
-                        anchors.fill: parent
-                        anchors.margins: trayMenuWindow.s(8)
+                        x: trayMenuWindow.s(8) - (submenuPopout.expandRight ? 0 : submenuPopout.fullWidth - submenuPopout.width)
+                        y: trayMenuWindow.s(8)
+                        width: submenuPopout.fullWidth - trayMenuWindow.s(16)
+                        height: parent.height - trayMenuWindow.s(16)
                         model: subMenuOpener.children
                         clip: true
                         spacing: 0
@@ -780,7 +808,7 @@ PanelWindow {
                         delegate: Item {
                             id: subItemDelegate
                             width: subListView.width
-                            height: trayMenuWindow.itemHeight
+                            height: trayMenuWindow.entryHeight(submenuPopout.subMenuEntries, index)
                             readonly property bool pressed: subItemMouse.pressed
                             readonly property bool lensWanted: subItemMouse.containsMouse
 
@@ -862,7 +890,7 @@ PanelWindow {
                                         TrayMenuController.menuHovered = true;
                                         if (subItemDelegate.hasChildren) {
                                             let pos = subItemDelegate.mapToItem(rootContainer, 0, 0);
-                                            trayMenuWindow.openSubmenu(submenuPopout.stackIndex + 1, modelData, submenuPopout.x, pos.y, submenuPopout.width, subItemDelegate.height);
+                                            trayMenuWindow.openSubmenu(submenuPopout.stackIndex + 1, modelData, submenuPopout.restX, pos.y, submenuPopout.fullWidth, subItemDelegate.height, submenuPopout.restY, submenuPopout.restY + submenuPopout.subMenuTargetHeight);
                                         } else {
                                             trayMenuWindow.closeSubmenusFrom(submenuPopout.stackIndex + 1);
                                         }
@@ -876,7 +904,7 @@ PanelWindow {
                                             trayMenuWindow.closeMenu();
                                         } else if (modelData && modelData.hasChildren) {
                                             let pos = subItemDelegate.mapToItem(rootContainer, 0, 0);
-                                            trayMenuWindow.openSubmenu(submenuPopout.stackIndex + 1, modelData, submenuPopout.x, pos.y, submenuPopout.width, subItemDelegate.height);
+                                            trayMenuWindow.openSubmenu(submenuPopout.stackIndex + 1, modelData, submenuPopout.restX, pos.y, submenuPopout.fullWidth, subItemDelegate.height, submenuPopout.restY, submenuPopout.restY + submenuPopout.subMenuTargetHeight);
                                         }
                                     }
                                 }
@@ -887,7 +915,7 @@ PanelWindow {
                                 height: 1
                                 color: ThemeBackend.surface0
                                 anchors.centerIn: parent
-                                visible: subItemDelegate.isSep
+                                visible: subItemDelegate.isSep && subItemDelegate.height > 0
                             }
                         }
                     }

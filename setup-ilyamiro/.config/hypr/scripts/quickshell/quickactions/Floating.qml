@@ -407,6 +407,8 @@ Variants {
 
             property bool isPinned: false
             property bool useGraceTimer: false
+            property bool heldOpen: false
+            readonly property bool isOpen: (isSidebarVisible && isExpanded) || (pendingMode === "sidebar" && pendingWasExpanded)
 
             onIsPinnedChanged: {
                 if (!isPinned) kickTimer();
@@ -494,6 +496,18 @@ Variants {
                         floatingWidget.showNotes();
                     }
                 }
+
+                function onOpenRequested(screen) {
+                    if (floatingWidget.matchesScreen(screen)) {
+                        floatingWidget.openPanel();
+                    }
+                }
+
+                function onCloseRequested(screen) {
+                    if ((!screen || floatingWidget.matchesScreen(screen)) && floatingWidget.closePanel()) {
+                        FloatingController.closedAny = true;
+                    }
+                }
             }
 
             function matchesScreen(targetScreen) {
@@ -533,6 +547,46 @@ Variants {
                 floatingWidget.useGraceTimer = true;
                 floatingWidget.showSidebar(sideEdge, centerPos, true);
                 hideTimer.restart();
+            }
+
+            function openPanel() {
+                if (floatingWidget.isPinned) {
+                    floatingWidget.isExpanded = true;
+                    return;
+                }
+                if (floatingWidget.isOpen) return;
+                floatingWidget.useGraceTimer = false;
+                if (floatingWidget.isSidebarVisible && floatingWidget.pendingMode === "") {
+                    floatingWidget.isExpanded = true;
+                } else {
+                    let sideEdge = (floatingWidget.barPosition === "left") ? "right" : "left";
+                    floatingWidget.showSidebar(sideEdge, floatingWidget.screenHeight / 2, true);
+                    if (floatingWidget.pendingMode === "sidebar") floatingWidget.pendingWasExpanded = true;
+                }
+                floatingWidget.heldOpen = floatingWidget.isOpen;
+            }
+
+            function closePanel() {
+                let wasOpen = floatingWidget.isOpen;
+                if (floatingWidget.hasInputFocus) floatingWidget.unfocusAllInputs();
+                if (floatingWidget.isPinned) {
+                    floatingWidget.isExpanded = false;
+                    return wasOpen;
+                }
+                edgeTransitionTimer.stop();
+                teleportTimer.stop();
+                peekShowTimer.stop();
+                if (floatingWidget.pendingMode !== "") {
+                    floatingWidget.pendingMode = "";
+                    floatingWidget.disableAnim = false;
+                }
+                hideTimer.stop();
+                floatingWidget.heldOpen = false;
+                floatingWidget.useGraceTimer = false;
+                floatingWidget.isExpanded = false;
+                floatingWidget.isSidebarVisible = false;
+                floatingWidget.isPeekVisible = false;
+                return wasOpen;
             }
 
             function childIntercepts(sequenceStr) {
@@ -624,6 +678,10 @@ Variants {
                         floatingWidget.unfocusAllInputs();
                         return;
                     }
+                    if (floatingWidget.heldOpen) {
+                        floatingWidget.closePanel();
+                        return;
+                    }
                     if (floatingWidget.isExpanded) {
                         floatingWidget.isExpanded = false;
                         floatingWidget.kickTimer();
@@ -664,6 +722,8 @@ Variants {
                 if (isExpanded) {
                     grabKeyboardFocus();
                     Qt.callLater(grabKeyboardFocus);
+                } else if (pendingMode !== "sidebar") {
+                    heldOpen = false;
                 }
             }
 
@@ -1081,7 +1141,7 @@ Variants {
                 id: hideTimer
                 interval: floatingWidget.useGraceTimer ? 3000 : 800
                 onTriggered: {
-                    if (floatingWidget.isPinned || floatingWidget.hasInputFocus) return;
+                    if (floatingWidget.isPinned || floatingWidget.hasInputFocus || floatingWidget.heldOpen) return;
 
                     if ((typeof sidebarDragArea !== "undefined" && sidebarDragArea.pressed) ||
                         (typeof peekMouse !== "undefined" && peekMouse.pressed) ||
@@ -1340,8 +1400,34 @@ Variants {
                 }
             }
 
+            AttachedSurface {
+                id: sidebarSurface
+                kind: "quickactions"
+                visible: sidebarContainer.visible && sidebarContainer.width > 0
+                filletRadius: floatingWidget.outerCornerRadius > 0.5 ? floatingWidget.outerCornerRadius : 0
+                edges: [floatingWidget.activeEdge]
+
+                readonly property real cardW: floatingWidget.sidebarW + floatingWidget.currentExtraWidth + floatingWidget.edgeBleed
+                readonly property real cardH: floatingWidget.baseSidebarH + floatingWidget.currentExtraLength
+                readonly property real cardRelX: -sidebarContainer.width / 2 - floatingWidget.edgeBleed
+                readonly property real cardRelY: -cardH / 2
+                readonly property real cx: sidebarContainer.x + sidebarContainer.width / 2
+                readonly property real cy: sidebarContainer.y + sidebarContainer.height / 2
+                readonly property real cr: floatingWidget.containerRadius
+
+                rects: {
+                    const rot = floatingWidget.targetRotation;
+                    if (rot === 180) return [{ x: cx - cardRelX - cardW, y: cy - cardRelY - cardH, w: cardW, h: cardH, r: [cr, 0, 0, cr] }];
+                    if (rot === -90) return [{ x: cx + cardRelY, y: cy - cardRelX - cardW, w: cardH, h: cardW, r: [cr, cr, 0, 0] }];
+                    if (rot === 90) return [{ x: cx - cardRelY - cardH, y: cy + cardRelX, w: cardH, h: cardW, r: [0, 0, cr, cr] }];
+                    return [{ x: cx + cardRelX, y: cy + cardRelY, w: cardW, h: cardH, r: [0, cr, cr, 0] }];
+                }
+            }
+
             Item {
                 id: sidebarContainer
+
+                property Item glassBackdropItem: sidebarSurface.backdrop
 
                 width: floatingWidget.sidebarW
                 height: floatingWidget.baseSidebarH
@@ -1380,42 +1466,12 @@ Variants {
                                 floatingWidget.useGraceTimer = false;
                                 hideTimer.stop();
                             } else {
+                                floatingWidget.heldOpen = false;
                                 floatingWidget.kickTimer();
                             }
                         }
                     }
 
-                    GlassFillets {
-                        id: sidebarFillets
-                        card: morphingBackground
-                        filletRadius: floatingWidget.outerCornerRadius > 0.5 ? floatingWidget.outerCornerRadius : 0
-                        filletDir: Qt.vector2d(-1, 0)
-                        filletInset: floatingWidget.edgeBleed
-                    }
-
-                    ShaderEffect {
-                        visible: floatingWidget.outerCornerRadius > 0.5
-                        x: 0
-                        y: -floatingWidget.outerCornerRadius
-                        width: floatingWidget.outerCornerRadius
-                        height: floatingWidget.outerCornerRadius
-                        property vector2d itemSize: Qt.vector2d(width, height)
-                        property real cornerIndex: 2.0
-                        property color color: Qt.alpha(ThemeBackend.base, ThemeBackend.elementOpacity)
-                        fragmentShader: "file://" + Caching.serpantinumDir + "/assets/shaders/ui/corner_cutout.frag.qsb"
-                    }
-
-                    ShaderEffect {
-                        visible: floatingWidget.outerCornerRadius > 0.5
-                        x: 0
-                        y: parent.height
-                        width: floatingWidget.outerCornerRadius
-                        height: floatingWidget.outerCornerRadius
-                        property vector2d itemSize: Qt.vector2d(width, height)
-                        property real cornerIndex: 0.0
-                        property color color: Qt.alpha(ThemeBackend.base, ThemeBackend.elementOpacity)
-                        fragmentShader: "file://" + Caching.serpantinumDir + "/assets/shaders/ui/corner_cutout.frag.qsb"
-                    }
                     Rectangle {
                         id: morphingBackground
                         x: -floatingWidget.edgeBleed
@@ -1427,19 +1483,7 @@ Variants {
                         bottomLeftRadius: 0
                         topRightRadius: floatingWidget.containerRadius
                         bottomRightRadius: floatingWidget.containerRadius
-                        color: Qt.alpha(ThemeBackend.base, ThemeBackend.elementOpacity)
-
-                        WallpaperBlur {
-                            z: -1
-                            anchors.fill: parent
-                            anchors.leftMargin: floatingWidget.edgeBleed
-                            topLeftRadius: parent.topLeftRadius
-                            topRightRadius: parent.topRightRadius
-                            bottomLeftRadius: parent.bottomLeftRadius
-                            bottomRightRadius: parent.bottomRightRadius
-                            filletRadius: sidebarFillets.filletRadius
-                            filletDir: sidebarFillets.filletDir
-                        }
+                        color: "transparent"
 
                         MouseArea {
                             id: sidebarDragArea

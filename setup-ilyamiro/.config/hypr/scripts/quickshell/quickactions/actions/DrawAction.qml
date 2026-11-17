@@ -113,15 +113,14 @@ Item {
     FileView {
         id: palettesFile
         path: Caching.getStateDir("quickactions") + "/palettes.json"
-        onDataChanged: {
-            if (data) {
-                try {
-                    let parsed = JSON.parse(data);
-                    if (parsed && parsed.length > 0) {
-                        root.colorPalettes = parsed;
-                    }
-                } catch(e) {}
-            }
+        printErrors: false
+        onLoaded: {
+            try {
+                let parsed = JSON.parse(text());
+                if (parsed && parsed.length > 0) {
+                    root.colorPalettes = parsed;
+                }
+            } catch(e) {}
         }
     }
 
@@ -129,8 +128,7 @@ Item {
         id: paletteSaveTimer
         interval: 500
         onTriggered: {
-            let jsonStr = JSON.stringify(root.colorPalettes);
-            Quickshell.exec(["sh", "-c", "echo '" + jsonStr + "' > " + palettesFile.path]);
+            palettesFile.setText(JSON.stringify(root.colorPalettes) + "\n");
         }
     }
 
@@ -436,6 +434,7 @@ Item {
                     }
 
                     MouseArea {
+                        id: drawArea
                         anchors.fill: parent
                         enabled: root.isActiveTab
                         acceptedButtons: Qt.LeftButton | Qt.RightButton
@@ -461,7 +460,11 @@ Item {
                             }
                         }
 
-                        onPressed: (mouse) => {
+                        function isTouchSynth(mouse) {
+                            return mouse.source !== undefined && mouse.source !== Qt.MouseEventNotSynthesized;
+                        }
+
+                        function beginStroke(mouse) {
                             root.showSizeConfig = false;
                             root.showColorPicker = false;
                             
@@ -505,8 +508,8 @@ Item {
                             drawCanvas.requestPaint();
                         }
 
-                        onPositionChanged: (mouse) => {
-                            if (pressed && root.currentTool !== "fill") {
+                        function extendStroke(mouse) {
+                            if (root.currentAction && root.currentTool !== "fill") {
                                 var segment = {
                                     x1: drawCanvas.lastX, y1: drawCanvas.lastY,
                                     x2: mouse.x, y2: mouse.y
@@ -539,8 +542,36 @@ Item {
                             }
                         }
 
-                        onReleased: (mouse) => root.finishStroke()
+                        onPressed: (mouse) => { if (!isTouchSynth(mouse)) beginStroke(mouse) }
+                        onPositionChanged: (mouse) => { if (pressed && !isTouchSynth(mouse)) extendStroke(mouse) }
+                        onReleased: (mouse) => { if (!isTouchSynth(mouse)) root.finishStroke() }
                         onCanceled: root.finishStroke()
+                    }
+
+                    DragHandler {
+                        id: touchDraw
+                        target: null
+                        enabled: root.isActiveTab
+                        acceptedDevices: PointerDevice.TouchScreen | PointerDevice.Stylus
+                        dragThreshold: 0
+                        minimumPointCount: 1
+                        maximumPointCount: 1
+
+                        onActiveChanged: {
+                            if (active) {
+                                var p = centroid.position;
+                                drawArea.beginStroke({ x: p.x, y: p.y, button: Qt.LeftButton });
+                            } else {
+                                root.finishStroke();
+                            }
+                        }
+
+                        onCentroidChanged: {
+                            if (active) {
+                                var p = centroid.position;
+                                drawArea.extendStroke({ x: p.x, y: p.y });
+                            }
+                        }
                     }
                 }
             }
@@ -629,9 +660,9 @@ Item {
                     var outPath = outDir + "/drawing_" + Date.now() + ".png";
                     root.exportDrawing(outPath, function(success) {
                         if (success) {
-                            Quickshell.execDetached(["notify-send", "-a", I18n.t("quickactions.draw.notification.app_name") || "DrawAction", I18n.t("quickactions.draw.notification.saved_title") || "Drawing saved", outPath]);
+                            Quickshell.execDetached(["serpantinum-core", "notify", "--app", I18n.t("quickactions.draw.notification.app_name") || "DrawAction", "--", I18n.t("quickactions.draw.notification.saved_title") || "Drawing saved", outPath]);
                         } else {
-                            Quickshell.execDetached(["notify-send", "-a", I18n.t("quickactions.draw.notification.app_name") || "DrawAction", I18n.t("quickactions.draw.notification.failed_title") || "Export failed", I18n.t("quickactions.draw.notification.failed_body") || "Could not save drawing"]);
+                            Quickshell.execDetached(["serpantinum-core", "notify", "--app", I18n.t("quickactions.draw.notification.app_name") || "DrawAction", "--", I18n.t("quickactions.draw.notification.failed_title") || "Export failed", I18n.t("quickactions.draw.notification.failed_body") || "Could not save drawing"]);
                         }
                     });
                 }
@@ -650,9 +681,9 @@ Item {
                     root.exportDrawing(tempPath, function(success) {
                         if (success) {
                             Quickshell.execDetached(["sh", "-c", "if command -v wl-copy >/dev/null 2>&1; then wl-copy --type image/png < '" + tempPath + "'; fi"]);
-                            Quickshell.execDetached(["notify-send", "-a", I18n.t("quickactions.draw.notification.app_name") || "DrawAction", I18n.t("quickactions.draw.notification.copied_title") || "Drawing copied", I18n.t("quickactions.draw.notification.copied_body") || "Drawing copied to clipboard"]);
+                            Quickshell.execDetached(["serpantinum-core", "notify", "--app", I18n.t("quickactions.draw.notification.app_name") || "DrawAction", "--", I18n.t("quickactions.draw.notification.copied_title") || "Drawing copied", I18n.t("quickactions.draw.notification.copied_body") || "Drawing copied to clipboard"]);
                         } else {
-                            Quickshell.execDetached(["notify-send", "-a", I18n.t("quickactions.draw.notification.app_name") || "DrawAction", I18n.t("quickactions.draw.notification.failed_title") || "Export failed", I18n.t("quickactions.draw.notification.failed_body") || "Could not save drawing"]);
+                            Quickshell.execDetached(["serpantinum-core", "notify", "--app", I18n.t("quickactions.draw.notification.app_name") || "DrawAction", "--", I18n.t("quickactions.draw.notification.failed_title") || "Export failed", I18n.t("quickactions.draw.notification.failed_body") || "Could not save drawing"]);
                         }
                     });
                 }

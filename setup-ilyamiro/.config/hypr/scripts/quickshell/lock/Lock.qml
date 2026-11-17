@@ -14,6 +14,7 @@ Scope {
     property bool staticLock: false
     property bool isUnlocking: false
     property int resumeRevision: 0
+    property int shownSurfaces: 0
 
     property int connectedScreenCount: 1
     property bool fingerprintAvailable: false
@@ -22,6 +23,7 @@ Scope {
     property bool fpGotInfo: false
     property bool fpAborting: false
     property bool pwAborting: false
+    property string pendingPassword: ""
     property bool fpBlocked: false
     property int fpResumeRetries: 0
     property bool noFpPamReady: false
@@ -220,8 +222,12 @@ Scope {
         fpPam.start();
     }
 
+    function usesNoFpPassword() {
+        return (!root.fingerprintEnabled || root.fpBlocked || root.fpResumeRetries > 0) && root.noFpPamReady;
+    }
+
     function applyPasswordConfig() {
-        if ((!root.fingerprintEnabled || root.fpBlocked || root.fpResumeRetries > 0) && root.noFpPamReady) {
+        if (root.usesNoFpPassword()) {
             pam.configDirectory = root.noFpPamDir;
             pam.config = "serpantinum-nofp";
         } else {
@@ -244,7 +250,24 @@ Scope {
     function beginAuth() {
         if (!rootLock.locked || root.isUnlocking) return;
         root.startFingerprint();
-        passwordStartTimer.restart();
+        if (root.usesNoFpPassword()) root.startPassword(true);
+        else passwordStartTimer.restart();
+    }
+
+    function submitPassword(text) {
+        if (text.length === 0 || lockUI.authenticating || lockUI.lockedOut || root.isUnlocking) return;
+        lockUI.authenticating = true;
+        lockUI.statusText = I18n.t("lock.status.authenticating");
+        lockUI.failed = false;
+        if (pam.responseRequired) pam.respond(text);
+        else root.pendingPassword = text;
+    }
+
+    function clearPendingPassword() {
+        if (root.pendingPassword === "") return;
+        root.pendingPassword = "";
+        lockUI.authenticating = false;
+        lockUI.statusText = I18n.t("lock.status.locked");
     }
 
     function stopAuth() {
@@ -252,6 +275,7 @@ Scope {
         fingerprintSettleTimer.stop();
         passwordStartTimer.stop();
         passwordRetryTimer.stop();
+        root.clearPendingPassword();
         root.fpAborting = true;
         root.fpHolding = false;
         if (fpPam.active) fpPam.abort();
@@ -289,6 +313,7 @@ Scope {
     }
 
     function startPasswordLockout() {
+        root.clearPendingPassword();
         lockUI.lockedOut = true;
         lockUI.statusText = I18n.t("lock.status.too_many_attempts", "Too many attempts");
         passwordLockoutTimer.restart();
@@ -375,6 +400,8 @@ Scope {
         lockUI.fpFailures = 0;
         lockUI.pwFailures = 0;
         lockUI.lockedOut = false;
+        lockUI.inputActive = false;
+        lockUI.passwordText = "";
         passwordLockoutTimer.stop();
         root.fpBlocked = false;
         root.fpResumeRetries = 0;
@@ -382,8 +409,20 @@ Scope {
         root.fpUnsupported = false;
         root.fingerprintAvailable = false;
         fingerprintUnlockTimer.stop();
+        root.shownSurfaces = 0;
         rootLock.locked = true;
         pamActionTimer.start();
+    }
+
+    function surfaceShown() {
+        root.shownSurfaces++;
+        root.markLockedWhenShown();
+    }
+
+    function markLockedWhenShown() {
+        if (rootLock.secure && root.shownSurfaces >= root.connectedScreenCount) {
+            Quickshell.execDetached(["touch", Caching.getRunDir("lock") + "/locked"]);
+        }
     }
 
     function finishUnlock() {
@@ -429,6 +468,11 @@ Scope {
         property int fpFailures: 0
         property int pwFailures: 0
         property bool lockedOut: false
+        property bool inputActive: false
+        property string passwordText: ""
+        function submitPassword(text) {
+            root.submitPassword(text);
+        }
         readonly property string fpLabel: {
             switch (fpState) {
             case "failed": return I18n.t("lock.fingerprint.not_recognized");
@@ -457,6 +501,13 @@ Scope {
 
     PamContext {
         id: pam
+
+        onResponseRequiredChanged: {
+            if (!responseRequired || root.pendingPassword === "") return;
+            let text = root.pendingPassword;
+            root.pendingPassword = "";
+            respond(text);
+        }
 
         onCompleted: (result) => {
             lockUI.authenticating = false;
@@ -500,13 +551,9 @@ Scope {
     WlSessionLock {
         id: rootLock
         locked: false
+        onSecureChanged: root.markLockedWhenShown()
         onLockedChanged: {
-            let lockFile = Caching.getRunDir("lock") + "/locked";
-            if (locked) {
-                Quickshell.execDetached(["touch", lockFile]);
-            } else {
-                Quickshell.execDetached(["rm", "-f", lockFile]);
-            }
+            if (!locked) Quickshell.execDetached(["rm", "-f", Caching.getRunDir("lock") + "/locked"]);
         }
 
         surface: Component {

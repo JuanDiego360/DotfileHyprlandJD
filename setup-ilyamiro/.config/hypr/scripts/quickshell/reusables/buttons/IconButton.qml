@@ -15,6 +15,8 @@ Item {
     property string buttonIcon: ""
     property string iconFont: ThemeBackend.iconFont
     property int iconFontSize: 18
+    property int iconOffsetX: 0
+    property int iconOffsetY: 0
 
     property color accentColor: ThemeBackend.surface0
     property color textColor: ThemeBackend.crust
@@ -85,6 +87,8 @@ Item {
 
         Text {
             anchors.centerIn: parent
+            anchors.horizontalCenterOffset: root.iconOffsetX
+            anchors.verticalCenterOffset: root.iconOffsetY
             text: root.buttonIcon
             font.family: root.iconFont
             font.pixelSize: root.iconFontSize
@@ -127,14 +131,5 @@ Item {
                 root.triggered();
             }
         }
-    }
-
-    Rectangle {
-        anchors.fill: parent
-        anchors.margins: -2
-        radius: root.cornerRadius + 2
-        color: "transparent"
-        visible: root.activeFocus
-        z: 100
     }
 }

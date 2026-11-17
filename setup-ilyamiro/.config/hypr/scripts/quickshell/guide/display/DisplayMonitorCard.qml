@@ -36,7 +36,7 @@ Rectangle {
     }
 
     property real targetHeight: boxLayout.implicitHeight + rootObj.s(24)
-    property bool appeared: false
+    property bool appeared: !tab.animateCards
 
     property real appearProgress: appeared ? 1 : 0
     implicitHeight: targetHeight * appearProgress
@@ -148,8 +148,8 @@ Rectangle {
         SettingsGroup {
             rootObj: monDelegate.rootObj
             icon: "󰖔"
-            title: I18n.t("guide.display.bluelight.title")
-            description: I18n.t("guide.display.bluelight.desc")
+            title: I18n.t("guide.display.gamma.title")
+            description: I18n.t("guide.display.gamma.desc")
             expanded: monDelegate.filterEnabled
 
             Toggle {
@@ -162,7 +162,7 @@ Rectangle {
                 handleOffColor: ThemeBackend.text
                 onToggled: function(c) {
                     monDelegate.filterEnabled = c;
-                    BlueLight.setEnabled(monDelegate.monName, c);
+                    Gamma.setEnabled(monDelegate.monName, c);
                     monDelegate.tab.refreshDisplaySettings();
                 }
 
@@ -191,7 +191,7 @@ Rectangle {
                         handleOffColor: ThemeBackend.text
                         onToggled: function(c) {
                             monDelegate.filterAuto = c;
-                            BlueLight.setAuto(monDelegate.monName, c);
+                            Gamma.setAuto(monDelegate.monName, c);
                             monDelegate.tab.refreshDisplaySettings();
                         }
 

@@ -9,6 +9,8 @@ Item {
     id: root
     anchors.fill: parent
 
+    property bool previewMode: false
+
     property real minWidth: 50
     property real minHeight: 50
     property real maxWidth: 99999
@@ -18,27 +20,12 @@ Item {
 
     property bool isVisVisible: visible
 
-    property bool isSubscribed: false
-
-    onIsVisVisibleChanged: updateSubscription()
-
-    function updateSubscription() {
-        if (isVisVisible && !isSubscribed) {
-            isSubscribed = true;
-            Cava.registerConsumer();
-        } else if (!isVisVisible && isSubscribed) {
-            isSubscribed = false;
-            Cava.unregisterConsumer();
-        }
-    }
-
-    Component.onCompleted: updateSubscription()
-
-    Component.onDestruction: {
-        if (isSubscribed) {
-            isSubscribed = false;
-            Cava.unregisterConsumer();
-        }
+    SubscriptionGate {
+        id: spectrumGate
+        target: Spectrum
+        acquire: "registerConsumer"
+        release: "unregisterConsumer"
+        wanted: root.isVisVisible
     }
 
     property real barSpacing: Scaler.s(4)
@@ -47,7 +34,7 @@ Item {
 
     Visualizer {
         anchors.fill: parent
-        active: root.isSubscribed
+        active: spectrumGate.active
         count: root.activeBars
         spacing: root.barSpacing
         maxLength: height * 0.96

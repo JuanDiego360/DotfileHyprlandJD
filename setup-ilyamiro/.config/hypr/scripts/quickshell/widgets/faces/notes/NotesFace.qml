@@ -13,6 +13,8 @@ Item {
     anchors.fill: parent
     clip: true
 
+    property bool previewMode: false
+
     property real minWidth: 240
     property real minHeight: 180
     property real maxWidth: 700
@@ -133,13 +135,6 @@ Item {
             root.parseNotes(typeof text === "function" ? text() : text);
         }
         onLoadFailed: root.fileLoaded = false
-    }
-
-    Timer {
-        interval: 3000
-        repeat: true
-        running: !root.fileLoaded
-        onTriggered: notesFile.reload()
     }
 
     SequentialAnimation {

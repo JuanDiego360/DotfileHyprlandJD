@@ -219,7 +219,7 @@ FocusScope {
     }
 
     property bool powerMenuOpen: false
-    property bool inputActive: false
+    property bool inputActive: lockUI.inputActive
     property bool isPlayingIntro: !root.staticLock
 
     property real centerReveal: 0.0
@@ -276,12 +276,7 @@ FocusScope {
                     passwordInput.clear();
                     event.accepted = true;
                 } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                    if (passwordInput.text.length > 0 && pam.responseRequired && !lockUI.authenticating) {
-                        lockUI.authenticating = true;
-                        lockUI.statusText = I18n.t("lock.status.authenticating");
-                        lockUI.failed = false;
-                        pam.respond(passwordInput.text);
-                    }
+                    lockUI.submitPassword(passwordInput.text);
                     event.accepted = true;
                 } else if (event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab) {
                     event.accepted = true;
@@ -407,7 +402,15 @@ FocusScope {
         }
     }
 
+    Connections {
+        target: lockUI
+        function onInputActiveChanged() {
+            lockScreenRoot.inputActive = lockUI.inputActive;
+        }
+    }
+
     onInputActiveChanged: {
+        lockUI.inputActive = inputActive;
         if (lockScreenRoot.isUnlocking) return;
         if (inputActive) {
             closeDashboardAnim.stop();
@@ -426,7 +429,7 @@ FocusScope {
     property real mainOpacity: 1.0
 
     property bool isSysSubscribed: false
-    property bool isCavaSubscribed: false
+    property bool isSpectrumSubscribed: false
     function updateSysSubscription() {
         if (lockScreenRoot.wingsReveal > 0.98 && !isSysSubscribed) {
             SysData.subscribe();
@@ -437,21 +440,21 @@ FocusScope {
         }
     }
 
-    function updateCavaConsumer() {
+    function updateSpectrumConsumer() {
         let shouldSubscribe = lockScreenRoot.wingsReveal > 0.98;
-        if (shouldSubscribe && !lockScreenRoot.isCavaSubscribed) {
-            Cava.registerConsumer();
-            lockScreenRoot.isCavaSubscribed = true;
-        } else if (!shouldSubscribe && lockScreenRoot.isCavaSubscribed) {
-            Cava.unregisterConsumer();
-            lockScreenRoot.isCavaSubscribed = false;
+        if (shouldSubscribe && !lockScreenRoot.isSpectrumSubscribed) {
+            Spectrum.registerConsumer();
+            lockScreenRoot.isSpectrumSubscribed = true;
+        } else if (!shouldSubscribe && lockScreenRoot.isSpectrumSubscribed) {
+            Spectrum.unregisterConsumer();
+            lockScreenRoot.isSpectrumSubscribed = false;
         }
     }
 
     onWingsRevealChanged: {
         if (wingsReveal > 0 && !wingsEverNeeded) wingsEverNeeded = true;
         updateSysSubscription();
-        updateCavaConsumer();
+        updateSpectrumConsumer();
     }
 
 
@@ -513,9 +516,9 @@ FocusScope {
     }
 
     Component.onDestruction: {
-        if (lockScreenRoot.isCavaSubscribed) {
-            Cava.unregisterConsumer();
-            lockScreenRoot.isCavaSubscribed = false;
+        if (lockScreenRoot.isSpectrumSubscribed) {
+            Spectrum.unregisterConsumer();
+            lockScreenRoot.isSpectrumSubscribed = false;
         }
         if (isSysSubscribed) {
             SysData.unsubscribe();
@@ -580,18 +583,18 @@ FocusScope {
                 property: "panelReveal"
                 from: 0.0
                 to: 1.0
-                duration: 750
-                easing.type: Easing.OutCubic
+                duration: 600
+                easing.type: Easing.Linear
             }
 
             SequentialAnimation {
-                PauseAnimation { duration: 250 }
+                PauseAnimation { duration: 460 }
                 NumberAnimation {
                     target: lockScreenRoot
                     property: "contentReveal"
                     from: 0.0
                     to: 1.0
-                    duration: 250
+                    duration: 140
                     easing.type: Easing.OutCubic
                 }
             }

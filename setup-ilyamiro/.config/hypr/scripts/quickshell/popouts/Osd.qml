@@ -271,10 +271,20 @@ PanelWindow {
         property int targetPct: -1
         onTriggered: {
             if (targetPct >= 0) {
-                Quickshell.execDetached(["bash", Caching.qsDir + "/../scripts/brightness.sh", "set", targetPct.toString()]);
+                Quickshell.execDetached(["serpantinum-core", "brightness", "set", targetPct.toString()]);
                 targetPct = -1;
             }
         }
+    }
+
+    AttachedSurface {
+        kind: "osd"
+        visible: osdContainer.opacity > 0.001 && osdContainer.width > 0 && osdContainer.height > 0
+        opacity: osdContainer.opacity
+        rects: [{ x: osdContainer.x, y: osdContainer.y, w: osdContainer.width, h: osdContainer.height, r: [osdBox.topLeftRadius, osdBox.topRightRadius, osdBox.bottomRightRadius, osdBox.bottomLeftRadius] }]
+        filletRadius: (osdWindow.isAttached && osdContainer.dynamicCornerRadius > 0.5) ? osdContainer.dynamicCornerRadius : 0
+        attachTo: osdWindow.isAttached ? ["bar"] : []
+        publishShape: osdWindow.isAttached
     }
 
     Item {
@@ -344,72 +354,10 @@ PanelWindow {
             return Item.Center;
         }
 
-        GlassFillets {
-            id: osdFillets
-            card: osdBox
-            filletRadius: (osdWindow.isAttached && osdContainer.dynamicCornerRadius > 0.5) ? osdContainer.dynamicCornerRadius : 0
-            filletDir: osdWindow.isSideBar
-                ? (osdWindow.isRightBar ? Qt.vector2d(1, 0) : Qt.vector2d(-1, 0))
-                : (osdWindow.isBottomBar ? Qt.vector2d(0, 1) : Qt.vector2d(0, -1))
-        }
-
-        ShaderEffect {
-            visible: osdWindow.isAttached && osdContainer.dynamicCornerRadius > 0.5
-            x: {
-                if (osdWindow.isSideBar) {
-                    return osdWindow.isRightBar ? (parent.width - osdContainer.dynamicCornerRadius) : 0;
-                }
-                return -osdContainer.dynamicCornerRadius;
-            }
-            y: {
-                if (osdWindow.isSideBar) {
-                    return -osdContainer.dynamicCornerRadius;
-                }
-                return osdWindow.isBottomBar ? (parent.height - osdContainer.dynamicCornerRadius) : 0;
-            }
-            width: osdContainer.dynamicCornerRadius
-            height: osdContainer.dynamicCornerRadius
-            property vector2d itemSize: Qt.vector2d(width, height)
-            property real cornerIndex: {
-                if (osdWindow.isSideBar) {
-                    return osdWindow.isRightBar ? 3.0 : 2.0;
-                }
-                return osdWindow.isBottomBar ? 3.0 : 1.0;
-            }
-            property color color: Qt.alpha(ThemeBackend.base, ThemeBackend.elementOpacity)
-            fragmentShader: "file://" + Caching.serpantinumDir + "/assets/shaders/ui/corner_cutout.frag.qsb"
-        }
-
-        ShaderEffect {
-            visible: osdWindow.isAttached && osdContainer.dynamicCornerRadius > 0.5
-            x: {
-                if (osdWindow.isSideBar) {
-                    return osdWindow.isRightBar ? (parent.width - osdContainer.dynamicCornerRadius) : 0;
-                }
-                return parent.width;
-            }
-            y: {
-                if (osdWindow.isSideBar) {
-                    return parent.height;
-                }
-                return osdWindow.isBottomBar ? (parent.height - osdContainer.dynamicCornerRadius) : 0;
-            }
-            width: osdContainer.dynamicCornerRadius
-            height: osdContainer.dynamicCornerRadius
-            property vector2d itemSize: Qt.vector2d(width, height)
-            property real cornerIndex: {
-                if (osdWindow.isSideBar) {
-                    return osdWindow.isRightBar ? 1.0 : 0.0;
-                }
-                return osdWindow.isBottomBar ? 2.0 : 0.0;
-            }
-            property color color: Qt.alpha(ThemeBackend.base, ThemeBackend.elementOpacity)
-            fragmentShader: "file://" + Caching.serpantinumDir + "/assets/shaders/ui/corner_cutout.frag.qsb"
-        }
         Rectangle {
             id: osdBox
             anchors.fill: parent
-            color: Qt.alpha(ThemeBackend.base, ThemeBackend.elementOpacity)
+            color: "transparent"
             radius: osdWindow.cornerRadius
             readonly property bool flatTop: osdWindow.isAttached && !osdWindow.isSideBar && !osdWindow.isBottomBar
             readonly property bool flatBottom: osdWindow.isAttached && !osdWindow.isSideBar && osdWindow.isBottomBar
@@ -420,17 +368,6 @@ PanelWindow {
             bottomLeftRadius: (flatBottom || flatLeft) ? 0 : osdWindow.cornerRadius
             bottomRightRadius: (flatBottom || flatRight) ? 0 : osdWindow.cornerRadius
             clip: true
-
-            WallpaperBlur {
-                z: -1
-                anchors.fill: parent
-                topLeftRadius: parent.topLeftRadius
-                topRightRadius: parent.topRightRadius
-                bottomLeftRadius: parent.bottomLeftRadius
-                bottomRightRadius: parent.bottomRightRadius
-                filletRadius: osdFillets.filletRadius
-                filletDir: osdFillets.filletDir
-            }
 
             HoverHandler {
                 id: osdHoverHandler
@@ -509,7 +446,7 @@ PanelWindow {
                             briCmdThrottle.targetPct = -1;
                             let target = osdWindow.briVal > 0 ? 0 : 100;
                             OsdController.briVal = target;
-                            Quickshell.execDetached(["bash", Caching.qsDir + "/../scripts/brightness.sh", "set", target.toString()]);
+                            Quickshell.execDetached(["serpantinum-core", "brightness", "set", target.toString()]);
                         }
                     }
                 }
@@ -572,7 +509,7 @@ PanelWindow {
                         OsdController.restartTimer();
                         if (osdWindow.kind === "brightness" && briCmdThrottle.targetPct >= 0) {
                             briCmdThrottle.stop();
-                            Quickshell.execDetached(["bash", Caching.qsDir + "/../scripts/brightness.sh", "set", briCmdThrottle.targetPct.toString()]);
+                            Quickshell.execDetached(["serpantinum-core", "brightness", "set", briCmdThrottle.targetPct.toString()]);
                             briCmdThrottle.targetPct = -1;
                         }
                     }
@@ -677,7 +614,7 @@ PanelWindow {
                                 briCmdThrottle.targetPct = -1;
                                 let target = osdWindow.briVal > 0 ? 0 : 100;
                                 OsdController.briVal = target;
-                                Quickshell.execDetached(["bash", Caching.qsDir + "/../scripts/brightness.sh", "set", target.toString()]);
+                                Quickshell.execDetached(["serpantinum-core", "brightness", "set", target.toString()]);
                             }
                         }
                     }
@@ -776,7 +713,7 @@ PanelWindow {
                         OsdController.restartTimer();
                         if (osdWindow.kind === "brightness" && briCmdThrottle.targetPct >= 0) {
                             briCmdThrottle.stop();
-                            Quickshell.execDetached(["bash", Caching.qsDir + "/../scripts/brightness.sh", "set", briCmdThrottle.targetPct.toString()]);
+                            Quickshell.execDetached(["serpantinum-core", "brightness", "set", briCmdThrottle.targetPct.toString()]);
                             briCmdThrottle.targetPct = -1;
                         }
                     }

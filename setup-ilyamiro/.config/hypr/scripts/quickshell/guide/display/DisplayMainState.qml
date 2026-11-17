@@ -13,15 +13,10 @@ GuideTab {
     })
 
     property var displaySettings: JSON.parse(JSON.stringify(Config.getSetting("display", defaultDisplaySettings)))
-    property var monitorsList: []
+    property var monitorsList: DisplayCache.monitors
+    property bool animateCards: false
 
-    readonly property string compositor: {
-        let de = (SystemInfo.desktopEnv || "").toLowerCase();
-        if (de.indexOf("niri") !== -1) return "niri";
-        if (de.indexOf("sway") !== -1) return "sway";
-        if (de.indexOf("mango") !== -1) return "mango";
-        return "hyprland";
-    }
+    readonly property string compositor: Compositor.name
 
     property string pendingMonName: ""
     property real pendingMonTemp: 50
@@ -256,7 +251,9 @@ GuideTab {
                     ? "swaymsg -t get_outputs -r 2>/dev/null"
                     : (displayTabRoot.compositor === "mango"
                         ? "mmsg get all-monitors 2>/dev/null | jq -c '.monitors' 2>/dev/null"
-                        : "hyprctl monitors all -j 2>/dev/null || hyprctl monitors -j 2>/dev/null"))
+                        : (displayTabRoot.compositor === "hyprland"
+                            ? "hyprctl monitors all -j 2>/dev/null || hyprctl monitors -j 2>/dev/null"
+                            : "true")))
         ]
         stdout: StdioCollector {
             onStreamFinished: {
@@ -319,7 +316,7 @@ GuideTab {
                                 });
                             }
                         }
-                    } else {
+                    } else if (displayTabRoot.compositor === "hyprland") {
                         if (Array.isArray(data)) {
                             for (let i = 0; i < data.length; i++) {
                                 let item = data[i];
@@ -342,32 +339,36 @@ GuideTab {
                 } catch (e) {
                 }
                 if (mList.length > 0) {
-                    displayTabRoot.monitorsList = mList;
+                    if (JSON.stringify(mList) !== JSON.stringify(displayTabRoot.monitorsList)) {
+                        displayTabRoot.monitorsList = mList;
+                        DisplayCache.monitors = mList;
+                    }
                     displayTabRoot.refreshDisplaySettings();
+                    Qt.callLater(function() { displayTabRoot.animateCards = true; });
                 }
             }
         }
     }
 
     function reloadMonitors() {
-        monitorDetector.running = false;
+        if (monitorDetector.running) return;
         monitorDetector.running = true;
     }
 
     function updateMonitorSetting(monName, key, value) {
         if (!monName) return;
         if (key === "enabled") {
-            BlueLight.setEnabled(monName, value);
+            Gamma.setEnabled(monName, value);
             displayTabRoot.refreshDisplaySettings();
             return;
         }
         if (key === "auto") {
-            BlueLight.setAuto(monName, value);
+            Gamma.setAuto(monName, value);
             displayTabRoot.refreshDisplaySettings();
             return;
         }
         if (key === "temperature") {
-            BlueLight.setTemperature(monName, value);
+            Gamma.setTemperature(monName, value);
             displayTabRoot.refreshDisplaySettings();
             return;
         }
@@ -389,7 +390,7 @@ GuideTab {
             Quickshell.execDetached(["bash", "-c", "swaymsg output " + monName + (enabled ? " enable" : " disable")]);
         } else if (displayTabRoot.compositor === "mango") {
             Quickshell.execDetached(["mmsg", "dispatch", (enabled ? "wakeup_monitor," : "sleep_monitor,") + monName]);
-        } else {
+        } else if (displayTabRoot.compositor === "hyprland") {
             let mon = displayTabRoot.monitorsList.find(m => m.name === monName);
             let modeStr = mon ? (mon.dimensions + "@" + mon.framerate) : "preferred";
             let scaleVal = mon ? mon.scale : 1.0;
@@ -417,7 +418,7 @@ GuideTab {
             Quickshell.execDetached(["bash", "-c", "niri msg output " + monName + " scale " + scaleVal.toString()]);
         } else if (displayTabRoot.compositor === "sway") {
             Quickshell.execDetached(["bash", "-c", "swaymsg output " + monName + " scale " + scaleVal.toString()]);
-        } else if (displayTabRoot.compositor !== "mango") {
+        } else if (displayTabRoot.compositor === "hyprland") {
             let mon = displayTabRoot.monitorsList.find(m => m.name === monName);
             let modeStr = mon ? (mon.dimensions + "@" + mon.framerate) : "preferred";
             let luaCmd = 'hl.monitor({ output = "' + monName + '", mode = "' + modeStr + '", position = "auto", scale = ' + scaleVal.toString() + ' })';
@@ -437,7 +438,7 @@ GuideTab {
             let name = pendingMonName;
             let val = pendingMonTemp;
             pendingMonName = "";
-            BlueLight.setTemperature(name, val);
+            Gamma.setTemperature(name, val);
             displayTabRoot.refreshDisplaySettings();
         }
     }
@@ -451,7 +452,7 @@ GuideTab {
                 let name = displayTabRoot.pendingMonName;
                 let val = displayTabRoot.pendingMonTemp;
                 displayTabRoot.pendingMonName = "";
-                BlueLight.setTemperature(name, val);
+                Gamma.setTemperature(name, val);
                 displayTabRoot.refreshDisplaySettings();
             }
         }
@@ -481,15 +482,18 @@ GuideTab {
 
     Component.onCompleted: {
         displayTabRoot.refreshDisplaySettings();
+        if (DisplayCache.monitors.length > 0) {
+            Qt.callLater(function() { displayTabRoot.animateCards = true; });
+        }
         if (visible) {
-            reloadMonitorsDebounceTimer.restart();
+            displayTabRoot.reloadMonitors();
         }
     }
 
     onVisibleChanged: {
         if (visible) {
             displayTabRoot.refreshDisplaySettings();
-            reloadMonitorsDebounceTimer.restart();
+            displayTabRoot.reloadMonitors();
         } else {
             reloadMonitorsDebounceTimer.stop();
         }
@@ -503,19 +507,13 @@ GuideTab {
                 displayTabRoot.reloadMonitors();
             }
         }
-        function onCurrentTabChanged() {
-            if (rootObj && rootObj.currentTab === displayTabRoot.tabIndex) {
-                displayTabRoot.refreshDisplaySettings();
-                displayTabRoot.reloadMonitors();
-            }
-        }
     }
 
     Connections {
         target: Quickshell
         function onScreensChanged() {
             displayTabRoot.refreshDisplaySettings();
-            displayTabRoot.reloadMonitors();
+            reloadMonitorsDebounceTimer.restart();
         }
     }
 
@@ -534,7 +532,7 @@ GuideTab {
     }
 
     Connections {
-        target: typeof BlueLight !== "undefined" ? BlueLight : null
+        target: typeof Gamma !== "undefined" ? Gamma : null
         ignoreUnknownSignals: true
         function onSettingsChanged() {
             displayTabRoot.refreshDisplaySettings();

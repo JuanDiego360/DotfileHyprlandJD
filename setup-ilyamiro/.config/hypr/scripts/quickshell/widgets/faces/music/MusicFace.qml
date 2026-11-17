@@ -13,6 +13,8 @@ Item {
     id: root
     anchors.fill: parent
 
+    property bool previewMode: false
+
     property real minWidth: 150
     property real minHeight: 64
     property real maxWidth: 800
@@ -41,10 +43,10 @@ Item {
     function updateSubscription() {
         if (isVisVisible && !isSubscribed) {
             isSubscribed = true;
-            Cava.registerConsumer();
+            Spectrum.registerConsumer();
         } else if (!isVisVisible && isSubscribed) {
             isSubscribed = false;
-            Cava.unregisterConsumer();
+            Spectrum.unregisterConsumer();
         }
     }
 
@@ -70,7 +72,7 @@ Item {
     Component.onDestruction: {
         if (isSubscribed) {
             isSubscribed = false;
-            Cava.unregisterConsumer();
+            Spectrum.unregisterConsumer();
         }
     }
 

@@ -196,10 +196,11 @@ RowLayout {
                     if (isDisabled) {
                         actionCapsule.triggerError();
                         Quickshell.execDetached([
-                            "notify-send",
-                            "-a", I18n.t("syspanel.actions.system_name"),
-                            "-u", "normal",
-                            "-i", "dialog-warning",
+                            "serpantinum-core", "notify",
+                            "--app", I18n.t("syspanel.actions.system_name"),
+                            "--urgency", "normal",
+                            "--icon", "dialog-warning",
+                            "--",
                             I18n.t("syspanel.actions.hibernate_error_title"),
                             I18n.t("syspanel.actions.hibernate_error_body")
                         ]);
@@ -271,7 +272,6 @@ RowLayout {
                     }
                     let scriptPath = cmd === "lock" ? Caching.serpantinumDir + "/scripts/lock.sh" : Caching.serpantinumDir + "/scripts/system/" + (cmd === "sleep" ? "suspend.sh" : cmd + ".sh");
                     Quickshell.execDetached(["bash", scriptPath]);
-                    Quickshell.execDetached(["sh", "-c", "echo 'close' > " + Caching.runDir + "/widget_state"]);
 
                     actionCapsule.fillLevel = 0.0;
                     actionCapsule.triggered = false;

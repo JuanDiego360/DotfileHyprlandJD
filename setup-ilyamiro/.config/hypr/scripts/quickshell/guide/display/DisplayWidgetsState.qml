@@ -10,7 +10,8 @@ GuideTab {
     subTabIndex: 1
 
     property var defaultWidgetsSettings: ({
-        "hideBarInRedactor": true
+        "hideBarInRedactor": true,
+        "showDistances": true
     })
 
     property var widgetsSettings: {
@@ -23,6 +24,7 @@ GuideTab {
     }
 
     property bool currentHideBarInRedactor: widgetsSettings && widgetsSettings.hideBarInRedactor !== undefined ? widgetsSettings.hideBarInRedactor : true
+    property bool currentShowDistances: widgetsSettings && widgetsSettings.showDistances !== undefined ? widgetsSettings.showDistances : true
     property int wallpaperRevision: 0
 
     function syncSettings() {
@@ -31,6 +33,7 @@ GuideTab {
             : displayWidgetsRoot.defaultWidgetsSettings;
         displayWidgetsRoot.widgetsSettings = s;
         displayWidgetsRoot.currentHideBarInRedactor = s.hideBarInRedactor !== undefined ? s.hideBarInRedactor : true;
+        displayWidgetsRoot.currentShowDistances = s.showDistances !== undefined ? s.showDistances : true;
     }
 
     function updateWidgetsSetting(key, value) {
@@ -42,8 +45,22 @@ GuideTab {
         displayWidgetsRoot.widgetsSettings = current;
     }
 
-    property var monitorsList: []
-    property var monitorWidgetsMap: ({})
+    function initialMonitors() {
+        if (DisplayCache.widgetMonitors.length > 0) return DisplayCache.widgetMonitors;
+        let list = [];
+        if (Quickshell.screens) {
+            for (let i = 0; i < Quickshell.screens.length; i++) {
+                list.push({ name: Quickshell.screens[i].name });
+            }
+        }
+        return list;
+    }
+
+    property var monitorsList: initialMonitors()
+    property var monitorWidgetsMap: DisplayCache.widgetsMap
+    property string widgetsReadKey: ""
+
+    onMonitorWidgetsMapChanged: DisplayCache.widgetsMap = monitorWidgetsMap
     property var systemPresets: []
     property var userPresets: []
     property var availablePresets: []
@@ -333,8 +350,9 @@ GuideTab {
 
         if (formattedList.length > 0) {
             Quickshell.execDetached(["bash", "-c",
-                "mkdir -p \"$1\" && printf '%s' \"$2\" > \"$1/layout.json\" && quickshell -p \"$3\" ipc call \"widgets-$4\" reload",
-                "_", Caching.getStateDir("widgets/" + safeM), JSON.stringify(formattedList), Caching.mainQml, safeM]);
+                "mkdir -p \"$1\" && printf '%s' \"$2\" > \"$1/layout.json\"",
+                "_", Caching.getStateDir("widgets/" + safeM), JSON.stringify(formattedList)]);
+            WidgetSync.applyPreset(monName, formattedList, true);
         }
     }
 
@@ -355,7 +373,7 @@ GuideTab {
         m[monName] = newList;
         displayWidgetsRoot.monitorWidgetsMap = m;
 
-        Quickshell.execDetached(["quickshell", "-p", Caching.mainQml, "ipc", "call", "widgets-" + safeM, "remove", targetId]);
+        WidgetSync.removeWidget(monName, targetId);
     }
 
     function deleteCustomPreset(presetName) {
@@ -369,6 +387,12 @@ GuideTab {
 
         displayWidgetsRoot.userPresets = displayWidgetsRoot.userPresets.filter(p => p.name !== presetName && p.id !== presetName && p.name !== sanitizeName && p.id !== sanitizeName);
         displayWidgetsRoot.availablePresets = displayWidgetsRoot.availablePresets.filter(p => p.name !== presetName && p.id !== presetName && p.name !== sanitizeName && p.id !== sanitizeName);
+    }
+
+    FileView {
+        id: presetWriter
+        printErrors: false
+        preload: false
     }
 
     function saveCustomPreset(presetName, monName, widgetsList) {
@@ -405,11 +429,8 @@ GuideTab {
             category: "user"
         };
 
-        let jsonStr = JSON.stringify(presetObj, null, 2);
-        let escapeBash = function(str) { return String(str).replace(/(["\\$`])/g, '\\$1'); };
-        let filePath = userPath + "/" + sanitizeName + ".json";
-        let cmd = "mkdir -p \"" + escapeBash(userPath) + "\" && echo \"" + escapeBash(jsonStr) + "\" > \"" + escapeBash(filePath) + "\"";
-        Quickshell.execDetached(["bash", "-c", cmd]);
+        presetWriter.path = userPath + "/" + sanitizeName + ".json";
+        presetWriter.setText(JSON.stringify(presetObj, null, 2) + "\n");
 
         let uArr = displayWidgetsRoot.userPresets.filter(p => p.name !== sanitizeName && p.id !== presetObj.id);
         uArr.push(presetObj);
@@ -451,8 +472,14 @@ GuideTab {
                         list.push({ name: Quickshell.screens[i].name });
                     }
                 }
-                displayWidgetsRoot.monitorsList = list;
-                displayWidgetsRoot.reloadAllWidgetFiles();
+                let changed = JSON.stringify(list) !== JSON.stringify(displayWidgetsRoot.monitorsList);
+                if (changed) {
+                    displayWidgetsRoot.monitorsList = list;
+                    DisplayCache.widgetMonitors = list;
+                }
+                if (changed || displayWidgetsRoot.widgetsReadKey !== JSON.stringify(list.map(m => m.name))) {
+                    displayWidgetsRoot.reloadAllWidgetFiles();
+                }
             }
         }
     }
@@ -474,9 +501,15 @@ GuideTab {
     Process {
         id: readWidgetsProcess
         property var monitorNames: []
+        property bool rereadPending: false
 
         function exec(paths) {
+            if (running) {
+                rereadPending = true;
+                return;
+            }
             monitorNames = displayWidgetsRoot.monitorsList.map(m => m.name);
+            displayWidgetsRoot.widgetsReadKey = JSON.stringify(monitorNames);
 
             let script = "";
             for (let i = 0; i < paths.length; i++) {
@@ -484,7 +517,6 @@ GuideTab {
             }
 
             command = ["bash", "-c", script];
-            running = false;
             running = true;
         }
 
@@ -503,7 +535,13 @@ GuideTab {
                         m[mon] = [];
                     }
                 }
-                displayWidgetsRoot.monitorWidgetsMap = m;
+                if (JSON.stringify(m) !== JSON.stringify(displayWidgetsRoot.monitorWidgetsMap)) {
+                    displayWidgetsRoot.monitorWidgetsMap = m;
+                }
+                if (readWidgetsProcess.rereadPending) {
+                    readWidgetsProcess.rereadPending = false;
+                    Qt.callLater(displayWidgetsRoot.reloadAllWidgetFiles);
+                }
             }
         }
     }
@@ -519,18 +557,17 @@ GuideTab {
         }
     }
 
-    Timer {
-        id: screenDetectorDebounceTimer
-        interval: 220
-        repeat: false
-        onTriggered: screenDetector.running = true
+    function reloadMonitors() {
+        if (screenDetector.running) return;
+        screenDetector.running = true;
     }
 
     Component.onCompleted: {
         syncSettings();
         reloadPresets();
         if (visible) {
-            screenDetectorDebounceTimer.restart();
+            reloadMonitors();
+            reloadAllWidgetFiles();
         }
     }
 
@@ -538,9 +575,8 @@ GuideTab {
         if (visible) {
             syncSettings();
             reloadPresets();
-            screenDetectorDebounceTimer.restart();
+            reloadMonitors();
         } else {
-            screenDetectorDebounceTimer.stop();
             savePresetPopup.close();
         }
     }
@@ -648,7 +684,7 @@ GuideTab {
         target: rootObj
         function onVisibleChanged() {
             if (rootObj && rootObj.visible && displayWidgetsRoot.visible) {
-                screenDetector.running = true;
+                displayWidgetsRoot.reloadMonitors();
             }
         }
     }

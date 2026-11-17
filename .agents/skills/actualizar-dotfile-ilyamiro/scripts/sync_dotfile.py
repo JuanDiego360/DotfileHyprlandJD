@@ -26,8 +26,6 @@ SETUP_DIR = os.path.join(DOTFILES_DIR, "setup-ilyamiro/.config/hypr/scripts/quic
 
 # Archivos protegidos que NUNCA deben sobrescribirse con el código vanilla de upstream
 PROTECTED_FILES = {
-    "bar/faces/left/LeftFace.qml",
-    "screenshot/ScreenshotOverlay.qml",
     "singletons/info/SysData.qml",
     "singletons/system/Config.qml",
     "singletons/theme/Scaler.qml",
@@ -45,7 +43,6 @@ PROTECTED_FILES = {
     "guide/DockTab.qml",
     "guide/LauncherTab.qml",
     "guide/AboutTab.qml",
-    "calendar/CalendarPopup.qml",
 }
 
 def audit():
@@ -199,7 +196,7 @@ def sync():
         with open(calendar_f, "w", encoding="utf-8") as fp:
             fp.write("\n".join(new_lines) + "\n")
 
-    # qmldir: asegurar MatugenColors y nuevos componentes
+    # qmldir: asegurar MatugenColors y retrocompatibilidad
     qmldir_f = os.path.join(SETUP_DIR, "qmldir")
     if os.path.exists(qmldir_f):
         with open(qmldir_f, "r", encoding="utf-8") as fp:
@@ -209,8 +206,18 @@ def sync():
                 "singleton Matugen 1.0 singletons/theme/Matugen.qml",
                 "singleton Matugen 1.0 singletons/theme/Matugen.qml\nMatugenColors 1.0 MatugenColors.qml"
             )
-            with open(qmldir_f, "w", encoding="utf-8") as fp:
-                fp.write(q_content)
+        if "singleton Cava 1.0" not in q_content:
+            q_content = q_content.replace(
+                "singleton Spectrum 1.0 singletons/audio/Spectrum.qml",
+                "singleton Spectrum 1.0 singletons/audio/Spectrum.qml\nsingleton Cava 1.0 singletons/audio/Cava.qml"
+            )
+        if "singleton BlueLight 1.0" not in q_content:
+            q_content = q_content.replace(
+                "singleton Gamma 1.0 singletons/environment/Gamma.qml",
+                "singleton Gamma 1.0 singletons/environment/Gamma.qml\nsingleton BlueLight 1.0 singletons/environment/BlueLight.qml"
+            )
+        with open(qmldir_f, "w", encoding="utf-8") as fp:
+            fp.write(q_content)
 
     # Lock: asegurar que lock/qmldir registre VideoLock y FingerprintIndicator
     lock_qmldir = os.path.join(SETUP_DIR, "lock/qmldir")
@@ -227,11 +234,21 @@ def sync():
     # Sincronizar scripts actualizados en src/scripts hacia setup-ilyamiro
     src_scripts = os.path.join(DOTFILES_DIR, "src/scripts")
     setup_scripts = os.path.join(DOTFILES_DIR, "setup-ilyamiro/.config/hypr/scripts")
-    for s_file in ["caching.sh", "i18n.sh", "blue_light_filter.sh", "migrate_easyeffects.sh"]:
+    for s_file in ["caching.sh", "i18n.sh", "gamma.sh", "weather.sh", "blue_light_filter.sh", "migrate_easyeffects.sh"]:
         sp = os.path.join(src_scripts, s_file)
         dp = os.path.join(setup_scripts, s_file)
         if os.path.exists(sp):
             shutil.copy2(sp, dp)
+
+    # Scripts de wallpaper en quickshell/wallpaper/
+    wp_src = os.path.join(src_scripts, "wallpaper")
+    wp_dst = os.path.join(SETUP_DIR, "wallpaper")
+    if os.path.exists(wp_src) and os.path.exists(wp_dst):
+        for wf in os.listdir(wp_src):
+            sp = os.path.join(wp_src, wf)
+            dp = os.path.join(wp_dst, wf)
+            if os.path.isfile(sp):
+                shutil.copy2(sp, dp)
 
     print("✔ Sincronización completada con éxito.")
 
@@ -254,6 +271,9 @@ if __name__ == "__main__":
         audit()
     elif len(sys.argv) > 1 and sys.argv[1] == "--reload":
         reload_quickshell()
+    elif len(sys.argv) > 1 and sys.argv[1] == "--sync-only":
+        audit()
+        sync()
     else:
         audit()
         sync()

@@ -50,8 +50,11 @@ ShellRoot {
                 readonly property string layerSnapshotPathA: wpCacheDir + "/layer_" + barWindow.screen.name + "_a.png"
                 readonly property string layerSnapshotPathB: wpCacheDir + "/layer_" + barWindow.screen.name + "_b.png"
 
-                readonly property int fadeDuration: 1000
-                readonly property int maskDuration: 1600
+                property int activeDuration: 1000
+                property var pendingChange: null
+                property bool capturingFrame: false
+                property bool frozenActive: false
+                readonly property bool transitionBusy: transitionAnim.running || videoWarmUpTimer.running || capturingFrame
                 property real transitionProgress: 1.0
                 property bool isPreloading: false
                 property int activeTransitionType: 0
@@ -59,6 +62,7 @@ ShellRoot {
                 property int swipeDirection: 0
                 property real transitionOriginX: 0.5
                 property real transitionOriginY: 0.5
+                property real transitionSeed: 0.0
                 property bool isInitialLoad: true
 
                 Component.onCompleted: {
@@ -269,6 +273,51 @@ ShellRoot {
                     transitionAnim.restart();
                 }
 
+                function clearOutgoingLayer() {
+                    if (barWindow.activeLayer === 0) {
+                        barWindow.stopB();
+                        barWindow.pathB = "";
+                        barWindow.isVideoB = false;
+                    } else {
+                        barWindow.stopA();
+                        barWindow.pathA = "";
+                        barWindow.isVideoA = false;
+                    }
+                }
+
+                function completeTransition() {
+                    barWindow.clearOutgoingLayer();
+                    barWindow.frozenActive = false;
+                }
+
+                function applyFrozenFrame() {
+                    captureWait.stop();
+                    transitionAnim.stop();
+                    videoWarmUpTimer.stop();
+                    barWindow.capturingFrame = false;
+                    barWindow.frozenActive = true;
+                    let next = barWindow.pendingChange;
+                    barWindow.pendingChange = null;
+                    if (!next) return;
+                    barWindow.changeWallpaper(next.path, next.ttype);
+                    barWindow.clearOutgoingLayer();
+                }
+
+                function interruptWith(path, ttype) {
+                    if (typeof DesktopMenuController !== "undefined" && DesktopMenuController.isMenuShuffle) {
+                        let isTargetScreen = !DesktopMenuController.screen || !DesktopMenuController.screen.name || (barWindow.screen && DesktopMenuController.screen.name === barWindow.screen.name);
+                        if (isTargetScreen) {
+                            ttype = { type: 2, originX: DesktopMenuController.menuOriginX, originY: DesktopMenuController.menuOriginY };
+                        }
+                    }
+                    barWindow.pendingChange = { path: path, ttype: ttype };
+                    if (barWindow.capturingFrame) return;
+                    barWindow.capturingFrame = true;
+                    frozenFrame.scheduleUpdate();
+                    captureWait.frames = 0;
+                    captureWait.restart();
+                }
+
                 function _loadNew(path, force) {
                     if (!path) return;
                     if (!force && path === barWindow.currentWallpaperPath) return;
@@ -334,8 +383,10 @@ ShellRoot {
 
                 function changeWallpaper(path, ttype) {
                     if (!path) return;
-
-                    let isInterrupted = transitionAnim.running && barWindow.transitionProgress > 0.1 && barWindow.transitionProgress < 0.85;
+                    if (barWindow.transitionBusy) {
+                        barWindow.interruptWith(path, ttype);
+                        return;
+                    }
 
                     barWindow.isInitialLoad = false;
 
@@ -371,20 +422,19 @@ ShellRoot {
                         }
                     }
 
-                    if (isInterrupted) {
-                        barWindow.activeTransitionType = 0;
-                    } else if (chosenType >= 0) {
-                        barWindow.activeTransitionType = chosenType;
-                    } else {
-                        barWindow.activeTransitionType = Math.floor(Math.random() * 4);
-                    }
-
-                    barWindow.wipeIsVertical = Math.random() < 0.5;
-                    barWindow.swipeDirection = Math.floor(Math.random() * 8);
+                    let fx = Wallpaper.resolveTransition(chosenType);
+                    barWindow.activeTransitionType = fx.type;
+                    barWindow.activeDuration = fx.duration;
+                    barWindow.wipeIsVertical = fx.vertical;
+                    barWindow.swipeDirection = fx.direction;
+                    barWindow.transitionSeed = Math.random() * 100.0;
 
                     if (fromMenu && customOriginX >= 0 && customOriginY >= 0) {
                         barWindow.transitionOriginX = customOriginX;
                         barWindow.transitionOriginY = customOriginY;
+                    } else if (fx.centered) {
+                        barWindow.transitionOriginX = 0.5;
+                        barWindow.transitionOriginY = 0.5;
                     } else {
                         barWindow.transitionOriginX = 0.15 + Math.random() * 0.70;
                         barWindow.transitionOriginY = 0.15 + Math.random() * 0.70;
@@ -405,12 +455,10 @@ ShellRoot {
                     let snapshotPath = barWindow.wpSnapshotPath;
                     let monSnapshotPath = barWindow.wpMonitorSnapshotPath;
                     Quickshell.execDetached(["bash", "-c",
-                        "mkdir -p '" + wpCopyDir + "'" +
-                        " && printf '%s' '" + cleanPath + "' > '" + wpStatePath + "'" +
-                        " && printf '%s' '" + origName + "' > '" + wpStatePath + "_name'" +
-                        " && cp -f '" + cleanPath + "' '" + dest + "'" +
-                        (vid ? "" : " && cp -f '" + cleanPath + "' '" + snapshotPath + "' && cp -f '" + cleanPath + "' '" + monSnapshotPath + "'") +
-                        " && ( HIST='" + histFile + "'; if [ -f \"$HIST\" ]; then grep -v -F -x '" + origName + "' \"$HIST\" > \"$HIST.tmp\" 2>/dev/null || true; printf '%s\n' '" + origName + "' | cat - \"$HIST.tmp\" > \"$HIST\"; rm -f \"$HIST.tmp\"; else printf '%s\n' '" + origName + "' > \"$HIST\"; fi )"
+                        "mkdir -p \"$1\" && printf '%s' \"$2\" > \"$3\" && printf '%s' \"$4\" > \"${3}_name\" && cp -f \"$2\" \"$5\"" +
+                        " && if [ \"$9\" != 1 ]; then cp -f \"$2\" \"$6\" && cp -f \"$2\" \"$7\"; fi" +
+                        " && ( HIST=\"$8\"; if [ -f \"$HIST\" ]; then grep -v -F -x -- \"$4\" \"$HIST\" > \"$HIST.tmp\" 2>/dev/null || true; printf '%s\\n' \"$4\" | cat - \"$HIST.tmp\" > \"$HIST\"; rm -f \"$HIST.tmp\"; else printf '%s\\n' \"$4\" > \"$HIST\"; fi )",
+                        "_", wpCopyDir, cleanPath, wpStatePath, origName, dest, snapshotPath, monSnapshotPath, histFile, vid ? "1" : "0"
                     ]);
 
                     if (vid) {
@@ -457,21 +505,20 @@ ShellRoot {
                     property: "transitionProgress"
                     from: 0.0
                     to: 1.0
-                    duration: barWindow.activeTransitionType === 0 ? barWindow.fadeDuration : barWindow.maskDuration
+                    duration: barWindow.activeDuration
                     easing.type: Easing.InOutCubic
+                    onFinished: barWindow.completeTransition()
+                }
 
-                    onFinished: {
-                        if (barWindow.activeLayer === 0) {
-                            barWindow.stopB();
-                            barWindow.pathB = "";
-                            barWindow.isVideoB = false;
-                        } else {
-                            barWindow.stopA();
-                            barWindow.pathA = "";
-                            barWindow.isVideoA = false;
-                        }
+                FrameAnimation {
+                    id: captureWait
+                    property int frames: 0
+                    onTriggered: {
+                        captureWait.frames++;
+                        if (captureWait.frames >= 60) barWindow.applyFrozenFrame();
                     }
                 }
+
 
                 Component {
                     id: videoLayerCompA
@@ -532,6 +579,20 @@ ShellRoot {
                     anchors.fill: parent
                     clip: true
 
+                    ShaderEffectSource {
+                        id: frozenFrame
+                        anchors.fill: parent
+                        z: 0
+                        sourceItem: (barWindow.capturingFrame || barWindow.frozenActive) ? scene : null
+                        live: false
+                        recursive: true
+                        hideSource: false
+                        visible: barWindow.capturingFrame || barWindow.frozenActive
+                        onScheduledUpdateCompleted: {
+                            if (barWindow.capturingFrame) barWindow.applyFrozenFrame();
+                        }
+                    }
+
                     ShaderEffect {
                         id: transitionShaderA
                         anchors.fill: parent
@@ -542,7 +603,8 @@ ShellRoot {
                         property real progress: barWindow.transitionProgress
                         property real transitionType: barWindow.activeTransitionType
                         property vector2d origin: Qt.vector2d(barWindow.transitionOriginX, barWindow.transitionOriginY)
-                        property vector4d params: Qt.vector4d(barWindow.wipeIsVertical ? 1.0 : 0.0, barWindow.swipeDirection, 0.0, 0.0)
+                        property vector4d params: Qt.vector4d(barWindow.wipeIsVertical ? 1.0 : 0.0, barWindow.swipeDirection, barWindow.transitionSeed, 0.0)
+                        property color tint: "transparent"
 
                         fragmentShader: "file://" + Caching.serpantinumDir + "/assets/shaders/transitions/wallpaper_transition.frag.qsb"
                     }
@@ -556,7 +618,7 @@ ShellRoot {
                         readonly property real p: barWindow.transitionProgress
 
                         z: isIncoming ? 2 : 1
-                        visible: isIncoming || p < 1.0
+                        visible: isIncoming || (p < 1.0 && !barWindow.frozenActive)
 
                         opacity: {
                             if (barWindow.isPreloading && isIncoming) return 0.0;
@@ -609,7 +671,8 @@ ShellRoot {
                         property real progress: barWindow.transitionProgress
                         property real transitionType: barWindow.activeTransitionType
                         property vector2d origin: Qt.vector2d(barWindow.transitionOriginX, barWindow.transitionOriginY)
-                        property vector4d params: Qt.vector4d(barWindow.wipeIsVertical ? 1.0 : 0.0, barWindow.swipeDirection, 0.0, 0.0)
+                        property vector4d params: Qt.vector4d(barWindow.wipeIsVertical ? 1.0 : 0.0, barWindow.swipeDirection, barWindow.transitionSeed, 0.0)
+                        property color tint: "transparent"
 
                         fragmentShader: "file://" + Caching.serpantinumDir + "/assets/shaders/transitions/wallpaper_transition.frag.qsb"
                     }
@@ -623,7 +686,7 @@ ShellRoot {
                         readonly property real p: barWindow.transitionProgress
 
                         z: isIncoming ? 2 : 1
-                        visible: isIncoming || p < 1.0
+                        visible: isIncoming || (p < 1.0 && !barWindow.frozenActive)
 
                         opacity: {
                             if (barWindow.isPreloading && isIncoming) return 0.0;
@@ -664,6 +727,22 @@ ShellRoot {
                                 }
                             }
                         }
+                    }
+
+                    ShaderEffect {
+                        id: paintGlow
+                        anchors.fill: parent
+                        z: 3
+                        visible: barWindow.activeTransitionType === 4 && !barWindow.isPreloading && barWindow.transitionProgress < 1.0
+
+                        property vector2d itemSize: Qt.vector2d(width, height)
+                        property real progress: barWindow.transitionProgress
+                        property real transitionType: barWindow.activeTransitionType
+                        property vector2d origin: Qt.vector2d(barWindow.transitionOriginX, barWindow.transitionOriginY)
+                        property vector4d params: Qt.vector4d(0.0, 0.0, barWindow.transitionSeed, 1.0)
+                        property color tint: ThemeBackend.mauve
+
+                        fragmentShader: "file://" + Caching.serpantinumDir + "/assets/shaders/transitions/wallpaper_transition.frag.qsb"
                     }
                 }
 

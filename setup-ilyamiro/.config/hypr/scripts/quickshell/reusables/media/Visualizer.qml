@@ -1,8 +1,8 @@
 import QtQuick
 import "../../"
 
-// Cava visualizer drawn by a single ShaderEffect: bars or a wave, horizontal or vertical.
-// The owner subscribes to Cava and sets active. Levels are mapped and smoothed here,
+// Spectrum visualizer drawn by a single ShaderEffect: bars or a wave, horizontal or vertical.
+// The owner subscribes to Spectrum and sets active. Levels are mapped and smoothed here,
 // the shaders in assets/shaders only draw them.
 Item {
     id: root
@@ -22,7 +22,7 @@ Item {
     property real threshold: 0.03
     property real gamma: 1.15
 
-    // How far a level moves to its target per 16 ms, 1 follows cava directly
+    // How far a level moves to its target per 16 ms, 1 follows the spectrum directly
     property real rise: 1.0
     property real fall: 1.0
 
@@ -52,7 +52,7 @@ Item {
     // Where every level reads the spectrum, rebuilt only when the count or the mapping changes
     readonly property var sourceMap: {
         let n = root.levelCount;
-        let srcLen = Cava.barCount;
+        let srcLen = Spectrum.barCount;
         let half = (n - 1) / 2;
         let ring = root.continuous && root.ringRadius > 0;
         let map = [];
@@ -134,7 +134,7 @@ Item {
     }
 
     property var targets: {
-        let source = root.active ? Cava.barLevels : null;
+        let source = root.active ? Spectrum.barLevels : null;
         let out;
         if (root.previewDemo && root.active && (!source || source.every(v => v === 0))) {
             let dummy = root.demoTick;
@@ -169,12 +169,19 @@ Item {
     }
 
     FrameAnimation {
+        id: levelAnimation
+        property real pendingTime: 0.0
         running: root.settling && root.visible
         onTriggered: {
+            levelAnimation.pendingTime += frameTime;
+            if (levelAnimation.pendingTime + frameTime / 2 < 1 / 60) return;
+            let elapsed = levelAnimation.pendingTime;
+            levelAnimation.pendingTime = 0.0;
+
             let target = root.targets;
             let cur = root.currentLevels;
-            let rise = 1 - Math.pow(1 - root.rise, frameTime / 0.016);
-            let fall = 1 - Math.pow(1 - root.fall, frameTime / 0.016);
+            let rise = 1 - Math.pow(1 - root.rise, elapsed / 0.016);
+            let fall = 1 - Math.pow(1 - root.fall, elapsed / 0.016);
             let next = new Array(target.length);
             let moving = false;
             let sum = 0.0;

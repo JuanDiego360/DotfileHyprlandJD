@@ -134,6 +134,22 @@ PanelWindow {
                 return;
             }
 
+            if (cmd === "calendar" || targetWidget === "calendar") {
+                if (cmd === "close") {
+                    DashboardController.hide();
+                } else {
+                    LauncherController.hide();
+                    ClipboardController.hide();
+                    if (masterWindow.targetActive !== "hidden") switchWidget("hidden", "");
+                    if (cmd === "open") {
+                        DashboardController.show();
+                    } else {
+                        DashboardController.toggle();
+                    }
+                }
+                return;
+            }
+
             if (cmd === "airplane" || targetWidget === "airplane" || cmd === "flight" || targetWidget === "flight") {
                 let isAirplane = !Networking.wifiEnabled && !(Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled);
                 if (isAirplane) {

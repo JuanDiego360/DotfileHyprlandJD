@@ -8,14 +8,7 @@ import "../"
 Item {
     id: idleRoot
 
-    property bool isNiri: {
-        let de = (typeof SystemInfo !== "undefined" && SystemInfo.desktopEnv) ? SystemInfo.desktopEnv.toLowerCase() : "";
-        if (de.indexOf("niri") !== -1) return true;
-        let xdg = (typeof Quickshell !== "undefined" && Quickshell.env) ? (Quickshell.env("XDG_CURRENT_DESKTOP") || "") : "";
-        return xdg.toLowerCase().indexOf("niri") !== -1;
-    }
 
-    readonly property bool isMango: MangoState.isMango
 
     property var defaultIdleSettings: ({
         "enabled": false,
@@ -121,7 +114,7 @@ Item {
         id: idleHelperProc
         running: Caching.qsDir !== ""
         stdinEnabled: true
-        command: ["python3", Caching.qsDir + "/idle/idle_helper.py", Caching.getRunDir("lock") + "/locked"]
+        command: ["serpantinum-core", "watch", "idle", Caching.getRunDir("lock") + "/locked"]
         stdout: SplitParser {
             onRead: data => {
                 let line = data.trim();
@@ -129,6 +122,7 @@ Item {
                 else if (line === "inhibit 0") idleRoot.isAppInhibited = false;
                 else if (line === "sleep" && idleRoot.lockOnSleep) idleRoot.lockSession(true);
                 else if (line === "wake") idleRoot.reauthLockSession();
+                else if (line.startsWith("log ")) console.info("idle_helper: " + line.slice(4));
             }
         }
         onStarted: idleRoot.syncSleepLock()
@@ -245,21 +239,21 @@ Item {
     }
 
     function dpmsOff() {
-        if (idleRoot.isNiri) {
+        if (Compositor.name === "niri") {
             Quickshell.execDetached(["niri", "msg", "action", "power-off-monitors"]);
-        } else if (idleRoot.isMango) {
+        } else if (Compositor.name === "mango") {
             Quickshell.execDetached(["sh", "-c", "mmsg get all-monitors 2>/dev/null | jq -r '.monitors[]?.name' | while read -r mon; do mmsg dispatch \"sleep_monitor,$mon\"; done"]);
-        } else {
+        } else if (Compositor.name === "hyprland") {
             Quickshell.execDetached(["sh", "-c", "hyprctl dispatch 'hl.dsp.dpms({ action = \"disable\" })' 2>/dev/null || hyprctl dispatch 'hl.dsp.dpms({ action = \"off\" })' 2>/dev/null || hyprctl dispatch dpms off"]);
         }
     }
 
     function dpmsOn() {
-        if (idleRoot.isNiri) {
+        if (Compositor.name === "niri") {
             Quickshell.execDetached(["niri", "msg", "action", "power-on-monitors"]);
-        } else if (idleRoot.isMango) {
+        } else if (Compositor.name === "mango") {
             Quickshell.execDetached(["sh", "-c", "mmsg get all-monitors 2>/dev/null | jq -r '.monitors[]?.name' | while read -r mon; do mmsg dispatch \"wakeup_monitor,$mon\"; done"]);
-        } else {
+        } else if (Compositor.name === "hyprland") {
             Quickshell.execDetached(["sh", "-c", "hyprctl dispatch 'hl.dsp.dpms({ action = \"enable\" })' 2>/dev/null || hyprctl dispatch 'hl.dsp.dpms({ action = \"on\" })' 2>/dev/null || hyprctl dispatch dpms on"]);
         }
     }
@@ -381,6 +375,30 @@ Item {
         function trigger(name: string): void { idleRoot.executeAction(name); }
         function execute(name: string): void { idleRoot.executeAction(name); }
         function run(name: string): void { idleRoot.executeAction(name); }
+        function status(): string { return idleRoot.statusJson(); }
+    }
+
+    function statusJson() {
+        return JSON.stringify({
+            "active": idleRoot.isIdleSystemActive,
+            "enabled": idleRoot.idleEnabled,
+            "caffeine": {
+                "on": idleRoot.manualInhibit,
+                "remaining": idleRoot.manualInhibit && Number(idleSettings.caffeineEndTime) > 0 ? Math.max(0, Math.round((Number(idleSettings.caffeineEndTime) - Date.now()) / 1000)) : 0
+            },
+            "appInhibited": idleRoot.isAppInhibited,
+            "mediaPlaying": idleRoot.isMediaPlaying,
+            "locked": idleRoot.isLocked,
+            "dimmed": idleRoot.isDimmed,
+            "actions": idleRoot.allActions.map(a => ({
+                "id": a.id,
+                "enabled": a.enabled !== undefined ? a.enabled : true,
+                "timeout": idleRoot.getActionTimeout(a),
+                "valid": idleRoot.isActionPipelineValid(a),
+                "respectInhibitors": a.respectInhibitors !== undefined ? a.respectInhibitors : true,
+                "mprisInhibit": !!a.mprisInhibit
+            }))
+        }, null, 2);
     }
 
     Dim {
