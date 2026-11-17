@@ -39,11 +39,6 @@ Item {
         if (target) controller.setIndexRequested(target, index);
     }
 
-    function toggle(index, screen) {
-        let target = targetScreen(screen);
-        if (target) controller.toggleRequested(target, index);
-    }
-
     function showSystemUsage(screen) {
         let target = targetScreen(screen);
         if (target) controller.showSystemUsageRequested(target);
@@ -65,8 +60,13 @@ Item {
         return controller.closedAny;
     }
 
-    function toggle(screen) {
-        if (!controller.close(null)) controller.open(screen);
+    function toggle(indexOrScreen, maybeScreen) {
+        if (indexOrScreen === undefined || indexOrScreen === null || (typeof indexOrScreen === "object" && !maybeScreen)) {
+            if (!controller.close(null)) controller.open(indexOrScreen || null);
+        } else {
+            let target = targetScreen(maybeScreen);
+            if (target) controller.toggleRequested(target, String(indexOrScreen));
+        }
     }
 
     IpcHandler {
@@ -77,7 +77,11 @@ Item {
         }
 
         function toggle(index: string) {
-            controller.toggle(index, null);
+            if (index !== undefined && index !== null && index !== "") {
+                controller.toggle(index, null);
+            } else {
+                controller.toggle(null);
+            }
         }
 
         function showSystemUsage() {
@@ -94,10 +98,6 @@ Item {
 
         function close() {
             controller.close(null);
-        }
-
-        function toggle() {
-            controller.toggle(null);
         }
 
         function forceReload() {
