@@ -156,6 +156,7 @@ PanelWindow {
             let effectivelyActive = masterWindow.targetActive;
 
             if (cmd === "close") {
+                DashboardController.hide();
                 if (typeof DockAppMenuController !== "undefined") {
                     DockAppMenuController.hide();
                 }
@@ -372,8 +373,6 @@ PanelWindow {
             if (masterWindow.currentActive === "hidden") {
                 let t = masterWindow.getLayout("guide");
                 if (t) masterWindow.ensureWidgetItem("guide", t);
-                let w = masterWindow.getLayout("wallpaper");
-                if (w) masterWindow.ensureWidgetItem("wallpaper", w);
             }
         });
     }
@@ -478,9 +477,9 @@ PanelWindow {
                 adjusted.ry = Math.max(Math.round(6 * scale), result.ry - offsetAdjustment);
             } else if (bp === "bottom") {
                 adjusted.ry = Math.min(masterWindow.height - result.h - Math.round(6 * scale), result.ry + offsetAdjustment);
-            } else if (bp === "left" && name !== "calendar") {
+            } else if (bp === "left") {
                 adjusted.rx = Math.max(Math.round(6 * scale), result.rx - offsetAdjustment);
-            } else if (bp === "right" && name !== "calendar") {
+            } else if (bp === "right") {
                 adjusted.rx = Math.min(masterWindow.width - result.w - Math.round(6 * scale), result.rx + offsetAdjustment);
             }
 
@@ -699,6 +698,7 @@ PanelWindow {
                 }
             }
         } else {
+            DashboardController.hide();
             masterWindow.isClosing = false;
             let targetScreen = resolveTargetScreen();
             if (targetScreen && masterWindow.screen !== targetScreen) {

@@ -15,7 +15,7 @@ SettingsRow {
     icon: "󰒝"
     title: I18n.t("guide.theme.wallpaper.transition.mode.title", "Transition")
     description: I18n.t("guide.theme.wallpaper.transition.mode.desc_" + row.mode)
-    searchKeywords: "wallpaper transition animation effect random custom set fade wipe circle swipe"
+    searchKeywords: "wallpaper transition animation effect random custom set fade wipe circle swipe paint"
 
     Switch {
         Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
@@ -35,10 +35,11 @@ SettingsRow {
     }
 
     bottomContent: GridLayout {
+        id: tilesGrid
         Layout.fillWidth: true
-        columns: width < rootObj.s(480) ? 2 : 4
-        columnSpacing: rootObj.s(8)
-        rowSpacing: rootObj.s(8)
+        columns: Math.max(1, Math.min(3, Math.floor(width / rootObj.s(160))))
+        columnSpacing: rootObj.s(10)
+        rowSpacing: rootObj.s(10)
 
         Repeater {
             model: Wallpaper.transitionIds
@@ -50,6 +51,15 @@ SettingsRow {
                 selected: row.mode !== "random" && row.tab.isInRotation(modelData)
                 interactive: row.mode !== "random"
                 onPicked: row.tab.pickTransition(modelData)
+            }
+        }
+
+        Repeater {
+            model: (tilesGrid.columns - Wallpaper.transitionIds.length % tilesGrid.columns) % tilesGrid.columns
+
+            delegate: Item {
+                Layout.fillWidth: true
+                Layout.preferredWidth: 1
             }
         }
     }
