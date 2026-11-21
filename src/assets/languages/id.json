@@ -719,6 +719,31 @@
             "name": "Cat",
             "desc": "Lukis wallpaper baru sel demi sel dari koloni yang tumbuh di seluruh layar"
           },
+          "wave": {
+            "name": "Gelombang cair",
+            "desc": "Menyapu layar dengan gelombang cair melengkung",
+            "direction_desc": "Tepi atau sudut asal gelombang menyapu"
+          },
+          "blinds": {
+            "name": "Tirai venesia",
+            "desc": "Membuka bilah sejajar di seluruh layar secara bergelombang",
+            "orientation_desc": "Sumbu arah bukaan tirai"
+          },
+          "clock": {
+            "name": "Sapuan jam",
+            "desc": "Menyapu searah jarum jam mengelilingi titik seperti radar",
+            "origin_desc": "Titik poros sapuan"
+          },
+          "hex": {
+            "name": "Kisi heksagon",
+            "desc": "Menampilkan wallpaper baru melalui sarang lebah heksagon bergelombang",
+            "size_title": "Ukuran heksagon",
+            "size_desc": "Ukuran setiap ubin heksagon pada kisi"
+          },
+          "ink": {
+            "name": "Sebaran tinta",
+            "desc": "Mekar secara organik melintasi layar seperti tinta cat air"
+          },
           "orientation": {
             "title": "Orientasi",
             "desc": "Sumbu tempat transisi terbuka",
@@ -2021,6 +2046,12 @@
       "menu_reinstall": "Instal ulang",
       "menu_install": "Instal",
       "menu_exit": "Keluar",
+      "menu_uninstall": "Copot",
+      "uninstall_title": "Yakin ingin mencopot Serpantinum?",
+      "uninstall_removes": "Ini akan menghapus shell, serpantinum-core, serpantinum-audio, serpantinum-gamma, tema SDDM, serta pengaturan, status, dan cache Serpantinum, lalu mengembalikan aplikasi bertema, Qt, dan SDDM ke bawaan sistem.",
+      "uninstall_keeps": "Ski, compositor, konfigurasinya, wallpaper, dan paket sistem tidak akan diubah.",
+      "uninstall_cancel": "Tidak, kembali",
+      "uninstall_confirm": "Ya, copot Serpantinum",
       "error_no_compositor": "Anda harus memilih setidaknya satu kompositor yang didukung sebelum melanjutkan.",
       "tagline": "Shell desktop yang dibangun untuk Anda",
       "support_creator": "Dukung pembuat:",
@@ -2088,6 +2119,12 @@
       "installing": "Memasang pengelola file Ski...",
       "unsupported_arch": "Paket prakompilasi Ski hanya tersedia untuk x86_64, dilewati.",
       "up_to_date": "-> Ski {version} sudah terpasang."
+    },
+    "uninstall": {
+      "stopping": "Menghentikan Serpantinum dan layanannya...",
+      "resetting": "Mengembalikan tema aplikasi ke bawaan sistem...",
+      "removing": "Menghapus berkas Serpantinum...",
+      "done": "Serpantinum telah dicopot. Hapus baris autostart dari konfigurasi compositor jika tidak diperlukan lagi."
     }
   },
   "datetime": {

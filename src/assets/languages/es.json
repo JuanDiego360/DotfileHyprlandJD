@@ -719,6 +719,31 @@
             "name": "Pintura",
             "desc": "Pinta el nuevo fondo celda a celda desde colonias que crecen por la pantalla"
           },
+          "wave": {
+            "name": "Onda fluida",
+            "desc": "Barre la pantalla con una onda líquida curva",
+            "direction_desc": "Borde o esquina desde donde barre la onda"
+          },
+          "blinds": {
+            "name": "Persianas venecianas",
+            "desc": "Abre láminas paralelas en la pantalla con un oleaje escalonado",
+            "orientation_desc": "Eje a lo largo del cual se abren las persianas"
+          },
+          "clock": {
+            "name": "Barrido de reloj",
+            "desc": "Barre en sentido horario alrededor de un punto como un radar",
+            "origin_desc": "Punto sobre el que gira el barrido"
+          },
+          "hex": {
+            "name": "Rejilla hexagonal",
+            "desc": "Revela el nuevo fondo a través de un panal ondulante de hexágonos",
+            "size_title": "Tamaño del hexágono",
+            "size_desc": "Tamaño de cada celda hexagonal en la rejilla"
+          },
+          "ink": {
+            "name": "Tinta difusa",
+            "desc": "Se expande orgánicamente por la pantalla como tinta de acuarela"
+          },
           "orientation": {
             "title": "Orientación",
             "desc": "Eje en el que se abre la transición",
@@ -2022,6 +2047,12 @@
       "menu_reinstall": "Reinstalar",
       "menu_install": "Instalar",
       "menu_exit": "Salir",
+      "menu_uninstall": "Desinstalar",
+      "uninstall_title": "¿Seguro que quieres desinstalar Serpantinum?",
+      "uninstall_removes": "Se eliminarán el shell, serpantinum-core, serpantinum-audio, serpantinum-gamma, el tema de SDDM y la configuración, el estado y la caché de Serpantinum, y las apps tematizadas, Qt y SDDM volverán a los valores predeterminados del sistema.",
+      "uninstall_keeps": "Ski, los compositores, sus configuraciones, los fondos de pantalla y los paquetes del sistema no se tocarán.",
+      "uninstall_cancel": "No, volver",
+      "uninstall_confirm": "Sí, desinstalar Serpantinum",
       "error_no_compositor": "Debes elegir al menos un compositor compatible antes de continuar.",
       "tagline": "Un entorno de escritorio creado para ti",
       "support_creator": "Apoya al creador:",
@@ -2089,6 +2120,12 @@
       "installing": "Instalando el gestor de archivos Ski...",
       "unsupported_arch": "Los paquetes precompilados de Ski solo existen para x86_64, se omite.",
       "up_to_date": "-> Ski {version} ya está instalado."
+    },
+    "uninstall": {
+      "stopping": "Deteniendo Serpantinum y sus servicios...",
+      "resetting": "Restableciendo los temas de las apps a los valores predeterminados del sistema...",
+      "removing": "Eliminando archivos de Serpantinum...",
+      "done": "Serpantinum se ha desinstalado. Quita su línea de inicio automático de la configuración del compositor si ya no la necesitas."
     }
   },
   "datetime": {

@@ -17,6 +17,7 @@ DETECTED_COMPOSITOR_LABEL=""
 MULTIPLE_COMPOSITORS_DETECTED=false
 UNSUPPORTED_COMPOSITOR_DETECTED=false
 IS_REINSTALL=false
+DO_UNINSTALL=false
 
 OPT_SDDM=true
 REPLACE_DM=false
@@ -81,7 +82,7 @@ read_key() {
 
 init_compositor_detection() {
     local installed=()
-    for comp in hyprland niri sway mango; do
+    for comp in hyprland niri sway mango umbriel; do
         if command -v "$comp" &>/dev/null || pm_is_installed "$(compositor_package_name "$comp")"; then
             installed+=("$comp")
         fi
@@ -99,6 +100,8 @@ init_compositor_detection() {
         running="sway"
     elif pgrep -x "niri" &>/dev/null || [[ "$de" == *"niri"* ]] || [[ "$session" == *"niri"* ]]; then
         running="niri"
+    elif [[ -n "$UMBRIEL_SOCKET" ]] || pgrep -x "umbriel" &>/dev/null || [[ "$de" == *"umbriel"* ]] || [[ "$session" == *"umbriel"* ]]; then
+        running="umbriel"
     fi
 
     if [ -n "$running" ]; then
@@ -228,6 +231,7 @@ manage_compositors_menu() {
         local status_niri="$(t "installer.ui.not_installed")"
         local status_sway="$(t "installer.ui.not_installed")"
         local status_mango="$(t "installer.ui.not_installed")"
+        local status_umbriel="$(t "installer.ui.not_installed")"
 
         if command -v hyprland &>/dev/null || pm_is_installed hyprland; then
             status_hypr="$(t "installer.ui.installed")"
@@ -241,23 +245,29 @@ manage_compositors_menu() {
         if command -v mango &>/dev/null || pm_is_installed "$(compositor_package_name mango)"; then
             status_mango="$(t "installer.ui.installed")"
         fi
+        if command -v umbriel &>/dev/null || pm_is_installed "$(compositor_package_name umbriel)"; then
+            status_umbriel="$(t "installer.ui.installed")"
+        fi
 
         local S_HYPR="${DIM}[ ]${RESET}"
         local S_NIRI="${DIM}[ ]${RESET}"
         local S_SWAY="${DIM}[ ]${RESET}"
         local S_MANGO="${DIM}[ ]${RESET}"
+        local S_UMBRIEL="${DIM}[ ]${RESET}"
 
         [[ " ${SELECTED_COMPOSITORS[*]} " =~ " hyprland " ]] && S_HYPR="${C_GREEN}[✓]${RESET}"
         [[ " ${SELECTED_COMPOSITORS[*]} " =~ " niri " ]] && S_NIRI="${C_GREEN}[✓]${RESET}"
         [[ " ${SELECTED_COMPOSITORS[*]} " =~ " sway " ]] && S_SWAY="${C_GREEN}[✓]${RESET}"
         [[ " ${SELECTED_COMPOSITORS[*]} " =~ " mango " ]] && S_MANGO="${C_GREEN}[✓]${RESET}"
+        [[ " ${SELECTED_COMPOSITORS[*]} " =~ " umbriel " ]] && S_UMBRIEL="${C_GREEN}[✓]${RESET}"
 
         local items=(
             "1. $S_HYPR Hyprland $status_hypr"
             "2. $S_NIRI Niri $status_niri"
             "3. $S_SWAY Sway $status_sway"
             "4. $S_MANGO Mango $status_mango"
-            "5. ${BOLD}${C_GREEN}$(t "installer.ui.done")${RESET}"
+            "5. $S_UMBRIEL Umbriel $status_umbriel"
+            "6. ${BOLD}${C_GREEN}$(t "installer.ui.done")${RESET}"
         )
 
         if [ "$rendered_lines" -gt 0 ]; then
@@ -319,7 +329,14 @@ manage_compositors_menu() {
                     SELECTED_COMPOSITORS+=("mango")
                 fi
                 ;;
-            "5"|ESC|[qQ])
+            "5")
+                if [[ " ${SELECTED_COMPOSITORS[*]} " =~ " umbriel " ]]; then
+                    remove_compositor "umbriel"
+                else
+                    SELECTED_COMPOSITORS+=("umbriel")
+                fi
+                ;;
+            "6"|ESC|[qQ])
                 break
                 ;;
             ENTER|SPACE)
@@ -353,6 +370,13 @@ manage_compositors_menu() {
                         fi
                         ;;
                     4)
+                        if [[ " ${SELECTED_COMPOSITORS[*]} " =~ " umbriel " ]]; then
+                            remove_compositor "umbriel"
+                        else
+                            SELECTED_COMPOSITORS+=("umbriel")
+                        fi
+                        ;;
+                    5)
                         break
                         ;;
                 esac
@@ -460,6 +484,58 @@ manage_sddm_menu() {
     done
 }
 
+confirm_uninstall() {
+    draw_banner
+    stty -echo 2>/dev/null || true
+    printf "\e[?25l"
+    printf "%s%s%s%s\n\n" "$BOLD" "$C_RED" "$(t "installer.ui.uninstall_title")" "$RESET"
+    printf "%s\n" "$(t "installer.ui.uninstall_removes")"
+    printf "%s\n\n" "$(t "installer.ui.uninstall_keeps")"
+
+    local cursor=0
+    local rendered_lines=0
+    local items=(
+        "1. $(t "installer.ui.uninstall_cancel")"
+        "2. ${BOLD}${C_RED}$(t "installer.ui.uninstall_confirm")${RESET}"
+    )
+
+    while true; do
+        if [ "$rendered_lines" -gt 0 ]; then
+            printf "\033[%dA" "$rendered_lines"
+        fi
+
+        for i in "${!items[@]}"; do
+            if [ "$i" -eq "$cursor" ]; then
+                printf "\r\033[K%s%s ▸ %s%s\n" "$BOLD" "$C_CYAN" "$RESET" "${items[$i]}"
+            else
+                printf "\r\033[K    %s\n" "${items[$i]}"
+            fi
+        done
+        rendered_lines=${#items[@]}
+
+        local key
+        key=$(read_key)
+
+        case "$key" in
+            UP|[kK]|DOWN|[jJ])
+                cursor=$(( 1 - cursor ))
+                ;;
+            "1"|ESC|[qQ]|[nN])
+                return 1
+                ;;
+            "2")
+                return 0
+                ;;
+            ENTER|SPACE)
+                if [ "$cursor" -eq 1 ]; then
+                    return 0
+                fi
+                return 1
+                ;;
+        esac
+    done
+}
+
 run_installer_ui() {
     local cursor=0
 
@@ -511,6 +587,7 @@ run_installer_ui() {
                 items+=("6. ${BOLD}${C_GREEN}$(t "installer.ui.menu_update")${RESET}")
                 items+=("7. ${BOLD}${C_YELLOW}$(t "installer.ui.menu_reinstall")${RESET}")
                 items+=("8. ${DIM}$(t "installer.ui.menu_exit")${RESET}")
+                items+=("9. ${BOLD}${C_RED}$(t "installer.ui.menu_uninstall")${RESET}")
             else
                 items+=("6. ${BOLD}${C_GREEN}$(t "installer.ui.menu_install")${RESET}")
                 items+=("7. ${DIM}$(t "installer.ui.menu_exit")${RESET}")
@@ -598,6 +675,16 @@ run_installer_ui() {
                         exit 0
                     fi
                     ;;
+                "9")
+                    if [[ "$INSTALL_STATE" == "current" ]]; then
+                        if confirm_uninstall; then
+                            DO_UNINSTALL=true
+                            cleanup_terminal
+                            return 0
+                        fi
+                        break
+                    fi
+                    ;;
                 ESC|[qQ])
                     cleanup_terminal
                     clear
@@ -655,6 +742,16 @@ run_installer_ui() {
                                 cleanup_terminal
                                 clear
                                 exit 0
+                            fi
+                            ;;
+                        *"9."*)
+                            if [[ "$INSTALL_STATE" == "current" ]]; then
+                                if confirm_uninstall; then
+                                    DO_UNINSTALL=true
+                                    cleanup_terminal
+                                    return 0
+                                fi
+                                break
                             fi
                             ;;
                     esac

@@ -719,6 +719,31 @@
             "name": "繪染",
             "desc": "從在螢幕上蔓延的菌落開始，逐格繪出新桌布"
           },
+          "wave": {
+            "name": "流體波浪",
+            "desc": "以彎曲的液體波浪掃過整個螢幕",
+            "direction_desc": "波浪掃過的起始邊緣或角落"
+          },
+          "blinds": {
+            "name": "百葉窗",
+            "desc": "以錯落的波紋節奏展開平行條紋",
+            "orientation_desc": "百葉窗展開的軸向"
+          },
+          "clock": {
+            "name": "時鐘掃描",
+            "desc": "像雷達波束一樣繞一點順時針掃過螢幕",
+            "origin_desc": "掃描旋轉的中心點"
+          },
+          "hex": {
+            "name": "六邊形網格",
+            "desc": "透過蕩漾的蜂巢六邊形展現新桌布",
+            "size_title": "六邊形大小",
+            "size_desc": "網格中每個六邊形單元的尺寸"
+          },
+          "ink": {
+            "name": "墨水暈染",
+            "desc": "如水彩墨水般在螢幕上自然暈開"
+          },
           "orientation": {
             "title": "方向",
             "desc": "擦除展開的軸向",
@@ -2021,6 +2046,12 @@
       "menu_reinstall": "重新安裝",
       "menu_install": "安裝",
       "menu_exit": "結束",
+      "menu_uninstall": "解除安裝",
+      "uninstall_title": "確定要解除安裝 Serpantinum 嗎？",
+      "uninstall_removes": "這將移除 Shell、serpantinum-core, serpantinum-audio, serpantinum-gamma、SDDM 主題以及 Serpantinum 的設定、狀態和快取，並將已套用主題的應用程式、Qt 和 SDDM 還原為系統預設外觀。",
+      "uninstall_keeps": "Ski、合成器及其設定、桌布和系統套件將保持不變。",
+      "uninstall_cancel": "不，返回",
+      "uninstall_confirm": "是，解除安裝 Serpantinum",
       "error_no_compositor": "在繼續之前，您必須至少選擇一個支援的合成器。",
       "tagline": "為您量身打造的桌面 Shell",
       "support_creator": "贊助創作者：",
@@ -2088,6 +2119,12 @@
       "installing": "正在安裝檔案管理員 Ski...",
       "unsupported_arch": "預先編譯的 Ski 套件僅提供 x86_64 版本，已略過。",
       "up_to_date": "-> Ski {version} 已安裝。"
+    },
+    "uninstall": {
+      "stopping": "正在停止 Serpantinum 及其服務...",
+      "resetting": "正在將應用程式主題還原為系統預設...",
+      "removing": "正在移除 Serpantinum 檔案...",
+      "done": "Serpantinum 已解除安裝。如果不再需要，請從合成器設定中移除其自動啟動行。"
     }
   },
   "datetime": {

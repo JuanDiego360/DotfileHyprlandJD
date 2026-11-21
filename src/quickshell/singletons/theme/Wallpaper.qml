@@ -15,20 +15,25 @@ Item {
     property var screenWallpaperPaths: ({})
     property var engines: ({})
 
-    readonly property var transitionIds: ["fade", "wipe", "circle", "swipe", "paint"]
+    readonly property var transitionIds: ["fade", "wipe", "circle", "swipe", "paint", "wave", "blinds", "clock", "hex", "ink"]
     readonly property var transitionModes: ["random", "custom"]
     readonly property var wipeOrientations: ["random", "horizontal", "vertical"]
     readonly property var circleOrigins: ["random", "center"]
     readonly property var swipeDirections: ["left", "right", "top", "bottom", "top_left", "top_right", "bottom_left", "bottom_right"]
     readonly property var defaultTransitionSettings: ({
         "mode": "random",
-        "pool": ["fade", "wipe", "circle", "swipe", "paint"],
+        "pool": ["fade", "wipe", "circle", "swipe", "paint", "wave", "blinds", "clock", "hex", "ink"],
         "effects": {
             "fade": { "duration": 1000 },
             "wipe": { "duration": 1600, "orientation": "random" },
             "circle": { "duration": 1600, "origin": "random" },
             "swipe": { "duration": 1600, "direction": "random" },
-            "paint": { "duration": 2400 }
+            "paint": { "duration": 2400 },
+            "wave": { "duration": 1800, "direction": "random" },
+            "blinds": { "duration": 1600, "orientation": "random" },
+            "clock": { "duration": 1800, "origin": "center" },
+            "hex": { "duration": 2000, "size": 80 },
+            "ink": { "duration": 3000 }
         }
     })
 
@@ -63,12 +68,14 @@ Item {
         let fx = s.effects[id];
         let duration = Number(fx.duration);
         let dirIdx = root.swipeDirections.indexOf(fx.direction);
+        let hexSize = Number(fx.size);
         return {
             "type": root.transitionIds.indexOf(id),
             "duration": isNaN(duration) ? root.defaultTransitionSettings.effects[id].duration : Math.max(100, Math.min(10000, Math.round(duration))),
             "vertical": fx.orientation === "vertical" || (fx.orientation !== "horizontal" && Math.random() < 0.5),
             "direction": dirIdx >= 0 ? dirIdx : Math.floor(Math.random() * root.swipeDirections.length),
-            "centered": fx.origin === "center"
+            "centered": fx.origin === "center",
+            "hexSize": isNaN(hexSize) ? root.defaultTransitionSettings.effects.hex.size : Math.max(20, Math.min(240, Math.round(hexSize)))
         };
     }
 

@@ -719,6 +719,31 @@
             "name": "Verf",
             "desc": "Schilder de nieuwe achtergrond cel voor cel in vanuit kolonies die over het scherm groeien"
           },
+          "wave": {
+            "name": "Vloeiende golf",
+            "desc": "Veegt met een golvende vloeistofbeweging over het scherm",
+            "direction_desc": "Rand of hoek waar de golf begint"
+          },
+          "blinds": {
+            "name": "Jaloezieën",
+            "desc": "Opent parallelle lamellen in een verspringende golf over het scherm",
+            "orientation_desc": "As waarlangs de jaloezieën openen"
+          },
+          "clock": {
+            "name": "Klokveeg",
+            "desc": "Veegt met de klok mee rond een punt als een radarstraal",
+            "origin_desc": "Draaipunt van de veeg"
+          },
+          "hex": {
+            "name": "Zeshoekraster",
+            "desc": "Onthult de nieuwe achtergrond via een golvende honingraat",
+            "size_title": "Zeshoekgrootte",
+            "size_desc": "Grootte van elke zeshoekige tegel in het raster"
+          },
+          "ink": {
+            "name": "Inktvloei",
+            "desc": "Vloeit organisch over het scherm uit als aquarelinkt"
+          },
           "orientation": {
             "title": "Richting",
             "desc": "As waarlangs de overgang opent",
@@ -2021,6 +2046,12 @@
       "menu_reinstall": "Opnieuw installeren",
       "menu_install": "Installeren",
       "menu_exit": "Afsluiten",
+      "menu_uninstall": "Verwijderen",
+      "uninstall_title": "Weet je zeker dat je Serpantinum wilt verwijderen?",
+      "uninstall_removes": "Dit verwijdert de shell, serpantinum-core, serpantinum-audio, serpantinum-gamma, het SDDM-thema en je Serpantinum-instellingen, -status en -cache, en zet thema-apps, Qt en SDDM terug naar de systeemstandaard.",
+      "uninstall_keeps": "Ski, compositors, compositorconfiguraties, achtergronden en systeempakketten blijven onaangetast.",
+      "uninstall_cancel": "Nee, terug",
+      "uninstall_confirm": "Ja, Serpantinum verwijderen",
       "error_no_compositor": "U moet ten minste één ondersteunde compositor kiezen voordat u doorgaat.",
       "tagline": "Een desktopshell gebouwd voor jou",
       "support_creator": "Steun de maker:",
@@ -2088,6 +2119,12 @@
       "installing": "Bestandsbeheerder Ski wordt geïnstalleerd...",
       "unsupported_arch": "Vooraf gebouwde Ski-pakketten bestaan alleen voor x86_64, wordt overgeslagen.",
       "up_to_date": "-> Ski {version} is al geïnstalleerd."
+    },
+    "uninstall": {
+      "stopping": "Serpantinum en de bijbehorende diensten stoppen...",
+      "resetting": "App-thema's terugzetten naar de systeemstandaard...",
+      "removing": "Serpantinum-bestanden verwijderen...",
+      "done": "Serpantinum is verwijderd. Haal de autostartregel uit je compositorconfiguratie als je die niet meer nodig hebt."
     }
   },
   "datetime": {

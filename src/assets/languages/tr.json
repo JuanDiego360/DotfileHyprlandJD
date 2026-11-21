@@ -719,6 +719,31 @@
             "name": "Boya",
             "desc": "Yeni duvar kağıdını ekrana yayılan kolonilerden hücre hücre boya"
           },
+          "wave": {
+            "name": "Akışkan dalga",
+            "desc": "Ekran boyunca kıvrımlı bir sıvı dalgasıyla geçiş yapar",
+            "direction_desc": "Dalganın başladığı kenar veya köşe"
+          },
+          "blinds": {
+            "name": "Jaluzi",
+            "desc": "Ekran boyunca paralel şeritleri kademeli bir dalgayla açar",
+            "orientation_desc": "Jaluzinin açıldığı eksen"
+          },
+          "clock": {
+            "name": "Saat taraması",
+            "desc": "Radar ışını gibi bir nokta etrafında saat yönünde tarar",
+            "origin_desc": "Taramanın döndüğü merkez"
+          },
+          "hex": {
+            "name": "Altıgen ızgara",
+            "desc": "Yeni duvar kağıdını dalgalanan altıgen petekle ortaya çıkarır",
+            "size_title": "Altıgen boyutu",
+            "size_desc": "Izgaradaki her altıgen hücrenin boyutu"
+          },
+          "ink": {
+            "name": "Mürekkep yayılımı",
+            "desc": "Sulu boya mürekkebi gibi ekrana organik biçimde yayılır"
+          },
           "orientation": {
             "title": "Yön ekseni",
             "desc": "Geçişin açıldığı eksen",
@@ -2021,6 +2046,12 @@
       "menu_reinstall": "Yeniden yükle",
       "menu_install": "Yükle",
       "menu_exit": "Çıkış",
+      "menu_uninstall": "Kaldır",
+      "uninstall_title": "Serpantinum'u kaldırmak istediğinizden emin misiniz?",
+      "uninstall_removes": "Bu işlem kabuğu, serpantinum-core, serpantinum-audio, serpantinum-gamma, SDDM temasını ve Serpantinum ayarlarını, durumunu ve önbelleğini kaldırır; temalı uygulamalar, Qt ve SDDM sistem varsayılanlarına döndürülür.",
+      "uninstall_keeps": "Ski, bileşikleyiciler, yapılandırmaları, duvar kâğıtları ve sistem paketlerine dokunulmaz.",
+      "uninstall_cancel": "Hayır, geri dön",
+      "uninstall_confirm": "Evet, Serpantinum'u kaldır",
       "error_no_compositor": "Devam etmeden önce desteklenen en az bir birleştirici seçmelisiniz.",
       "tagline": "Sizin için oluşturulmuş bir masaüstü kabuğu",
       "support_creator": "Geliştiriciyi destekleyin:",
@@ -2088,6 +2119,12 @@
       "installing": "Ski dosya yöneticisi kuruluyor...",
       "unsupported_arch": "Hazır Ski paketleri yalnızca x86_64 için mevcut, atlanıyor.",
       "up_to_date": "-> Ski {version} zaten kurulu."
+    },
+    "uninstall": {
+      "stopping": "Serpantinum ve hizmetleri durduruluyor...",
+      "resetting": "Uygulama temaları sistem varsayılanlarına sıfırlanıyor...",
+      "removing": "Serpantinum dosyaları kaldırılıyor...",
+      "done": "Serpantinum kaldırıldı. Artık gerekmiyorsa otomatik başlatma satırını bileşikleyici yapılandırmanızdan silin."
     }
   },
   "datetime": {
