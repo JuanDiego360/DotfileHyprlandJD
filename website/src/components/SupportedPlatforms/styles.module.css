@@ -39,6 +39,7 @@
 
 .distroRow {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   align-items: center;
   gap: 1.75rem;
@@ -106,7 +107,6 @@
   justify-content: center;
   opacity: 0;
   transform: scale(0.75) rotate(-36deg);
-  will-change: transform, opacity;
 }
 
 .logoRevealed {

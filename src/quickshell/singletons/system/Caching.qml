@@ -11,52 +11,53 @@ QtObject {
     readonly property string mainQml: Quickshell.env("MAIN_QML")
     readonly property string xdgRuntimeDir: Quickshell.env("XDG_RUNTIME_DIR")
 
-    readonly property string cacheDir: Quickshell.env("QS_CACHE_DIR") ? Quickshell.env("QS_CACHE_DIR") : (home + "/.cache/serpantinum")
-    readonly property string stateDir: Quickshell.env("QS_STATE_DIR") ? Quickshell.env("QS_STATE_DIR") : (home + "/.local/state/serpantinum")
-    readonly property string runDir: Quickshell.env("QS_RUN_DIR") ? Quickshell.env("QS_RUN_DIR") : ((xdgRuntimeDir !== "" ? xdgRuntimeDir : "/tmp") + "/serpantinum")
-    readonly property string logDir: Quickshell.env("QS_LOG_DIR") ? Quickshell.env("QS_LOG_DIR") : (runDir + "/logs")
+    readonly property string configDir: Quickshell.env("QS_CONFIG_DIR") || (xdgConfigHome + "/serpantinum")
+    readonly property string dataDir: Quickshell.env("QS_DATA_DIR") || (xdgDataHome + "/serpantinum")
+    readonly property string stateDir: Quickshell.env("QS_STATE_DIR") || (xdgStateHome + "/serpantinum")
+    readonly property string cacheDir: Quickshell.env("QS_CACHE_DIR") || (xdgCacheHome + "/serpantinum")
+    readonly property string runDir: Quickshell.env("QS_RUN_DIR") || ((xdgRuntimeDir !== "" ? xdgRuntimeDir : "/tmp") + "/serpantinum")
+    readonly property string logDir: Quickshell.env("QS_LOG_DIR") || (runDir + "/logs")
+
+    property var _ensuredDirs: ({})
+
+    function _ensureDir(dirPath) {
+        if (!dirPath || _ensuredDirs[dirPath]) return;
+        _ensuredDirs[dirPath] = true;
+        Quickshell.execDetached(["mkdir", "-p", dirPath]);
+    }
+
+    function _ensureSubdir(base, envName, sub) {
+        if (!sub || sub === "serpantinum" || base.endsWith("/" + sub)) {
+            _ensureDir(base);
+            return base;
+        }
+        let envPath = Quickshell.env(envName + "_" + sub.toUpperCase());
+        let finalPath = envPath ? envPath : (base + "/" + sub);
+        _ensureDir(finalPath);
+        return finalPath;
+    }
+
+    function getConfigDir(widgetName) {
+        return _ensureSubdir(configDir, "QS_CONFIG", widgetName);
+    }
+
+    function getDataDir(widgetName) {
+        return _ensureSubdir(dataDir, "QS_DATA", widgetName);
+    }
 
     function getCacheDir(widgetName) {
-        if (!widgetName || widgetName === "serpantinum" || cacheDir.endsWith("/" + widgetName)) {
-            Quickshell.execDetached(["mkdir", "-p", cacheDir]);
-            return cacheDir;
-        }
-        var envPath = Quickshell.env("QS_CACHE_" + widgetName.toUpperCase());
-        var finalPath = envPath ? envPath : (cacheDir + "/" + widgetName);
-        Quickshell.execDetached(["mkdir", "-p", finalPath]);
-        return finalPath;
+        return _ensureSubdir(cacheDir, "QS_CACHE", widgetName);
     }
 
     function getStateDir(widgetName) {
-        if (!widgetName || widgetName === "serpantinum" || stateDir.endsWith("/" + widgetName)) {
-            Quickshell.execDetached(["mkdir", "-p", stateDir]);
-            return stateDir;
-        }
-        var envPath = Quickshell.env("QS_STATE_" + widgetName.toUpperCase());
-        var finalPath = envPath ? envPath : (stateDir + "/" + widgetName);
-        Quickshell.execDetached(["mkdir", "-p", finalPath]);
-        return finalPath;
+        return _ensureSubdir(stateDir, "QS_STATE", widgetName);
     }
 
     function getRunDir(widgetName) {
-        if (!widgetName || widgetName === "serpantinum" || runDir.endsWith("/" + widgetName)) {
-            Quickshell.execDetached(["mkdir", "-p", runDir]);
-            return runDir;
-        }
-        var envPath = Quickshell.env("QS_RUN_" + widgetName.toUpperCase());
-        var finalPath = envPath ? envPath : (runDir + "/" + widgetName);
-        Quickshell.execDetached(["mkdir", "-p", finalPath]);
-        return finalPath;
+        return _ensureSubdir(runDir, "QS_RUN", widgetName);
     }
 
     function getLogDir(widgetName) {
-        if (!widgetName || widgetName === "serpantinum" || logDir.endsWith("/" + widgetName)) {
-            Quickshell.execDetached(["mkdir", "-p", logDir]);
-            return logDir;
-        }
-        var envPath = Quickshell.env("QS_LOG_" + widgetName.toUpperCase());
-        var finalPath = envPath ? envPath : (logDir + "/" + widgetName);
-        Quickshell.execDetached(["mkdir", "-p", finalPath]);
-        return finalPath;
+        return _ensureSubdir(logDir, "QS_LOG", widgetName);
     }
 }

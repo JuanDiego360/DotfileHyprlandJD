@@ -115,6 +115,23 @@
         "title": "Sluiten met rechtsklik",
         "desc": "Sluit een melding met een rechtsklik"
       },
+      "timeout_low": {
+        "title": "Time-out lage urgentie",
+        "desc": "Hoe lang meldingen met lage urgentie op het scherm blijven"
+      },
+      "timeout_normal": {
+        "title": "Normale time-out",
+        "desc": "Hoe lang gewone meldingen op het scherm blijven"
+      },
+      "timeout_critical": {
+        "title": "Time-out dringend",
+        "desc": "Hoe lang dringende meldingen op het scherm blijven"
+      },
+      "override_timeouts": {
+        "title": "App-time-outs overschrijven",
+        "desc": "Standaard worden de waarden hierboven alleen gebruikt als de app geen eigen time-out instelt. Schakel in om ze altijd te gebruiken"
+      },
+      "timeout_never": "Nooit",
       "test": "Testmelding",
       "test_desc": "Dit is een testmelding"
     },
@@ -218,6 +235,10 @@
       "quickactions": {
         "title": "Snelle acties",
         "desc": "Zwevend venster voor snelle acties inschakelen"
+      },
+      "daily_ping": {
+        "title": "Dagelijkse ping",
+        "desc": "Stuurt één leeg verzoek per dag om actieve gebruikers te tellen. Er worden geen gegevens meegestuurd"
       },
       "location": {
         "title": "Locatie",
@@ -364,8 +385,12 @@
             "name": {
               "pills": "Capsules",
               "numbers": "Nummers",
-              "pacman": "Pacman"
-            }
+              "pacman": "Pacman",
+              "morph": "Morph",
+              "trace": "Spoor"
+            },
+            "morph": "Expressieve veranderende vormen",
+            "trace": "Verbonden knooppunten met lopende puls"
           },
           "name": "Werkbladen"
         },
@@ -384,7 +409,8 @@
             "name": {
               "classic": "Klassiek",
               "material": "Material",
-              "badge": "Puntmatrix"
+              "badge": "Puntmatrix",
+              "pill": "Pil"
             }
           }
         },
@@ -401,6 +427,10 @@
         "bottom": "Onderaan",
         "left": "Links",
         "right": "Rechts"
+      },
+      "monitors": {
+        "title": "Monitoren",
+        "desc": "Selecteer op welke monitoren de balk wordt weergegeven"
       },
       "width": {
         "title": "Breedte van balk",
@@ -504,8 +534,12 @@
         "style": {
           "title": "Cirkelstijl",
           "desc": "Visuele weergave van de voortgangsringen",
-          "wave": "Golf",
-          "circle": "Cirkel"
+          "wave": "Ringen gevuld met een vloeibare golf",
+          "circle": "Strakke voortgangsringen",
+          "name": {
+            "wave": "Golf",
+            "circle": "Cirkel"
+          }
         },
         "items": {
           "title": "Statistieken",
@@ -642,6 +676,16 @@
         "preview": {
           "title": "Titel van het nummer",
           "author": "Song author"
+        },
+        "style": {
+          "title": "Mediastijl",
+          "desc": "Kies de visuele weergave van de mediamodule",
+          "name": {
+            "classic": "Klassiek",
+            "ambient": "Ambient"
+          },
+          "classic": "Albumminiatuur op een effen achtergrond",
+          "ambient": "Vervaagde albumhoes achter de knoppen"
         }
       },
       "thickness": {
@@ -656,7 +700,9 @@
           "launcher": "Starter",
           "night_light": "Nachtlicht",
           "caffeine": "Cafeïne",
-          "shuffle": "Willekeurige achtergrond"
+          "shuffle": "Willekeurige achtergrond",
+          "color_picker": "Kleurenkiezer",
+          "clipboard": "Klembord"
         },
         "style": {
           "title": "Stijl",
@@ -998,6 +1044,9 @@
       "orientation": {
         "horizontal": "Horizontaal",
         "vertical": "Verticaal"
+      },
+      "keyboard_layout": {
+        "title": "Tonen bij toetsenbordindeling"
       }
     },
     "common": {
@@ -1279,7 +1328,10 @@
     "tab_emojis": "Emoji's",
     "placeholder_emojis": "Zoek emoji's op naam of trefwoord...",
     "search_run": "Zoeken met {provider}",
-    "search_hint": "Typ om te zoeken met {provider}"
+    "search_hint": "Typ om te zoeken met {provider}",
+    "tab_windows": "Vensters",
+    "placeholder_windows": "Zoek in geopende vensters...",
+    "window_workspace": "Werkruimte {ws}"
   },
   "calendar": {
     "loading": "Laden...",
@@ -1627,7 +1679,11 @@
       "ocr_missing_body": "Open de screenshotinstellingen om een taal te installeren.",
       "ocr_uncertain_title": "Tekst gekopieerd, maar mogelijk onnauwkeurig",
       "ocr_language_hint": "De tekst staat mogelijk in een taal die niet is geïnstalleerd. Voeg talen toe in de screenshotinstellingen.",
-      "ocr_open_settings": "Instellingen openen"
+      "ocr_open_settings": "Instellingen openen",
+      "color_copied_title": "Kleur gekopieerd"
+    },
+    "color_picker": {
+      "copied": "Gekopieerd"
     }
   },
   "start": {
@@ -1636,7 +1692,7 @@
     "welcome": "Welkom",
     "tagline": "Een desktopshell gebouwd voor",
     "you": "Jou",
-    "start_preview": "Voorbeeld starten"
+    "hold_to_start": "Houd ingedrukt om te beginnen"
   },
   "syspanel": {
     "user": {
@@ -1803,6 +1859,7 @@
       "no_results": "Niets gevonden"
     },
     "types": {
+      "snake": "Slang",
       "clock": "Klok",
       "music": "Muziek",
       "weather": "Weer",
@@ -1835,7 +1892,8 @@
       "lumen": "Lumen",
       "lyrics": "Songtekst",
       "simpleLyrics": "Eenvoudige songtekst",
-      "circle": "Cirkel"
+      "circle": "Cirkel",
+      "graph": "Grafiek"
     },
     "presets": {
       "minimal": {
@@ -1866,13 +1924,17 @@
       "no_contributions": "Geen bijdragen gevonden"
     },
     "settings": {
+      "snakeLength": "Lengte",
+      "snakeSpeed": "Snelheid",
       "lyricsLines": "Regels",
       "lyricsAlignment": "Uitlijning",
       "textContent": "Tekst",
       "hideText": "Tekst verbergen",
       "lineThickness": "Dikte",
       "usageStyle": "Stijl",
-      "visualizerStyle": "Visualizerstijl"
+      "visualizerStyle": "Visualizerstijl",
+      "updateRate": "Updates per minuut",
+      "perMinute": "/min"
     },
     "align": {
       "left": "Links",
@@ -1888,6 +1950,10 @@
     "style": {
       "circle": "Cirkel",
       "wave": "Golf"
+    },
+    "usageGraph": {
+      "average": "Gem.",
+      "peak": "Piek"
     }
   },
   "cli": {
@@ -1950,7 +2016,8 @@
       "reboot": "Systeem opnieuw opstarten",
       "poweroff": "Systeem uitschakelen",
       "redactor": "Lay-outeditor voor bureaubladwidgets openen of schakelen",
-      "lock_redactor": "Lay-outeditor van het vergrendelscherm schakelen, openen of sluiten"
+      "lock_redactor": "Lay-outeditor van het vergrendelscherm schakelen, openen of sluiten",
+      "colorpicker": "Kies een kleur van het scherm en kopieer naar het klembord"
     },
     "usage_label": "Gebruik:",
     "config_desc": "Instellingen lezen en wijzigen (get, set, dump, path, edit)",
@@ -1996,11 +2063,15 @@
   },
   "installer": {
     "auth": {
-      "error_failed": "Authenticatie mislukt."
+      "error_failed": "Authenticatie mislukt.",
+      "title": "Beheerdersrechten vereist",
+      "prompt": "Voer je sudo-wachtwoord in om door te gaan",
+      "verifying": "Gegevens verifiëren...",
+      "hint": "Druk op Enter om te authenticeren of op Esc om terug te gaan"
     },
     "os": {
       "error_root": "Fout: Voer dit script niet rechtstreeks uit met root/sudo. Voer uit als normale gebruiker.",
-      "error_unsupported": "Niet-ondersteund besturingssysteem ({os}). Serpantinum ondersteunt uitsluitend Arch Linux en derivaten.",
+      "error_unsupported": "Niet-ondersteund besturingssysteem ({os}). Serpantinum ondersteunt Arch Linux, Fedora, Void Linux, Gentoo en hun derivaten.",
       "error_not_found": "Kan besturingssysteem niet detecteren. /etc/os-release niet gevonden.",
       "unknown_cpu": "Onbekende CPU",
       "unknown_gpu": "Onbekend / virtuele machine",
@@ -2059,7 +2130,104 @@
       "installed_success": "✔ Serpantinum {ver} ({commit}) succesvol geïnstalleerd.",
       "failed_packages": "De volgende pakketten hebben fouten ondervonden tijdens de installatie:",
       "restart_prompt": "Herstart uw compositor of voer 'serpantinumd start' uit om te beginnen.",
-      "ask_reboot": "Wilt u opnieuw opstarten? [j/n] "
+      "ask_reboot": "Wilt u opnieuw opstarten? [j/n] ",
+      "section_system": "Systeem",
+      "section_links": "Koppelingen",
+      "section_config": "Configuratie",
+      "section_actions": "Acties",
+      "mode_fresh": "Schone installatie",
+      "mode_current": "Bijwerken",
+      "mode_legacy": "Verouderde migratie",
+      "status_enabled": "Ingeschakeld",
+      "status_disabled": "Uitgeschakeld",
+      "status_yes": "Ja",
+      "status_no": "Nee",
+      "status_wayland": "Wayland",
+      "status_x11": "X11 / standaard",
+      "status_full_pack": "Volledig pakket",
+      "status_random_pack": "3 willekeurig",
+      "status_none_selected": "Geen geselecteerd",
+      "status_missing_count": "{missing} ontbrekend",
+      "status_all_installed": "Alles geïnstalleerd",
+      "action_inspect": "Bekijken",
+      "action_configure": "Configureren",
+      "action_toggle": "Omschakelen",
+      "pkg_title": "Overzicht pakketinstallatie",
+      "pkg_tab_all": "Alle",
+      "pkg_tab_missing": "Ontbrekend",
+      "pkg_tab_installed": "Geïnstalleerd",
+      "pkg_search_placeholder": "Druk op / om pakketten te filteren",
+      "pkg_search_empty": "Geen pakketten komen overeen met je filter",
+      "pkg_badge_installed": "Geïnstalleerd",
+      "pkg_badge_missing": "Wordt geïnstalleerd",
+      "pkg_summary": "{total} totaal · {installed} geïnstalleerd · {missing} te installeren",
+      "compositors_subtitle": "{count} geselecteerd",
+      "compositors_hint": "Spatie of Enter om te schakelen · Esc als je klaar bent",
+      "sddm_hint": "Links/rechts of Enter om te schakelen · Esc als je klaar bent",
+      "preview_badge": "Voorbeeld · geen wijzigingen",
+      "preview_state_hint": "Modus wisselen",
+      "preview_reboot_notice": "Voorbeeldmodus: herstarten van het systeem overgeslagen.",
+      "hint_navigate": "Navigeren",
+      "hint_switch": "Wisselen / schakelen",
+      "hint_select": "Selecteren",
+      "hint_quit": "Afsluiten",
+      "hint_back": "Terug",
+      "hint_search": "Zoeken",
+      "hint_filter": "Filteren",
+      "hint_toggle_log": "Logboek tonen/verbergen",
+      "hint_scroll": "Scrollen",
+      "progress_installing": "Serpantinum installeren",
+      "progress_updating": "Serpantinum bijwerken",
+      "progress_reinstalling": "Serpantinum opnieuw installeren",
+      "progress_uninstalling": "Serpantinum verwijderen",
+      "progress_step_of": "Stap {current} van {total}",
+      "progress_steps_title": "Installatiestappen",
+      "progress_output_title": "Live-uitvoer",
+      "progress_waiting_input": "Invoer vereist — typ je antwoord en druk op Enter",
+      "progress_skipped": "Overgeslagen",
+      "progress_failed_title": "Stap mislukt",
+      "progress_retry": "Stap opnieuw proberen",
+      "progress_continue": "Toch doorgaan",
+      "progress_abort": "Installatieprogramma afsluiten",
+      "progress_log_saved": "Volledig logboek opgeslagen in {path}",
+      "complete_title_install": "Installatie voltooid",
+      "complete_title_update": "Bijwerken voltooid",
+      "complete_title_reinstall": "Herinstallatie voltooid",
+      "complete_title_uninstall": "Verwijderen voltooid",
+      "complete_summary": "Overzicht",
+      "complete_version": "Versie",
+      "complete_compositors": "Compositors",
+      "complete_sddm": "SDDM",
+      "complete_wallpapers": "Achtergronden",
+      "complete_duration": "Verstreken tijd",
+      "btn_restart": "Nu opnieuw opstarten",
+      "btn_exit": "Terug naar shell",
+      "btn_return_menu": "Terug naar menu",
+      "terminal_too_small": "Terminalvenster is te klein. Vergroot het tot minstens {cols}×{rows}.",
+      "social": "Sociaal:",
+      "compositors_row": "Doelcompositors",
+      "packages_row": "Pakketoverzicht",
+      "pkg_count_short": "{count} pakk.",
+      "hint_fast_forward": "Doorspoelen",
+      "preview_mode_switched": "Voorbeeldmodus: {mode}"
+    },
+    "steps": {
+      "prepare": "Telemetrie en omgeving voorbereiden",
+      "migrate": "Verouderde configuratie migreren",
+      "backup": "Back-up maken van bestaande compositorconfiguraties",
+      "deps": "Systeempakketten en lettertypen installeren",
+      "ski": "Bestandsbeheerder Ski installeren",
+      "audio": "Serpantinum-audio-engine installeren",
+      "gamma": "Serpantinum-blauwlichtfilter installeren",
+      "core": "Serpantinum-kernservices installeren",
+      "deploy": "Shell- en compositorconfiguraties uitrollen",
+      "sddm": "SDDM-inlogbeheerder configureren",
+      "wallpapers": "Achtergrondpakket installeren",
+      "config": "Instellingen en services initialiseren",
+      "finalize": "Versiestatus opslaan en afronden",
+      "uninstall_stop": "Serpantinum en daemons stoppen",
+      "uninstall_reset": "App-thema's en Qt-standaardinstellingen herstellen",
+      "uninstall_remove": "Serpantinum-bestanden en -configuraties verwijderen"
     },
     "deps": {
       "syncing": "Systeempakketten synchroniseren en bijwerken (pacman -syyu)...",
@@ -2270,5 +2438,8 @@
   },
   "common": {
     "select": "Selecteren..."
+  },
+  "osd": {
+    "keyboard_layout": "Toetsenbordindeling"
   }
 }

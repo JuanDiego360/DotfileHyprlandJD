@@ -115,6 +115,23 @@
         "title": "بستن با کلیک راست",
         "desc": "بستن اعلان با کلیک راست"
       },
+      "timeout_low": {
+        "title": "مهلت فوریت کم",
+        "desc": "اعلان‌های با فوریت کم چه مدت روی صفحه بمانند"
+      },
+      "timeout_normal": {
+        "title": "مهلت عادی",
+        "desc": "اعلان‌های عادی چه مدت روی صفحه بمانند"
+      },
+      "timeout_critical": {
+        "title": "مهلت فوری",
+        "desc": "اعلان‌های فوری چه مدت روی صفحه بمانند"
+      },
+      "override_timeouts": {
+        "title": "نادیده گرفتن مهلت برنامه‌ها",
+        "desc": "به‌طور پیش‌فرض مقادیر بالا فقط وقتی استفاده می‌شوند که برنامه مهلت خودش را تعیین نکند. برای استفاده همیشگی روشن کنید"
+      },
+      "timeout_never": "هرگز",
       "test": "اعلان آزمایشی",
       "test_desc": "این یک اعلان آزمایشی است"
     },
@@ -218,6 +235,10 @@
       "quickactions": {
         "title": "کنش‌های سریع",
         "desc": "فعال‌سازی لایه شناور کنش‌های سریع"
+      },
+      "daily_ping": {
+        "title": "پینگ روزانه",
+        "desc": "ارسال یک درخواست خالی در روز برای شمارش کاربران فعال. هیچ داده‌ای پیوست نمی‌شود"
       },
       "location": {
         "title": "موقعیت مکانی",
@@ -364,8 +385,12 @@
             "name": {
               "pills": "قرصی",
               "numbers": "اعداد",
-              "pacman": "پک‌من"
-            }
+              "pacman": "پک‌من",
+              "morph": "تغییرشکل",
+              "trace": "مسیر"
+            },
+            "morph": "اشکال پویا و تغییرشکل‌دهنده",
+            "trace": "گره‌های متصل با پالس متحرک"
           },
           "name": "فضاهای کاری"
         },
@@ -384,7 +409,8 @@
             "name": {
               "classic": "کلاسیک",
               "material": "متریال",
-              "badge": "ماتریس نقطه‌ای"
+              "badge": "ماتریس نقطه‌ای",
+              "pill": "کپسول"
             }
           }
         },
@@ -401,6 +427,10 @@
         "bottom": "پایین",
         "left": "چپ",
         "right": "راست"
+      },
+      "monitors": {
+        "title": "نمایشگرها",
+        "desc": "انتخاب کنید نوار روی کدام نمایشگرها نمایش داده شود"
       },
       "width": {
         "title": "پهنای نوار",
@@ -504,8 +534,12 @@
         "style": {
           "title": "سبک دایره",
           "desc": "ظاهر بصری حلقه‌های پیشرفت",
-          "wave": "موج",
-          "circle": "دایره"
+          "wave": "حلقه‌های پر شده با موج مایع",
+          "circle": "حلقه‌های پیشرفت ساده",
+          "name": {
+            "wave": "موج",
+            "circle": "دایره"
+          }
         },
         "items": {
           "title": "آمارها",
@@ -642,6 +676,16 @@
         "preview": {
           "title": "عنوان آهنگ",
           "author": "Song author"
+        },
+        "style": {
+          "title": "سبک رسانه",
+          "desc": "انتخاب ظاهر بصری ماژول رسانه",
+          "name": {
+            "classic": "کلاسیک",
+            "ambient": "محیطی"
+          },
+          "classic": "تصویر کوچک آلبوم روی پس‌زمینه ساده",
+          "ambient": "کاور محو آلبوم پشت دکمه‌ها"
         }
       },
       "thickness": {
@@ -656,7 +700,9 @@
           "launcher": "لانچر",
           "night_light": "نور شب",
           "caffeine": "کافئین",
-          "shuffle": "تصویر زمینه تصادفی"
+          "shuffle": "تصویر زمینه تصادفی",
+          "color_picker": "انتخابگر رنگ",
+          "clipboard": "بریده‌دان"
         },
         "style": {
           "title": "سبک",
@@ -998,6 +1044,9 @@
       "orientation": {
         "horizontal": "افقی",
         "vertical": "عمودی"
+      },
+      "keyboard_layout": {
+        "title": "نمایش هنگام تغییر چیدمان صفحه‌کلید"
       }
     },
     "common": {
@@ -1279,7 +1328,10 @@
     "tab_emojis": "شکلک‌ها",
     "placeholder_emojis": "جست‌وجوی شکلک با نام یا کلیدواژه...",
     "search_run": "جستجو در {provider}",
-    "search_hint": "برای جستجو در {provider} تایپ کنید"
+    "search_hint": "برای جستجو در {provider} تایپ کنید",
+    "tab_windows": "پنجره‌ها",
+    "placeholder_windows": "جستجو در پنجره‌های باز...",
+    "window_workspace": "فضای کاری {ws}"
   },
   "calendar": {
     "loading": "در حال بارگذاری...",
@@ -1627,7 +1679,11 @@
       "ocr_missing_body": "برای نصب یک زبان، تنظیمات عکس صفحه را باز کنید.",
       "ocr_uncertain_title": "متن کپی شد، اما ممکن است نادرست باشد",
       "ocr_language_hint": "ممکن است متن به زبانی باشد که نصب نشده است. زبان‌ها را در تنظیمات عکس صفحه اضافه کنید.",
-      "ocr_open_settings": "باز کردن تنظیمات"
+      "ocr_open_settings": "باز کردن تنظیمات",
+      "color_copied_title": "رنگ کپی شد"
+    },
+    "color_picker": {
+      "copied": "کپی شد"
     }
   },
   "start": {
@@ -1636,7 +1692,7 @@
     "welcome": "خوش‌آمدید",
     "tagline": "یک پوسته میزکار ساخته‌شده برای",
     "you": "شما",
-    "start_preview": "شروع پیش‌نمایش"
+    "hold_to_start": "برای شروع نگه دارید"
   },
   "syspanel": {
     "user": {
@@ -1803,6 +1859,7 @@
       "no_results": "چیزی پیدا نشد"
     },
     "types": {
+      "snake": "مار",
       "clock": "ساعت",
       "music": "موسیقی",
       "weather": "آب‌وهوا",
@@ -1835,7 +1892,8 @@
       "lumen": "لومن",
       "lyrics": "متن ترانه",
       "simpleLyrics": "متن ترانه ساده",
-      "circle": "دایره"
+      "circle": "دایره",
+      "graph": "نمودار"
     },
     "presets": {
       "minimal": {
@@ -1866,13 +1924,17 @@
       "no_contributions": "هیچ مشارکتی پیدا نشد"
     },
     "settings": {
+      "snakeLength": "طول",
+      "snakeSpeed": "سرعت",
       "lyricsLines": "سطرها",
       "lyricsAlignment": "تراز",
       "textContent": "متن",
       "hideText": "پنهان کردن متن",
       "lineThickness": "ضخامت",
       "usageStyle": "سبک",
-      "visualizerStyle": "سبک تصویرساز"
+      "visualizerStyle": "سبک تصویرساز",
+      "updateRate": "به‌روزرسانی در دقیقه",
+      "perMinute": "/دقیقه"
     },
     "align": {
       "left": "چپ",
@@ -1888,6 +1950,10 @@
     "style": {
       "circle": "دایره",
       "wave": "موج"
+    },
+    "usageGraph": {
+      "average": "میانگین",
+      "peak": "اوج"
     }
   },
   "cli": {
@@ -1950,7 +2016,8 @@
       "reboot": "راه‌اندازی مجدد سیستم",
       "poweroff": "خاموش کردن سیستم",
       "redactor": "باز کردن یا تغییر وضعیت ویرایشگر چیدمان ابزارک‌های دسکتاپ",
-      "lock_redactor": "تغییر وضعیت، باز کردن یا بستن ویرایشگر چیدمان صفحه قفل"
+      "lock_redactor": "تغییر وضعیت، باز کردن یا بستن ویرایشگر چیدمان صفحه قفل",
+      "colorpicker": "انتخاب رنگ از صفحه و کپی آن در کلیپ‌بورد"
     },
     "usage_label": "نحوه استفاده:",
     "config_desc": "خواندن و تغییر تنظیمات (get, set, dump, path, edit)",
@@ -1996,11 +2063,15 @@
   },
   "installer": {
     "auth": {
-      "error_failed": "احراز هویت ناموفق بود."
+      "error_failed": "احراز هویت ناموفق بود.",
+      "title": "نیاز به دسترسی مدیر سیستم",
+      "prompt": "برای ادامه گذرواژه sudo خود را وارد کنید",
+      "verifying": "در حال بررسی اطلاعات اعتبارسنجی...",
+      "hint": "برای احراز هویت Enter یا برای بازگشت Esc را فشار دهید"
     },
     "os": {
       "error_root": "خطا: این اسکریپت را مستقیماً با root/sudo اجرا نکنید. به عنوان کاربر عادی اجرا کنید.",
-      "error_unsupported": "سیستم‌عامل پشتیبانی‌نشده ({os}). سرپانتینوم فقط از آرچ لینوکس و مشتقات آن پشتیبانی می‌کند.",
+      "error_unsupported": "سیستم‌عامل پشتیبانی‌نشده ({os}). سرپانتینوم از Arch Linux، Fedora، Void Linux، Gentoo و مشتقات آن‌ها پشتیبانی می‌کند.",
       "error_not_found": "سیستم‌عامل شناسایی نشد. پرونده /etc/os-release پیدا نشد.",
       "unknown_cpu": "پردازنده ناشناخته",
       "unknown_gpu": "گرافیک ناشناخته / ماشین مجازی",
@@ -2059,7 +2130,104 @@
       "installed_success": "✔ سرپانتینوم {ver} ({commit}) با موفقیت نصب شد.",
       "failed_packages": "بسته‌های زیر در حین نصب با خطا مواجه شدند:",
       "restart_prompt": "برای شروع، کامپوزیتور خود را مجدداً راه‌اندازی کنید یا دستور 'serpantinumd start' را اجرا کنید.",
-      "ask_reboot": "آیا مایلید سیستم را بازراه‌اندازی کنید؟ [y/n] "
+      "ask_reboot": "آیا مایلید سیستم را بازراه‌اندازی کنید؟ [y/n] ",
+      "section_system": "سیستم",
+      "section_links": "پیوندها",
+      "section_config": "پیکربندی",
+      "section_actions": "اقدامات",
+      "mode_fresh": "نصب تازه",
+      "mode_current": "به‌روزرسانی",
+      "mode_legacy": "انتقال از نسخه قدیمی",
+      "status_enabled": "فعال",
+      "status_disabled": "غیرفعال",
+      "status_yes": "بله",
+      "status_no": "خیر",
+      "status_wayland": "Wayland",
+      "status_x11": "X11 / پیش‌فرض",
+      "status_full_pack": "بسته کامل",
+      "status_random_pack": "۳ مورد تصادفی",
+      "status_none_selected": "هیچ‌کدام انتخاب نشده",
+      "status_missing_count": "{missing} ناموجود",
+      "status_all_installed": "همه نصب شده‌اند",
+      "action_inspect": "بررسی",
+      "action_configure": "پیکربندی",
+      "action_toggle": "تغییر وضعیت",
+      "pkg_title": "نمای کلی نصب بسته‌ها",
+      "pkg_tab_all": "همه",
+      "pkg_tab_missing": "ناموجود",
+      "pkg_tab_installed": "نصب‌شده",
+      "pkg_search_placeholder": "برای فیلتر کردن بسته‌ها / را فشار دهید",
+      "pkg_search_empty": "هیچ بسته‌ای با فیلتر شما مطابقت ندارد",
+      "pkg_badge_installed": "نصب‌شده",
+      "pkg_badge_missing": "نصب خواهد شد",
+      "pkg_summary": "{total} مجموع · {installed} نصب‌شده · {missing} برای نصب",
+      "compositors_subtitle": "{count} انتخاب‌شده",
+      "compositors_hint": "Space یا Enter برای تغییر وضعیت · Esc پس از اتمام",
+      "sddm_hint": "چپ/راست یا Enter برای تغییر وضعیت · Esc پس از اتمام",
+      "preview_badge": "پیش‌نمایش · بدون تغییر",
+      "preview_state_hint": "تغییر حالت",
+      "preview_reboot_notice": "حالت پیش‌نمایش: بازراه‌اندازی سیستم نادیده گرفته شد.",
+      "hint_navigate": "جابه‌جایی",
+      "hint_switch": "تغییر / جابه‌جایی",
+      "hint_select": "انتخاب",
+      "hint_quit": "خروج",
+      "hint_back": "بازگشت",
+      "hint_search": "جستجو",
+      "hint_filter": "فیلتر",
+      "hint_toggle_log": "نمایش/پنهان گزارش",
+      "hint_scroll": "پیمایش",
+      "progress_installing": "در حال نصب Serpantinum",
+      "progress_updating": "در حال به‌روزرسانی Serpantinum",
+      "progress_reinstalling": "در حال نصب مجدد Serpantinum",
+      "progress_uninstalling": "در حال حذف Serpantinum",
+      "progress_step_of": "مرحله {current} از {total}",
+      "progress_steps_title": "مراحل نصب",
+      "progress_output_title": "خروجی زنده",
+      "progress_waiting_input": "نیاز به ورودی — پاسخ را بنویسید و Enter بزنید",
+      "progress_skipped": "رد شد",
+      "progress_failed_title": "مرحله ناموفق بود",
+      "progress_retry": "تلاش مجدد مرحله",
+      "progress_continue": "ادامه در هر صورت",
+      "progress_abort": "خروج از نصب‌کننده",
+      "progress_log_saved": "گزارش کامل در {path} ذخیره شد",
+      "complete_title_install": "نصب کامل شد",
+      "complete_title_update": "به‌روزرسانی کامل شد",
+      "complete_title_reinstall": "نصب مجدد کامل شد",
+      "complete_title_uninstall": "حذف کامل شد",
+      "complete_summary": "خلاصه",
+      "complete_version": "نسخه",
+      "complete_compositors": "کامپوزیتورها",
+      "complete_sddm": "SDDM",
+      "complete_wallpapers": "تصاویر پس‌زمینه",
+      "complete_duration": "زمان سپری‌شده",
+      "btn_restart": "بازراه‌اندازی اکنون",
+      "btn_exit": "خروج به خط فرمان",
+      "btn_return_menu": "بازگشت به منو",
+      "terminal_too_small": "پنجره ترمینال بیش از حد کوچک است. اندازه آن را به حداقل {cols}×{rows} تغییر دهید.",
+      "social": "اجتماعی:",
+      "compositors_row": "کامپوزیتورهای هدف",
+      "packages_row": "نمای کلی بسته‌ها",
+      "pkg_count_short": "{count} بسته",
+      "hint_fast_forward": "رد کردن سریع",
+      "preview_mode_switched": "حالت پیش‌نمایش: {mode}"
+    },
+    "steps": {
+      "prepare": "آماده‌سازی داده‌سنجی و محیط",
+      "migrate": "انتقال پیکربندی قدیمی",
+      "backup": "پشتیبان‌گیری از پیکربندی‌های فعلی کامپوزیتور",
+      "deps": "نصب بسته‌های سیستمی و فونت‌ها",
+      "ski": "نصب مدیر فایل Ski",
+      "audio": "نصب موتور صوتی Serpantinum",
+      "gamma": "نصب فیلتر نور آبی Serpantinum",
+      "core": "نصب سرویس‌های اصلی Serpantinum",
+      "deploy": "استقرار پیکربندی‌های پوسته و کامپوزیتور",
+      "sddm": "پیکربندی مدیر نمایش SDDM",
+      "wallpapers": "نصب بسته تصاویر پس‌زمینه",
+      "config": "مقداردهی اولیه تنظیمات و سرویس‌ها",
+      "finalize": "ذخیره وضعیت نسخه و پایان",
+      "uninstall_stop": "توقف Serpantinum و سرویس‌های پس‌زمینه",
+      "uninstall_reset": "بازگردانی پوسته‌های برنامه‌ها و پیش‌فرض‌های Qt",
+      "uninstall_remove": "حذف فایل‌ها و پیکربندی‌های Serpantinum"
     },
     "deps": {
       "syncing": "در حال همگام‌سازی و به‌روزرسانی بسته‌های سیستم (pacman -syyu)...",
@@ -2270,5 +2438,8 @@
   },
   "common": {
     "select": "انتخاب..."
+  },
+  "osd": {
+    "keyboard_layout": "چیدمان صفحه‌کلید"
   }
 }

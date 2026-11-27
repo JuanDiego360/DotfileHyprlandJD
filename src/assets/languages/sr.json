@@ -115,6 +115,23 @@
         "title": "Затварање десним кликом",
         "desc": "Одбаци обавештење десним кликом"
       },
+      "timeout_low": {
+        "title": "Време за ниску хитност",
+        "desc": "Колико дуго обавештења ниске хитности остају на екрану"
+      },
+      "timeout_normal": {
+        "title": "Нормално време",
+        "desc": "Колико дуго обична обавештења остају на екрану"
+      },
+      "timeout_critical": {
+        "title": "Време за хитна",
+        "desc": "Колико дуго хитна обавештења остају на екрану"
+      },
+      "override_timeouts": {
+        "title": "Замени времена апликација",
+        "desc": "Подразумевано се вредности изнад користе само када апликација не постави сопствено време. Укључите да бисте их увек користили"
+      },
+      "timeout_never": "Никад",
       "test": "Пробно обавештење",
       "test_desc": "Ово је пробно обавештење."
     },
@@ -218,6 +235,10 @@
       "quickactions": {
         "title": "Брзе радње",
         "desc": "Омогући плутајући слој брзих радњи"
+      },
+      "daily_ping": {
+        "title": "Дневни пинг",
+        "desc": "Шаље један празан захтев дневно ради бројања активних корисника. Не прилажу се никакви подаци"
       },
       "location": {
         "title": "Локација",
@@ -373,8 +394,12 @@
             "name": {
               "pills": "Облачићи",
               "numbers": "Бројеви",
-              "pacman": "Пац-Ман"
-            }
+              "pacman": "Пац-Ман",
+              "morph": "Морф",
+              "trace": "Траг"
+            },
+            "morph": "Изражајни облици који се мењају",
+            "trace": "Повезани чворови са путујућим импулсом"
           },
           "name": "Радни простори"
         },
@@ -393,7 +418,8 @@
             "name": {
               "classic": "Класично",
               "material": "Material",
-              "badge": "Тачкаста матрица"
+              "badge": "Тачкаста матрица",
+              "pill": "Капсула"
             }
           }
         },
@@ -410,6 +436,10 @@
         "bottom": "Доле",
         "left": "Лево",
         "right": "Десно"
+      },
+      "monitors": {
+        "title": "Монитори",
+        "desc": "Изаберите на којим мониторима се приказује трака"
       },
       "width": {
         "title": "Ширина траке",
@@ -513,8 +543,12 @@
         "style": {
           "title": "Стил круга",
           "desc": "Визуални изглед прстенова напретка",
-          "wave": "Вал",
-          "circle": "Круг"
+          "wave": "Прстенови испуњени течним валом",
+          "circle": "Чисти прстенови напретка",
+          "name": {
+            "wave": "Вал",
+            "circle": "Круг"
+          }
         },
         "items": {
           "title": "Статистика",
@@ -651,6 +685,16 @@
         "preview": {
           "title": "Наслов песме",
           "author": "Извођач песме"
+        },
+        "style": {
+          "title": "Стил медија",
+          "desc": "Изаберите визуелни изглед медијског модула",
+          "name": {
+            "classic": "Класично",
+            "ambient": "Амбијентално"
+          },
+          "classic": "Сличица албума на обичној позадини",
+          "ambient": "Замућени омот албума иза контрола"
         }
       },
       "thickness": {
@@ -665,7 +709,9 @@
           "launcher": "Покретач",
           "night_light": "Ноћно светло",
           "caffeine": "Одржавање будности",
-          "shuffle": "Насумично промени позадину"
+          "shuffle": "Насумично промени позадину",
+          "color_picker": "Бирач боја",
+          "clipboard": "Међуспремник"
         },
         "style": {
           "title": "Стил",
@@ -1007,6 +1053,9 @@
       "orientation": {
         "horizontal": "Водоравно",
         "vertical": "Окомито"
+      },
+      "keyboard_layout": {
+        "title": "Прикажи при промени распореда тастатуре"
       }
     },
     "common": {
@@ -1288,7 +1337,10 @@
     "tab_emojis": "Емотикони",
     "placeholder_emojis": "Претражи емотиконе према називу или кључној речи...",
     "search_run": "Претражи {provider}",
-    "search_hint": "Упишите за претраживање помоћу {provider}"
+    "search_hint": "Упишите за претраживање помоћу {provider}",
+    "tab_windows": "Прозори",
+    "placeholder_windows": "Претражи отворене прозоре...",
+    "window_workspace": "Радни простор {ws}"
   },
   "calendar": {
     "loading": "Учитавање...",
@@ -1636,7 +1688,11 @@
       "ocr_missing_body": "Отворите подешавања снимки екрана да бисте инсталирали језик.",
       "ocr_uncertain_title": "Текст је копиран, али можда није точан",
       "ocr_language_hint": "Текст је можда на језику који није инсталиран. Додајте језике у подешавањима снимки екрана.",
-      "ocr_open_settings": "Отвори подешавања"
+      "ocr_open_settings": "Отвори подешавања",
+      "color_copied_title": "Боја је копирана"
+    },
+    "color_picker": {
+      "copied": "Копирано"
     }
   },
   "start": {
@@ -1645,7 +1701,7 @@
     "welcome": "Добро дошли",
     "tagline": "Љуска радне површине створена за",
     "you": "вас",
-    "start_preview": "Покрени преглед"
+    "hold_to_start": "Задржите да бисте почели"
   },
   "syspanel": {
     "user": {
@@ -1812,6 +1868,7 @@
       "no_results": "Ништа није пронађено"
     },
     "types": {
+      "snake": "Змија",
       "clock": "Сат",
       "music": "Глазба",
       "weather": "Време",
@@ -1844,7 +1901,8 @@
       "lumen": "Lumen",
       "lyrics": "Текст песме",
       "simpleLyrics": "Једноставни текстови пјесама",
-      "circle": "Круг"
+      "circle": "Круг",
+      "graph": "Графикон"
     },
     "presets": {
       "minimal": {
@@ -1875,13 +1933,17 @@
       "no_contributions": "Нису пронађени доприноси"
     },
     "settings": {
+      "snakeLength": "Дужина",
+      "snakeSpeed": "Брзина",
       "lyricsLines": "Ретци",
       "lyricsAlignment": "Поравнање",
       "usageStyle": "Стил",
       "lineThickness": "Дебљина",
       "visualizerStyle": "Стил визуализатора",
       "hideText": "Сакриј текст",
-      "textContent": "Текст"
+      "textContent": "Текст",
+      "updateRate": "Освежавања у минуту",
+      "perMinute": "/мин"
     },
     "align": {
       "left": "Лево",
@@ -1897,6 +1959,10 @@
     },
     "text": {
       "placeholder": "Унесите текст"
+    },
+    "usageGraph": {
+      "average": "Просек",
+      "peak": "Врх"
     }
   },
   "cli": {
@@ -1959,7 +2025,8 @@
       "reboot": "Поново покрени систем",
       "poweroff": "Искључи систем",
       "redactor": "Отвори или укључи/искључи уређивач распореда виџета радне површине.",
-      "lock_redactor": "Укључи, отвори или затвори уређивач распореда закључаног екрана"
+      "lock_redactor": "Укључи, отвори или затвори уређивач распореда закључаног екрана",
+      "colorpicker": "Изаберите боју са екрана и копирајте је у оставу"
     },
     "usage_label": "Употреба:",
     "config_desc": "Читај и мењај подешавања (гет, сет, думп, патх, едит)",
@@ -2005,11 +2072,15 @@
   },
   "installer": {
     "auth": {
-      "error_failed": "Аутентификација није успела."
+      "error_failed": "Аутентификација није успела.",
+      "title": "Потребне су администраторске привилегије",
+      "prompt": "Унесите своју sudo лозинку за наставак",
+      "verifying": "Провера акредитива...",
+      "hint": "Притисните Enter за аутентификацију или Esc за повратак"
     },
     "os": {
       "error_root": "Грешка: немојте директно покретати ову скрипту с роот/судо овластима. Покрените је као обичан корисник.",
-      "error_unsupported": "Неподржани оперативни систем ({os}). Serpantinum службено подржава само Arch Linux и његове изведенице.",
+      "error_unsupported": "Неподржани оперативни систем ({os}). Serpantinum подржава Arch Linux, Fedora, Void Linux, Gentoo и њихове изведенице.",
       "error_not_found": "Није могуће открити оперативни систем. Датотека /etc/os-release није пронађена.",
       "unknown_cpu": "Непознат CPU",
       "unknown_gpu": "Непознато / виртуелна машина",
@@ -2068,7 +2139,86 @@
       "installed_success": "✔ Serpantinum {ver} ({commit}) успешно је инсталиран.",
       "failed_packages": "Дошло је до грешака при инсталацији следећих пакета:",
       "restart_prompt": "Поново покрените композитор или покрените 'serpantinumd старт' да бисте започели.",
-      "ask_reboot": "Желите ли да поново покренете систем? [y/n] "
+      "ask_reboot": "Желите ли да поново покренете систем? [y/n] ",
+      "section_system": "Систем",
+      "section_links": "Линкови",
+      "section_config": "Конфигурација",
+      "section_actions": "Радње",
+      "mode_fresh": "Нова инсталација",
+      "mode_current": "Ажурирање",
+      "mode_legacy": "Миграција старе верзије",
+      "status_enabled": "Омогућено",
+      "status_disabled": "Онемогућено",
+      "status_yes": "Да",
+      "status_no": "Не",
+      "status_wayland": "Wayland",
+      "status_x11": "X11 / подразумевано",
+      "status_full_pack": "Пуни пакет",
+      "status_random_pack": "3 насумичне",
+      "status_none_selected": "Ништа није изабрано",
+      "status_missing_count": "{missing} недостаје",
+      "status_all_installed": "Све је инсталирано",
+      "action_inspect": "Прегледај",
+      "action_configure": "Подеси",
+      "action_toggle": "Пребаци",
+      "pkg_title": "Преглед инсталације пакета",
+      "pkg_tab_all": "Сви",
+      "pkg_tab_missing": "Недостају",
+      "pkg_tab_installed": "Инсталирани",
+      "pkg_search_placeholder": "Притисните / за филтрирање пакета",
+      "pkg_search_empty": "Ниједан пакет не одговара филтеру",
+      "pkg_badge_installed": "Инсталирано",
+      "pkg_badge_missing": "Биће инсталирано",
+      "pkg_summary": "{total} укупно · {installed} инсталирано · {missing} за инсталацију",
+      "compositors_subtitle": "{count} изабрано",
+      "compositors_hint": "Space или Enter за пребацивање · Esc када завршите",
+      "sddm_hint": "Лево/десно или Enter за пребацивање · Esc када завршите",
+      "preview_badge": "Преглед · без промена",
+      "preview_state_hint": "Промени режим",
+      "preview_reboot_notice": "Режим прегледа: поновно покретање система је прескочено.",
+      "hint_navigate": "Навигација",
+      "hint_switch": "Промени / пребаци",
+      "hint_select": "Изабери",
+      "hint_quit": "Излаз",
+      "hint_back": "Назад",
+      "hint_search": "Претрага",
+      "hint_filter": "Филтер",
+      "hint_toggle_log": "Прикажи/сакриј дневник",
+      "hint_scroll": "Померај",
+      "progress_installing": "Инсталирање Serpantinum-а",
+      "progress_updating": "Ажурирање Serpantinum-а",
+      "progress_reinstalling": "Поновно инсталирање Serpantinum-а",
+      "progress_uninstalling": "Деинсталирање Serpantinum-а",
+      "progress_step_of": "Корак {current} од {total}",
+      "progress_steps_title": "Кораци инсталације",
+      "progress_output_title": "Излаз уживо",
+      "progress_waiting_input": "Потребан је унос — укуцајте одговор и притисните Enter",
+      "progress_skipped": "Прескочено",
+      "progress_failed_title": "Корак није успео",
+      "progress_retry": "Понови корак",
+      "progress_continue": "Ипак настави",
+      "progress_abort": "Изађи из инсталатера",
+      "progress_log_saved": "Цео дневник је сачуван у {path}",
+      "complete_title_install": "Инсталација је завршена",
+      "complete_title_update": "Ажурирање је завршено",
+      "complete_title_reinstall": "Поновна инсталација је завршена",
+      "complete_title_uninstall": "Деинсталација је завршена",
+      "complete_summary": "Резиме",
+      "complete_version": "Верзија",
+      "complete_compositors": "Композитори",
+      "complete_sddm": "SDDM",
+      "complete_wallpapers": "Позадине",
+      "complete_duration": "Протекло време",
+      "btn_restart": "Поново покрени сада",
+      "btn_exit": "Изађи у љуску",
+      "btn_return_menu": "Назад у мени",
+      "terminal_too_small": "Прозор терминала је премали. Промените величину на најмање {cols}×{rows}.",
+      "social": "Друштвене мреже:",
+      "compositors_row": "Циљни композитори",
+      "packages_row": "Преглед пакета",
+      "pkg_count_short": "{count} пак.",
+      "hint_fast_forward": "Убрзај",
+      "preview_mode_switched": "Режим прегледа: {mode}"
     },
     "deps": {
       "syncing": "Синхронизација и ажурирање системских пакета (pacman -Syu)...",
@@ -2134,6 +2284,24 @@
       "resetting": "Враћање тема апликација на системске подразумеване...",
       "removing": "Уклањање Serpantinum датотека...",
       "done": "Serpantinum је деинсталиран. Уклоните линију за аутоматско покретање из конфигурације композитора ако вам више није потребна."
+    },
+    "steps": {
+      "prepare": "Припрема телеметрије и окружења",
+      "migrate": "Миграција старе конфигурације",
+      "backup": "Прављење резервне копије постојећих конфигурација композитора",
+      "deps": "Инсталирање системских пакета и фонтова",
+      "ski": "Инсталирање управитеља датотека Ski",
+      "audio": "Инсталирање аудио-погона Serpantinum",
+      "gamma": "Инсталирање Serpantinum филтера плаве светлости",
+      "core": "Инсталирање основних сервиса Serpantinum",
+      "deploy": "Постављање конфигурација љуске и композитора",
+      "sddm": "Подешавање менаџера приказа SDDM",
+      "wallpapers": "Инсталирање пакета позадина",
+      "config": "Иницијализација подешавања и сервиса",
+      "finalize": "Чување стања верзије и завршетак",
+      "uninstall_stop": "Заустављање Serpantinum-а и демона",
+      "uninstall_reset": "Враћање тема апликација и Qt подразумеваних вредности",
+      "uninstall_remove": "Уклањање датотека и конфигурација Serpantinum-а"
     }
   },
   "datetime": {
@@ -2279,5 +2447,8 @@
       "today": "Данас магла. Највиша {max}, најнижа {min}.",
       "tomorrow": "Сутра магла. Највиша {max}, најнижа {min}."
     }
+  },
+  "osd": {
+    "keyboard_layout": "Распоред тастатуре"
   }
 }

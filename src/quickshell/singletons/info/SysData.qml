@@ -1,11 +1,12 @@
 pragma Singleton
 import QtQuick
+import QtQml
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.UPower
 import "../../"
 
-Item {
+RefCountedService {
     id: root
 
     property int cpu: 0
@@ -20,7 +21,22 @@ Item {
     property real diskGb: 0.0
     property real diskTotalGb: 0.0
 
-    property int subscribers: 0
+    readonly property int historySize: 64
+    property var historyUsers: ({})
+
+    readonly property bool isDesktop: UPower.displayDevice.ready ? !UPower.displayDevice.isLaptopBattery : SystemInfo.isDesktop
+    readonly property int batteryCapacity: UPower.displayDevice.ready ? Math.round(UPower.displayDevice.percentage * 100) : 0
+    readonly property bool isCharging: UPower.displayDevice.ready && (UPower.displayDevice.state === UPowerDeviceState.Charging || UPower.displayDevice.state === UPowerDeviceState.FullyCharged)
+    readonly property string batteryStatus: {
+        if (!UPower.displayDevice.ready) return "Unknown";
+        switch (UPower.displayDevice.state) {
+            case UPowerDeviceState.FullyCharged: return "Fully Charged";
+            case UPowerDeviceState.Charging: return "Charging";
+            case UPowerDeviceState.Discharging: return "Discharging";
+            default: return "Unknown";
+        }
+    }
+    readonly property string batteryIcon: isCharging ? "󰂄" : (batteryCapacity > 20 ? "󰁹" : "󰂃")
     readonly property bool onBattery: UPower.displayDevice.ready && UPower.displayDevice.state === UPowerDeviceState.Discharging
 
     function subscribe() {
@@ -64,6 +80,19 @@ Item {
             root.diskGb = parseFloat(p[7]) || 0.0;
             root.diskTotalGb = parseFloat(p[8]) || 0.0;
         }
+    }
+
+    function applyUsage(text, withNet) {
+        text = text ? text.trim() : "";
+        if (!text) return;
+
+        let u;
+        try {
+            u = JSON.parse(text);
+        } catch (e) {
+            return;
+        }
+        root.applyUsageObject(u, withNet);
     }
 
     function prewarm() {
@@ -133,9 +162,11 @@ Item {
     // One long-running fetcher while anything is subscribed, printing a line per tick.
     property int streamInterval: root.onBattery ? 4 : 2
     onStreamIntervalChanged: {
-        if (streamProc.running) {
-            streamProc.running = false;
-            streamProc.running = true;
+        if (root.active) {
+            root._restartingStream = true;
+            Qt.callLater(function() {
+                root._restartingStream = false;
+            });
         }
     }
 
@@ -157,7 +188,7 @@ Item {
         command: ["bash", root.qsWatchersDir + "/sys_fetcher.sh"]
         environment: ({ QS_RUN_SYSDATA: root.stateDir })
         stdout: StdioCollector {
-            onStreamFinished: root.applyUsage(this.text)
+            onStreamFinished: root.applyUsage(this.text, false)
         }
     }
 }

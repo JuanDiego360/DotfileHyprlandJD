@@ -1,3 +1,46 @@
+### 2.5.4
+
+- feat(niri): add blurred and dimmed wallpaper backdrop for overview
+- fix(installer): prevent legacy telemetry from reporting target version as old version
+- feat(screenshot): add screen color picker overlay and cli command
+- feat(install): add multi-tier logo header lockup and remove preview launcher
+- feat(install): add interactive terminal UI, safe preview launcher, and full localization
+- perf(network): batch wifi/eth rebuilds, update beams once per frame and speed up list sync
+- feat(guide): add module picker with arrow navigation to bar modules tab and let widgets handle escape
+- fix(bar): center morph workspace triangle so it no longer shifts with rotation
+- fix(media): keep eq slider handles opaque over tracks when dynamic eq dims them
+- fix(media): keep seek bar progress line at full color when paused
+- feat(bar): add morph and trace workspace style variants
+- fix(bar): keep workspace pills length stable during rapid switches
+- fix(nix): drop nonexistent bars sysmon style
+- feat(bar): add ambient media style and sysmon style variants
+- perf(website): optimize LCP rendering, responsive WebP assets, and docs INP
+- fix(mango): use exclusive focus on modal overlays and prevent bottom dock/bar overlap
+
+### 2.5.3
+
+- feat(bar): add per-monitor bar display setting with reusable monitor selector
+- fix: hoist topbar IpcHandler out of Variants and guard dock screen teardown
+- feat(osd): add optional keyboard layout switch indicator
+- style(guide): shrink sidebar subtab chevrons and equalize tab horizontal margins
+- style(guide): remove keyboard shortcut hints from empty search state
+- feat(guide): improve settings search, add GuideScrollView, autosave inputs and animate copy button
+- fix(idle): stop printing idle helper inhibit logs to the console
+- feat(dock): add icons only toggle to hide app background boxes
+- feat(notifications): add per-urgency popup timeouts with optional app timeout override
+- fix(guide): restore liquid glass, rounded rows and tab-style icons in settings search
+- chore: pin serpantinum-core 0.8.0
+- feat(widgets): add history graph variant for CPU, RAM and temperature with configurable update rate
+- feat(tray): recolor tray icons into the theme accent while preserving luminance
+- feat(installer): add uninstall option that removes Serpantinum and resets app themes, Qt and SDDM
+- fix(website): fetch live GitHub commit count in star history stats
+- feat(website): sync Matugen preview themes, switch to IBM Plex Mono and polish hero and docs UI
+- style(wallpaper): use deep cubic bezier wave curve with full diagonal curvature
+- style(wallpaper): remove glowing outline from hex grid transition
+- style(wallpaper): make venetian blinds transition a clean line with no edge effects
+- style(wallpaper): make fluid wave transition a clean line with no edge effects
+- style(wallpaper): make clock sweep transition a clean line with no edge effects
+
 ### 2.5.2
 
 - feat(wallpaper): remove iris transition, slow ink bleed, and add hex grid size setting

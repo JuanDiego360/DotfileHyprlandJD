@@ -14,7 +14,20 @@ Item {
     signal openRequested(var screen)
     signal closeRequested(var screen)
 
-    property bool closedAny: false
+    function registerInstance(panel) {
+        if (!panel) return;
+        let list = controller.instances.slice();
+        if (list.indexOf(panel) === -1) {
+            list.push(panel);
+            controller.instances = list;
+        }
+    }
+
+    function unregisterInstance(panel) {
+        if (!panel) return;
+        let list = controller.instances.filter(p => p && p !== panel);
+        controller.instances = list;
+    }
 
     function targetScreen(screen) {
         if (screen) return screen;
@@ -35,29 +48,38 @@ Item {
     }
 
     function setIndex(index, screen) {
-        let target = targetScreen(screen);
-        if (target) controller.setIndexRequested(target, index);
+        let panel = instanceFor(screen);
+        if (panel) panel.setIndex(index);
+    }
+
+    function showTab(id, screen) {
+        let panel = instanceFor(screen);
+        if (panel) panel.showTab(id, 0);
     }
 
     function showSystemUsage(screen) {
-        let target = targetScreen(screen);
-        if (target) controller.showSystemUsageRequested(target);
+        showTab("system", screen);
     }
 
     function showNotes(screen) {
-        let target = targetScreen(screen);
-        if (target) controller.showNotesRequested(target);
+        showTab("notes", screen);
     }
 
     function open(screen) {
-        let target = targetScreen(screen);
-        if (target) controller.openRequested(target);
+        let panel = instanceFor(screen);
+        if (panel) panel.openPanel();
     }
 
     function close(screen) {
-        controller.closedAny = false;
-        controller.closeRequested(screen || null);
-        return controller.closedAny;
+        let closedAny = false;
+        for (let i = 0; i < controller.instances.length; i++) {
+            let panel = controller.instances[i];
+            if (!panel) continue;
+            if (!screen || panel.matchesScreen(screen)) {
+                if (panel.closePanel()) closedAny = true;
+            }
+        }
+        return closedAny;
     }
 
     function toggle(indexOrScreen, maybeScreen) {
@@ -101,7 +123,7 @@ Item {
         }
 
         function forceReload() {
-            Quickshell.reload(true)
+            ShellRouter.reload();
         }
     }
 }
